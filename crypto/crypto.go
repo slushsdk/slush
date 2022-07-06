@@ -1,13 +1,14 @@
 package crypto
 
 import (
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
 )
 
 const (
 	// HashSize is the size in bytes of an AddressHash.
-	HashSize = iHash.Size
+	HashSize = ihash.Size
 
 	// AddressSize is the size of a pubkey address.
 	AddressSize = 20
@@ -23,13 +24,13 @@ type Address = bytes.HexBytes
 //
 // See: https://docs.tendermint.com/master/spec/core/data_structures.html#address
 func AddressHash(bz []byte) Address {
-	h := iHash.Sum256(bz)
+	h := ihash.Sum256(bz)
 	return Address(h[:AddressSize])
 }
 
 // Checksum returns the SHA256 of the bz.
 func Checksum(bz []byte) []byte {
-	h := iHash.Sum256(bz)
+	h := ihash.Sum256(bz)
 	return h[:]
 }
 

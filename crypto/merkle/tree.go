@@ -4,12 +4,14 @@ import (
 	"crypto/sha256"
 	"hash"
 	"math/bits"
+
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 )
 
 // HashFromByteSlices computes a Merkle tree where the leaves are the byte slice,
 // in the provided order. It follows RFC-6962.
 func HashFromByteSlices(items [][]byte) []byte {
-	return hashFromByteSlices(iHash.New(), items)
+	return hashFromByteSlices(ihash.New(), items)
 }
 
 func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
