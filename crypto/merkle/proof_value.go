@@ -2,7 +2,6 @@ package merkle
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
@@ -80,7 +79,7 @@ func (op ValueOp) Run(args [][]byte) ([][]byte, error) {
 	}
 	value := args[0]
 
-	vhash := sha256.Sum256(value)
+	vhash := ihash.iHash.Sum256(value)
 
 	bz := new(bytes.Buffer)
 	// Wrap <op.Key, vhash> to hash the KVPair.

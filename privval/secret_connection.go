@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/cipher"
 	crand "crypto/rand"
-	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -350,7 +349,7 @@ func deriveSecrets(
 	dhSecret *[32]byte,
 	locIsLeast bool,
 ) (recvSecret, sendSecret *[aeadKeySize]byte, err error) {
-	hash := sha256.New
+	hash := iHash.New
 	hkdf := hkdf.New(hash, dhSecret[:], nil, secretConnKeyAndChallengeGen)
 	// get enough data for 2 aead keys, and a 32 byte challenge
 	res := new([2*aeadKeySize + 32]byte)
