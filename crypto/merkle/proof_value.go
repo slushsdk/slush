@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
@@ -79,7 +80,7 @@ func (op ValueOp) Run(args [][]byte) ([][]byte, error) {
 	}
 	value := args[0]
 
-	vhash := ihash.iHash.Sum256(value)
+	vhash := ihash.Sum256(value)
 
 	bz := new(bytes.Buffer)
 	// Wrap <op.Key, vhash> to hash the KVPair.
