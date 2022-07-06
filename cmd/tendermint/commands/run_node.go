@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
@@ -138,7 +137,7 @@ func checkGenesisHash(config *cfg.Config) error {
 		return fmt.Errorf("can't open genesis file: %w", err)
 	}
 	defer f.Close()
-	h := sha256.New()
+	h := iHash.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return fmt.Errorf("error when hashing genesis file: %w", err)
 	}

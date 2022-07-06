@@ -1,7 +1,6 @@
 package types
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"time"
@@ -393,7 +392,7 @@ func (params ConsensusParams) HashConsensusParams() []byte {
 		panic(err)
 	}
 
-	sum := sha256.Sum256(bz)
+	sum := iHash.Sum256(bz)
 
 	return sum[:]
 }

@@ -1,7 +1,6 @@
 package statesync
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -12,7 +11,7 @@ import (
 )
 
 // snapshotKey is a snapshot key used for lookups.
-type snapshotKey [sha256.Size]byte
+type snapshotKey [iHash.Size]byte
 
 // snapshot contains data about a snapshot.
 type snapshot struct {
@@ -30,7 +29,7 @@ type snapshot struct {
 // non-deterministic manner. All fields must be equal for the snapshot to be considered the same.
 func (s *snapshot) Key() snapshotKey {
 	// Hash.Write() never returns an error.
-	hasher := sha256.New()
+	hasher := iHash.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", s.Height, s.Format, s.Chunks)))
 	hasher.Write(s.Hash)
 	hasher.Write(s.Metadata)
