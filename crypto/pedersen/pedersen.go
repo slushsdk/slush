@@ -4,9 +4,60 @@ package pedersen
 
 import (
 	_ "embed"
+	"encoding/binary"
 	"fmt"
+	"hash"
 	"math/big"
+
+	"github.com/tendermint/tendermint/crypto/utils"
 )
+
+type PedersenHash struct {
+	input []byte
+}
+
+func New() hash.Hash {
+	d := new(PedersenHash)
+	return d
+}
+
+func (p PedersenHash) Sum(b []byte) []byte {
+	if b == nil {
+		return pedersenHash(p.input)
+	}
+	return pedersenHash(b)
+}
+
+func (PedersenHash) BlockSize() int {
+	return 32
+}
+
+func (ph PedersenHash) Size() int {
+	return len(ph.input)
+}
+
+func (ph PedersenHash) Reset() {
+	panic("Not implemented")
+}
+
+func (ph PedersenHash) Write(p []byte) (n int, err error) {
+	ph.input = p
+	return len(p), nil
+}
+
+func pedersenHash(b []byte) []byte {
+	chunks := utils.Split(b, 31)
+
+	pedersenInput := make([]*big.Int, len(chunks))
+
+	for i := 0; i < len(chunks); i++ {
+		pedersenInput[i] = big.NewInt(int64(binary.BigEndian.Uint64(chunks[i])))
+	}
+
+	pedersenOutput := ArrayDigest(pedersenInput...)
+	pedersenOutputBytes := pedersenOutput.Bytes()
+	return pedersenOutputBytes
+}
 
 // Digest returns a field element that is the result of hashing an input
 // (a, b) ∈ 𝔽²ₚ where p = 2²⁵¹ + 17·2¹⁹² + 1. This function will panic
