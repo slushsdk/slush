@@ -41,8 +41,8 @@ func (ph PedersenHash) Reset() {
 }
 
 func (ph PedersenHash) Write(p []byte) (n int, err error) {
-	ph.input = p
-	return len(p), nil
+	ph.input = append(ph.input, p...)
+	return len(ph.input), nil
 }
 
 func pedersenHash(b []byte) []byte {
