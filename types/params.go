@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/sr25519"
@@ -392,7 +393,7 @@ func (params ConsensusParams) HashConsensusParams() []byte {
 		panic(err)
 	}
 
-	sum := iHash.Sum256(bz)
+	sum := ihash.Sum256(bz)
 
 	return sum[:]
 }

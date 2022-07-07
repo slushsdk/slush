@@ -22,6 +22,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 
 	"github.com/tendermint/tendermint/crypto"
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/internal/libs/async"
@@ -349,7 +350,7 @@ func deriveSecrets(
 	dhSecret *[32]byte,
 	locIsLeast bool,
 ) (recvSecret, sendSecret *[aeadKeySize]byte, err error) {
-	hash := iHash.New
+	hash := ihash.New
 	hkdf := hkdf.New(hash, dhSecret[:], nil, secretConnKeyAndChallengeGen)
 	// get enough data for 2 aead keys, and a 32 byte challenge
 	res := new([2*aeadKeySize + 32]byte)

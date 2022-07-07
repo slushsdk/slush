@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
+
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 )
 
 const stateFileName = "app_state.json"
@@ -185,7 +187,7 @@ func hashItems(items map[string]string, height uint64) []byte {
 	}
 	sort.Strings(keys)
 
-	hasher := iHash.New()
+	hasher := ihash.New()
 	var b [8]byte
 	binary.BigEndian.PutUint64(b[:], height)
 	_, _ = hasher.Write(b[:])

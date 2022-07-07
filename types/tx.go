@@ -8,6 +8,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -19,7 +20,7 @@ import (
 type Tx []byte
 
 // Key produces a fixed-length key for use in indexing.
-func (tx Tx) Key() TxKey { return iHash.Sum256(tx) }
+func (tx Tx) Key() TxKey { return ihash.Sum256(tx) }
 
 // Hash computes the TMHASH hash of the wire encoded transaction.
 func (tx Tx) Hash() []byte { return crypto.Checksum(tx) }
