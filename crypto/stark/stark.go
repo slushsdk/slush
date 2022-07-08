@@ -5,7 +5,6 @@ import (
 
 	rand "crypto/rand"
 
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -35,12 +34,12 @@ func (PrivKey) TypeTag() string { return PrivKeyName }
 
 func (PrivKey) Type() string { return PrivKeyName }
 
-func (privKey *PrivKey) Bytes() []byte {
-	return privKey.pv.X.Bytes()
+func (pv *PrivKey) Bytes() []byte {
+	return pv.pv.X.Bytes()
 }
 
-func (privKey *PrivKey) PubKey() crypto.PubKey {
-	return privKey.PubKey()
+func (pv *PrivKey) PubKey() PubKey {
+	return pubKeyFromPrivate(pv)
 }
 
 func (privKey *PrivKey) Sign(msg []byte) ([]byte, error) {
@@ -55,21 +54,35 @@ func (privKey PrivKey) Equals(p PrivKey) bool {
 	return privKey.pv.X.Cmp(p.pv.X) == 0
 }
 
-type PubKey struct{ PublicKey }
+type PubKey struct{ pb *PublicKey }
 
 type Address = bytes.HexBytes
 
+func pubKeyFromPrivate(pv *PrivKey) PubKey {
+	return PubKey{
+		pb: &pv.pv.PublicKey,
+	}
+}
+
 func (p PubKey) Address() Address {
-	return p.X.Bytes()
+	return p.pb.X.Bytes()
 }
 
 func (p PubKey) Bytes() []byte {
-	return p.Bytes()
+	return p.pb.X.Bytes()
 }
 
 func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
 	r, s := deserializeSig(sig)
-	return Verify(&p.PublicKey, msg, r, s)
+	return Verify(p.pb, msg, r, s)
+}
+
+func (p PubKey) Equals(pb PubKey) bool {
+	return p.pb.X.Cmp(pb.pb.X) == 0
+}
+
+func (p PubKey) Type() string {
+	return PubKeyName
 }
 
 func serializeSig(r *big.Int, s *big.Int) []byte {
