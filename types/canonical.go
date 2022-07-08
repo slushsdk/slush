@@ -88,17 +88,21 @@ func CanonicalTime(t time.Time) string {
 	return tmtime.Canonical(t).Format(TimeFormat)
 }
 
-func HashCanonicalVote(canVote tmproto.CanonicalVote) [ihash.Hash.Size]byte {
+func HashCanonicalVote(canVote tmproto.CanonicalVote) [ihash.Size]byte {
 
 	var voteArray []byte
-	typeByte := big.Int.New.SetUint32(canVote.Type).Bytes
-	heightByte := big.Int.New().SetUint64(canVote.Height).Bytes
-	roundByte := big.Int.New().SetUint64(canVote.Round).Bytes
-	blockIDByte := big.Int.New().SetUint64(canVote.BlockID).Bytes
-	timestampByte := big.Int.New().SetUint64(canVote.Timestamp).Bytes
-	chainIDByte := big.Int.New().SetUint64(canVote.ChainID).Bytes
+	typeByte := []byte(canVote.Type)
+	heightByte := []byte(canVote.Height)
+	roundByte := []byte(canVote.Round)
+	blockIDByte := []byte(canVote.BlockID)
+	timestampByte := big.NewInt(canVote.Timestamp).Bytes
+	chainIDByte := []byte(canVote.ChainID)
 
 	voteArray = bytes.Join(typeByte, heightByte, roundByte, blockIDByte, timestampByte, chainIDByte)
 	r := ihash.New().Write(voteArray)
+
+}
+
+func HashCanonicalPartSetHeader() [ihash.Size]byte {
 
 }
