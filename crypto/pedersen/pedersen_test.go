@@ -1,7 +1,6 @@
 package pedersen_test
 
 import (
-	"encoding/binary"
 	"math/big"
 	"testing"
 
@@ -24,8 +23,14 @@ func TestPedersenArrayDigest(t *testing.T) {
 
 func TestPedersenHash(t *testing.T) {
 	hasher := pedersen.New()
-	hasher.Write([]byte{10, 10, 10})
+	data := []byte("ABC€")
+
+	hasher.Write(data)
 	result := hasher.Sum(nil)
-	resultInt := binary.BigEndian.Uint64(result)
-	require.Greater(t, resultInt, uint64(0))
+
+	require.Equal(t, result, hasher.Sum(data))
+
+	resultInt := new(big.Int).SetBytes(result)
+	expected, _ := new(big.Int).SetString("2242061308241901177902337403014839264202837952334584323802454450099490424417", 10)
+	require.True(t, resultInt.Cmp(expected) == 0)
 }
