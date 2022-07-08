@@ -4,6 +4,7 @@
 package types
 
 import (
+	
 	encoding_binary "encoding/binary"
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -14,6 +15,7 @@ import (
 	math "math"
 	math_bits "math/bits"
 	time "time"
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -80,6 +82,17 @@ func (m *CanonicalBlockID) GetPartSetHeader() CanonicalPartSetHeader {
 	return CanonicalPartSetHeader{}
 }
 
+func (m CanonicalBlockID) Hasher() []byte {
+
+	hasher := ihash.New()
+	hasher.Write(m.GetHash())
+	hasher.Write(m.GetPartSetHeader().Hasher())
+
+	r := hasher.Sum(nil)
+
+	return r
+}
+
 type CanonicalPartSetHeader struct {
 	Total uint32 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
 	Hash  []byte `protobuf:"bytes,2,opt,name=hash,proto3" json:"hash,omitempty"`
@@ -132,10 +145,12 @@ func (m *CanonicalPartSetHeader) GetHash() []byte {
 	return nil
 }
 
-func (canPartSetHeader CanonicalPartSetHeader) Hash() []byte {
+func (canPartSetHeader CanonicalPartSetHeader) Hasher() []byte {
 
 	hasher := ihash.New()
-	hasher.Write(big.NewInt(int64(canPartSetHeader.Total)).Bytes())
+	b := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(b , uint64(canPartSetHeader.Total))
+	hasher.Write(b)
 	hasher.Write(canPartSetHeader.Hash)
 
 	r := hasher.Sum(nil)

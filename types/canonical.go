@@ -104,7 +104,7 @@ func HashCanonicalVote(canVote tmproto.CanonicalVote) []byte {
 
 	timestampHash := HashTime(canVote.Timestamp)
 
-	chainIDByte := ByteRounder([]byte(canVote.ChainID))
+	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainID))
 
 	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, timestampHash, chainIDByte}, make([]byte, 0))
 	hasher := ihash.New()
@@ -117,15 +117,32 @@ func HashCanonicalVote(canVote tmproto.CanonicalVote) []byte {
 func HashTime(timeStamp time.Time) []byte {
 
 	hasher := ihash.New()
-	hasher.Write(ByteRounder([]byte(tmtime.Canonical(timeStamp).Format(TimeFormat))))
+	hasher.Write(ihash.ByteRounder([]byte(tmtime.Canonical(timeStamp).Format(TimeFormat))))
 	return hasher.Sum(nil)
 
 }
 
-//We want to pass in 64 bit numbers to pedersen, so we want to round the byte array to be that long.
-func ByteRounder(ba []byte) []byte {
+func BlockIDHasher(m tmproto.CanonicalBlockID) []byte {
 
-	rem := len(ba) % 8
-	return bytes.Join([][]byte{ba, make([]byte, rem)}, make([]byte, 0))
+	hasher := ihash.New()
+	hasher.Write(m.GetHash())
+	hasher.Write(CPSetHeaderHasher(m.GetPartSetHeader()))
+
+	r := hasher.Sum(nil)
+
+	return r
+}
+
+func CPSetHeaderHasher(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
+
+	hasher := ihash.New()
+	b := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(b, uint64(canPartSetHeader.Total))
+	hasher.Write(b)
+	hasher.Write(canPartSetHeader.Hash)
+
+	r := hasher.Sum(nil)
+
+	return r
 
 }
