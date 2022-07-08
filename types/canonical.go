@@ -2,8 +2,8 @@ package types
 
 import (
 	"bytes"
-	"math/big"
-	"time"
+	encoding_binary "encoding/binary"
+	time "time"
 
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	tmtime "github.com/tendermint/tendermint/libs/time"
@@ -88,21 +88,44 @@ func CanonicalTime(t time.Time) string {
 	return tmtime.Canonical(t).Format(TimeFormat)
 }
 
-func HashCanonicalVote(canVote tmproto.CanonicalVote) [ihash.Size]byte {
+func HashCanonicalVote(canVote tmproto.CanonicalVote) []byte {
 
 	var voteArray []byte
-	typeByte := []byte(canVote.Type)
-	heightByte := []byte(canVote.Height)
-	roundByte := []byte(canVote.Round)
-	blockIDByte := []byte(canVote.BlockID)
-	timestampByte := big.NewInt(canVote.Timestamp).Bytes
-	chainIDByte := []byte(canVote.ChainID)
+	typeByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Type))
 
-	voteArray = bytes.Join(typeByte, heightByte, roundByte, blockIDByte, timestampByte, chainIDByte)
-	r := ihash.New().Write(voteArray)
+	heightByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Height))
+
+	roundByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Round))
+
+	blockIDHash := canVote.BlockID.Hasher()
+
+	timestampHash := HashTime(canVote.Timestamp)
+
+	chainIDByte := ByteRounder([]byte(canVote.ChainID))
+
+	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, timestampHash, chainIDByte}, make([]byte, 0))
+	hasher := ihash.New()
+	hasher.Write(voteArray)
+	r := hasher.Sum(nil)
+
+	return r
+}
+
+func HashTime(timeStamp time.Time) []byte {
+
+	hasher := ihash.New()
+	hasher.Write(ByteRounder([]byte(tmtime.Canonical(timeStamp).Format(TimeFormat))))
+	return hasher.Sum(nil)
 
 }
 
-func HashCanonicalPartSetHeader() [ihash.Size]byte {
+//We want to pass in 64 bit numbers to pedersen, so we want to round the byte array to be that long.
+func ByteRounder(ba []byte) []byte {
+
+	rem := len(ba) % 8
+	return bytes.Join([][]byte{ba, make([]byte, rem)}, make([]byte, 0))
 
 }
