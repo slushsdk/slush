@@ -132,6 +132,18 @@ func (m *CanonicalPartSetHeader) GetHash() []byte {
 	return nil
 }
 
+func (canPartSetHeader CanonicalPartSetHeader) Hash() []byte {
+
+	hasher := ihash.New()
+	hasher.Write(big.NewInt(int64(canPartSetHeader.Total)).Bytes())
+	hasher.Write(canPartSetHeader.Hash)
+
+	r := hasher.Sum(nil)
+
+	return r
+
+}
+
 type CanonicalProposal struct {
 	Type      SignedMsgType     `protobuf:"varint,1,opt,name=type,proto3,enum=tendermint.types.SignedMsgType" json:"type,omitempty"`
 	Height    int64             `protobuf:"fixed64,2,opt,name=height,proto3" json:"height,omitempty"`
