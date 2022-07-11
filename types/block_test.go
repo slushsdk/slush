@@ -16,7 +16,6 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/bits"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -429,11 +428,11 @@ func TestHeaderHash(t *testing.T) {
 						t.Errorf("unknown type %T", f)
 					}
 				}
-
+				dst, _ := hex.DecodeString("86C7509710A4ECFD79B5E703399FAC56C01722B5F380ED7122FA8746AB18B028")
 				assert.Equal(t,
-					[]byte("86C7509710A4ECFD79B5E703399FAC56C01722B5F380ED7122FA8746AB18B028"), tc.header.Hash())
-				//assert.Equal(t,
-				// bytes.HexBytes(merkle.HashFromByteSlices(byteSlices)), tc.header.Hash())
+					bytes.HexBytes(dst), tc.header.Hash())
+				// assert.Equal(t,
+				// 	bytes.HexBytes(merkle.HashFromByteSlices(byteSlices)), tc.header.Hash())
 			}
 		})
 	}
