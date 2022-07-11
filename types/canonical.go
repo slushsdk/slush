@@ -1,8 +1,11 @@
 package types
 
 import (
-	"time"
+	"bytes"
+	encoding_binary "encoding/binary"
+	time "time"
 
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -83,4 +86,63 @@ func CanonicalTime(t time.Time) string {
 	// local time, we need to force UTC here, so the
 	// signatures match
 	return tmtime.Canonical(t).Format(TimeFormat)
+}
+
+func HashCanonicalVote(canVote tmproto.CanonicalVote) []byte {
+
+	var voteArray []byte
+	typeByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Type))
+
+	heightByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Height))
+
+	roundByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Round))
+
+	blockIDHash := canVote.BlockID.Hasher()
+
+	timestampHash := HashTime(canVote.Timestamp)
+
+	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainID))
+
+	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, timestampHash, chainIDByte}, make([]byte, 0))
+	hasher := ihash.New()
+	hasher.Write(voteArray)
+	r := hasher.Sum(nil)
+
+	return r
+}
+
+func HashTime(timeStamp time.Time) []byte {
+
+	hasher := ihash.New()
+	hasher.Write(ihash.ByteRounder([]byte(tmtime.Canonical(timeStamp).Format(TimeFormat))))
+	return hasher.Sum(nil)
+
+}
+
+func BlockIDHasher(m tmproto.CanonicalBlockID) []byte {
+
+	hasher := ihash.New()
+	hasher.Write(m.GetHash())
+	hasher.Write(CPSetHeaderHasher(m.GetPartSetHeader()))
+
+	r := hasher.Sum(nil)
+
+	return r
+}
+
+func CPSetHeaderHasher(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
+
+	hasher := ihash.New()
+	b := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(b, uint64(canPartSetHeader.Total))
+	hasher.Write(b)
+	hasher.Write(canPartSetHeader.Hash)
+
+	r := hasher.Sum(nil)
+
+	return r
+
 }
