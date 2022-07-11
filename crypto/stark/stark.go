@@ -1,10 +1,12 @@
 package stark
 
 import (
+	real_bytes "bytes"
 	"math/big"
 
 	rand "crypto/rand"
 
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -16,6 +18,7 @@ const (
 
 	KeyType     = "stark"
 	PrivKeySize = 32
+	PubKeySize  = 32
 )
 
 var curve = weierstrass.Stark()
@@ -34,15 +37,16 @@ func (PrivKey) TypeTag() string { return PrivKeyName }
 
 func (PrivKey) Type() string { return PrivKeyName }
 
-func (pv *PrivKey) Bytes() []byte {
+func (pv PrivKey) Bytes() []byte {
 	return pv.pv.X.Bytes()
 }
 
-func (pv *PrivKey) PubKey() PubKey {
-	return pubKeyFromPrivate(pv)
+func (pv PrivKey) PubKey() crypto.PubKey {
+	return pubKeyFromPrivate(&pv)
+
 }
 
-func (privKey *PrivKey) Sign(msg []byte) ([]byte, error) {
+func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
 	r, s, err := Sign(rand.Reader, privKey.pv, msg)
 	if err != nil {
 		panic(err)
@@ -55,6 +59,8 @@ func (privKey PrivKey) Equals(p PrivKey) bool {
 }
 
 type PubKey struct{ pb *PublicKey }
+
+func (PubKey) TypeTag() string { return PubKeyName }
 
 type Address = bytes.HexBytes
 
@@ -77,8 +83,17 @@ func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
 	return Verify(p.pb, msg, r, s)
 }
 
-func (p PubKey) Equals(pb PubKey) bool {
-	return p.pb.X.Cmp(pb.pb.X) == 0
+func (p PubKey) Equals(pb crypto.PubKey) bool {
+
+	if pb.Type() != "tendermint/PubKeyStark" {
+		return false
+	}
+
+	if otherEd, ok := pb.(PubKey); ok {
+		return real_bytes.Equal(p.pb.X.Bytes(), otherEd.Bytes())
+	}
+	return false
+
 }
 
 func (p PubKey) Type() string {
