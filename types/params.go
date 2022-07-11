@@ -9,6 +9,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/sr25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	tmstrings "github.com/tendermint/tendermint/internal/libs/strings"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -26,12 +27,14 @@ const (
 	ABCIPubKeyTypeEd25519   = ed25519.KeyType
 	ABCIPubKeyTypeSecp256k1 = secp256k1.KeyType
 	ABCIPubKeyTypeSr25519   = sr25519.KeyType
+	ABCIPubKeyTypeStark     = stark.KeyType
 )
 
 var ABCIPubKeyTypesToNames = map[string]string{
 	ABCIPubKeyTypeEd25519:   ed25519.PubKeyName,
 	ABCIPubKeyTypeSecp256k1: secp256k1.PubKeyName,
 	ABCIPubKeyTypeSr25519:   sr25519.PubKeyName,
+	ABCIPubKeyTypeStark:     stark.PubKeyName,
 }
 
 // ConsensusParams contains consensus critical parameters that determine the
@@ -147,7 +150,7 @@ func DefaultEvidenceParams() EvidenceParams {
 // only ed25519 pubkeys.
 func DefaultValidatorParams() ValidatorParams {
 	return ValidatorParams{
-		PubKeyTypes: []string{ABCIPubKeyTypeEd25519},
+		PubKeyTypes: []string{ABCIPubKeyTypeStark},
 	}
 }
 
