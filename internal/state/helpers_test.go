@@ -13,8 +13,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/stark"
 	sm "github.com/tendermint/tendermint/internal/state"
 	sf "github.com/tendermint/tendermint/internal/state/test/factory"
 	"github.com/tendermint/tendermint/internal/test/factory"
@@ -105,7 +105,8 @@ func makeState(t *testing.T, nVals, height int) (sm.State, dbm.DB, map[string]ty
 	privVals := make(map[string]types.PrivValidator, nVals)
 	for i := 0; i < nVals; i++ {
 		secret := []byte(fmt.Sprintf("test%d", i))
-		pk := ed25519.GenPrivKeyFromSecret(secret)
+		pkp := (stark.GenPrivKeyFromSecret(secret))
+		pk := *pkp
 		valAddr := pk.PubKey().Address()
 		vals[i] = types.GenesisValidator{
 			Address: valAddr,
@@ -138,7 +139,7 @@ func makeState(t *testing.T, nVals, height int) (sm.State, dbm.DB, map[string]ty
 func genValSet(size int) *types.ValidatorSet {
 	vals := make([]*types.Validator, size)
 	for i := 0; i < size; i++ {
-		vals[i] = types.NewValidator(ed25519.GenPrivKey().PubKey(), 10)
+		vals[i] = types.NewValidator(stark.GenPrivKey().PubKey(), 10)
 	}
 	return types.NewValidatorSet(vals)
 }
@@ -206,7 +207,7 @@ func makeHeaderPartsResponsesParams(
 }
 
 func randomGenesisDoc() *types.GenesisDoc {
-	pubkey := ed25519.GenPrivKey().PubKey()
+	pubkey := stark.GenPrivKey().PubKey()
 	return &types.GenesisDoc{
 		GenesisTime: tmtime.Now(),
 		ChainID:     "abc",

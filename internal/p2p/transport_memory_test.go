@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/types"
@@ -22,7 +23,7 @@ func init() {
 			network = p2p.NewMemoryNetwork(log.NewNopLogger(), 1)
 		}
 		i := byte(network.Size())
-		nodeID, err := types.NewNodeID(hex.EncodeToString(bytes.Repeat([]byte{i<<4 + i}, 20)))
+		nodeID, err := types.NewNodeID(hex.EncodeToString(bytes.Repeat([]byte{i<<4 + i}, crypto.AddressSize)))
 		require.NoError(t, err)
 		transport := network.CreateTransport(nodeID)
 

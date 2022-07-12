@@ -17,6 +17,7 @@ import (
 	"github.com/tendermint/tendermint/abci/example/kvstore"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/internal/p2p/p2ptest"
 	"github.com/tendermint/tendermint/libs/log"
@@ -350,7 +351,7 @@ func TestDontExhaustMaxActiveIDs(t *testing.T) {
 
 	nodeID := rts.nodes[0]
 
-	peerID, err := types.NewNodeID("0011223344556677889900112233445566778899")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
 	require.NoError(t, err)
 
 	// ensure the reactor does not panic (i.e. exhaust active IDs)
@@ -377,13 +378,14 @@ func TestMempoolIDsPanicsIfNodeRequestsOvermaxActiveIDs(t *testing.T) {
 	// 0 is already reserved for UnknownPeerID
 	ids := NewMempoolIDs()
 
+	formatting := "%0" + fmt.Sprint(2*crypto.AddressSize) + "d"
 	for i := 0; i < MaxActiveIDs-1; i++ {
-		peerID, err := types.NewNodeID(fmt.Sprintf("%040d", i))
+		peerID, err := types.NewNodeID(fmt.Sprintf(formatting, i))
 		require.NoError(t, err)
 		ids.ReserveForPeer(peerID)
 	}
 
-	peerID, err := types.NewNodeID(fmt.Sprintf("%040d", MaxActiveIDs-1))
+	peerID, err := types.NewNodeID(fmt.Sprintf(formatting, MaxActiveIDs-1))
 	require.NoError(t, err)
 	require.Panics(t, func() {
 		ids.ReserveForPeer(peerID)

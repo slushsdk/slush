@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/types"
@@ -272,7 +272,7 @@ func TestConnection_Handshake(t *testing.T) {
 		ab, ba := dialAccept(ctx, t, a, b)
 
 		// A handshake should pass the given keys and NodeInfo.
-		aKey := ed25519.GenPrivKey()
+		aKey := stark.GenPrivKey()
 		aInfo := types.NodeInfo{
 			NodeID: types.NodeIDFromPubKey(aKey.PubKey()),
 			ProtocolVersion: types.ProtocolVersion{
@@ -290,7 +290,7 @@ func TestConnection_Handshake(t *testing.T) {
 				RPCAddress: "rpc.domain.com",
 			},
 		}
-		bKey := ed25519.GenPrivKey()
+		bKey := stark.GenPrivKey()
 		bInfo := types.NodeInfo{NodeID: types.NodeIDFromPubKey(bKey.PubKey())}
 
 		errCh := make(chan error, 1)
@@ -328,7 +328,7 @@ func TestConnection_HandshakeCancel(t *testing.T) {
 		ab, ba := dialAccept(ctx, t, a, b)
 		timeoutCtx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 		cancel()
-		_, _, err := ab.Handshake(timeoutCtx, 0, types.NodeInfo{}, ed25519.GenPrivKey())
+		_, _, err := ab.Handshake(timeoutCtx, 0, types.NodeInfo{}, stark.GenPrivKey())
 		require.Error(t, err)
 		require.Equal(t, context.Canceled, err)
 		_ = ab.Close()
@@ -338,7 +338,7 @@ func TestConnection_HandshakeCancel(t *testing.T) {
 		ab, ba = dialAccept(ctx, t, a, b)
 		timeoutCtx, cancel = context.WithTimeout(ctx, 200*time.Millisecond)
 		defer cancel()
-		_, _, err = ab.Handshake(timeoutCtx, 0, types.NodeInfo{}, ed25519.GenPrivKey())
+		_, _, err = ab.Handshake(timeoutCtx, 0, types.NodeInfo{}, stark.GenPrivKey())
 		require.Error(t, err)
 		require.Equal(t, context.DeadlineExceeded, err)
 		_ = ab.Close()
@@ -462,7 +462,7 @@ func TestEndpoint_NodeAddress(t *testing.T) {
 		ip4    = []byte{1, 2, 3, 4}
 		ip4in6 = net.IPv4(1, 2, 3, 4)
 		ip6    = []byte{0xb1, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01}
-		id     = types.NodeID("00112233445566778899aabbccddeeff00112233")
+		id     = types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
 	)
 
 	testcases := []struct {
@@ -517,7 +517,7 @@ func TestEndpoint_String(t *testing.T) {
 		ip4    = []byte{1, 2, 3, 4}
 		ip4in6 = net.IPv4(1, 2, 3, 4)
 		ip6    = []byte{0xb1, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01}
-		nodeID = types.NodeID("00112233445566778899aabbccddeeff00112233")
+		nodeID = types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
 	)
 
 	testcases := []struct {
@@ -640,13 +640,13 @@ func dialAcceptHandshake(ctx context.Context, t *testing.T, a, b p2p.Transport) 
 
 	errCh := make(chan error, 1)
 	go func() {
-		privKey := ed25519.GenPrivKey()
+		privKey := stark.GenPrivKey()
 		nodeInfo := types.NodeInfo{NodeID: types.NodeIDFromPubKey(privKey.PubKey())}
 		_, _, err := ba.Handshake(ctx, 0, nodeInfo, privKey)
 		errCh <- err
 	}()
 
-	privKey := ed25519.GenPrivKey()
+	privKey := stark.GenPrivKey()
 	nodeInfo := types.NodeInfo{NodeID: types.NodeIDFromPubKey(privKey.PubKey())}
 	_, _, err := ab.Handshake(ctx, 0, nodeInfo, privKey)
 	require.NoError(t, err)

@@ -34,8 +34,8 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 		},
 	}
 
-	cmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeEd25519,
-		"Key type to generate privval file with. Options: ed25519, secp256k1")
+	cmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
+		"Key type to generate privval file with. Options: stark, ed25519, secp256k1")
 
 	return cmd
 }
