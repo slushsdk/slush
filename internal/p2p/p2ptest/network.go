@@ -10,7 +10,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/types"
@@ -238,7 +238,7 @@ type Node struct {
 func (n *Network) MakeNode(ctx context.Context, t *testing.T, opts NodeOptions) *Node {
 	ctx, cancel := context.WithCancel(ctx)
 
-	privKey := ed25519.GenPrivKey()
+	privKey := stark.GenPrivKey()
 	nodeID := types.NodeIDFromPubKey(privKey.PubKey())
 	nodeInfo := types.NodeInfo{
 		NodeID:     nodeID,

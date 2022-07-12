@@ -3,6 +3,7 @@ package consensus
 import (
 	"bytes"
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -2872,7 +2873,7 @@ func TestStateOutputsBlockPartsStats(t *testing.T) {
 
 	// create dummy peer
 	cs, _ := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
-	peerID, err := types.NewNodeID("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	peerID, err := types.NewNodeID(strings.Repeat("A", 2*crypto.AddressSize))
 	require.NoError(t, err)
 
 	// 1) new block part
@@ -2920,7 +2921,7 @@ func TestStateOutputVoteStats(t *testing.T) {
 
 	cs, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
 	// create dummy peer
-	peerID, err := types.NewNodeID("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	peerID, err := types.NewNodeID(strings.Repeat("A", 2*crypto.AddressSize))
 	require.NoError(t, err)
 
 	randBytes := tmrand.Bytes(crypto.HashSize)

@@ -148,7 +148,7 @@ func TestRouter_Channel_Basic(t *testing.T) {
 
 	// We should be able to send on the channel, even though there are no peers.
 	p2ptest.RequireSend(ctx, t, channel, p2p.Envelope{
-		To:      types.NodeID(strings.Repeat("a", 40)),
+		To:      types.NodeID(strings.Repeat("a", 2*crypto.AddressSize)),
 		Message: &p2ptest.Message{Value: "foo"},
 	})
 
@@ -194,7 +194,7 @@ func TestRouter_Channel_SendReceive(t *testing.T) {
 
 	// Sending to an unknown peer should be dropped.
 	p2ptest.RequireSend(ctx, t, a, p2p.Envelope{
-		To:      types.NodeID(strings.Repeat("a", 40)),
+		To:      types.NodeID(strings.Repeat("a", 2*crypto.AddressSize)),
 		Message: &p2ptest.Message{Value: "a"},
 	})
 	p2ptest.RequireEmpty(ctx, t, a, b, c)
@@ -663,9 +663,9 @@ func TestRouter_DialPeers_Parallel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	a := p2p.NodeAddress{Protocol: "mock", NodeID: types.NodeID(strings.Repeat("a", 40))}
-	b := p2p.NodeAddress{Protocol: "mock", NodeID: types.NodeID(strings.Repeat("b", 40))}
-	c := p2p.NodeAddress{Protocol: "mock", NodeID: types.NodeID(strings.Repeat("c", 40))}
+	a := p2p.NodeAddress{Protocol: "mock", NodeID: types.NodeID(strings.Repeat("a", 2*crypto.AddressSize))}
+	b := p2p.NodeAddress{Protocol: "mock", NodeID: types.NodeID(strings.Repeat("b", 2*crypto.AddressSize))}
+	c := p2p.NodeAddress{Protocol: "mock", NodeID: types.NodeID(strings.Repeat("c", 2*crypto.AddressSize))}
 
 	// Set up a mock transport that returns a connection that blocks during the
 	// handshake. It should dial all peers in parallel.

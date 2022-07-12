@@ -7,8 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/types"
 )
@@ -22,8 +21,8 @@ func TestNewNodeID(t *testing.T) {
 	}{
 		{"", "", false},
 		{"foo", "", false},
-		{"00112233445566778899aabbccddeeff00112233", "00112233445566778899aabbccddeeff00112233", true},
-		{"00112233445566778899AABBCCDDEEFF00112233", "00112233445566778899aabbccddeeff00112233", true},
+		{"0000111122223333444455556666777788889999000011112222333344445555", "0000111122223333444455556666777788889999000011112222333344445555", true},
+		{"0000111122223333444455556666777788889999000011112222333344445555", "0000111122223333444455556666777788889999000011112222333344445555", true},
 		{"00112233445566778899aabbccddeeff0011223", "", false},
 		{"00112233445566778899aabbccddeeff0011223g", "", false},
 	}
@@ -42,9 +41,9 @@ func TestNewNodeID(t *testing.T) {
 }
 
 func TestNewNodeIDFromPubKey(t *testing.T) {
-	privKey := ed25519.GenPrivKeyFromSecret([]byte("foo"))
+	privKey := stark.GenPrivKeyFromSecret([]byte("foo"))
 	nodeID := types.NodeIDFromPubKey(privKey.PubKey())
-	require.Equal(t, types.NodeID("045f5600654182cfeaccfe6cb19f0642e8a59898"), nodeID)
+	require.Equal(t, types.NodeID("04971f25338ee9b36dc7d27619ae92e18a0fa29616e50869d79ffc1de6d47a70"), nodeID)
 	require.NoError(t, nodeID.Validate())
 }
 
@@ -81,10 +80,10 @@ func TestNodeID_Validate(t *testing.T) {
 	}{
 		{"", false},
 		{"00", false},
-		{"00112233445566778899aabbccddeeff00112233", true},
+		{"0000111122223333444455556666777788889999000011112222333344445555", true},
 		{"00112233445566778899aabbccddeeff001122334", false},
 		{"00112233445566778899aabbccddeeffgg001122", false},
-		{"00112233445566778899AABBCCDDEEFF00112233", false},
+		{"0000111122223333444455556666777788889999000011112222333344445555", false},
 	}
 	for _, tc := range testcases {
 		tc := tc
@@ -100,7 +99,7 @@ func TestNodeID_Validate(t *testing.T) {
 }
 
 func TestParseNodeAddress(t *testing.T) {
-	user := "00112233445566778899aabbccddeeff00112233"
+	user := "0000111122223333444455556666777788889999000011112222333344445555"
 	id := types.NodeID(user)
 
 	testcases := []struct {
@@ -203,7 +202,7 @@ func TestParseNodeAddress(t *testing.T) {
 }
 
 func TestNodeAddress_Resolve(t *testing.T) {
-	id := types.NodeID("00112233445566778899aabbccddeeff00112233")
+	id := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
 
 	bctx, bcancel := context.WithCancel(context.Background())
 	defer bcancel()
@@ -293,7 +292,7 @@ func TestNodeAddress_Resolve(t *testing.T) {
 }
 
 func TestNodeAddress_String(t *testing.T) {
-	id := types.NodeID("00112233445566778899aabbccddeeff00112233")
+	id := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
 	user := string(id)
 	testcases := []struct {
 		address p2p.NodeAddress
@@ -340,11 +339,11 @@ func TestNodeAddress_String(t *testing.T) {
 		{p2p.NodeAddress{Protocol: "tcp", Hostname: "host"}, "tcp://host"},
 		{
 			p2p.NodeAddress{Protocol: "memory", NodeID: id, Path: "path"},
-			"memory://00112233445566778899aabbccddeeff00112233@/path",
+			"memory://0000111122223333444455556666777788889999000011112222333344445555@/path",
 		},
 		{
 			p2p.NodeAddress{Protocol: "memory", NodeID: id, Port: 80},
-			"memory:00112233445566778899aabbccddeeff00112233",
+			"memory:0000111122223333444455556666777788889999000011112222333344445555",
 		},
 	}
 	for _, tc := range testcases {
@@ -356,7 +355,7 @@ func TestNodeAddress_String(t *testing.T) {
 }
 
 func TestNodeAddress_Validate(t *testing.T) {
-	id := types.NodeID("00112233445566778899aabbccddeeff00112233")
+	id := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
 	testcases := []struct {
 		address p2p.NodeAddress
 		ok      bool

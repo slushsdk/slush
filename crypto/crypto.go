@@ -11,7 +11,7 @@ const (
 	HashSize = ihash.Size
 
 	// AddressSize is the size of a pubkey address.
-	AddressSize = 20
+	AddressSize = 32
 )
 
 // An address is a []byte, but hex-encoded even in JSON.
