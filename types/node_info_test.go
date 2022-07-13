@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmnet "github.com/tendermint/tendermint/libs/net"
 	"github.com/tendermint/tendermint/version"
@@ -179,6 +180,11 @@ func TestNodeInfoAddChannel(t *testing.T) {
 }
 
 func TestParseAddressString(t *testing.T) {
+	address1 := make([]byte, 2*crypto.AddressSize)
+	address2 := []byte("deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")
+	copy(address1, address2)
+	address := string(address1)
+
 	testCases := []struct {
 		name     string
 		addr     string
@@ -191,24 +197,24 @@ func TestParseAddressString(t *testing.T) {
 
 		{
 			"no protocol",
-			"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
-			"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
+			address + "@127.0.0.1:8080",
+			address + "@127.0.0.1:8080",
 			true,
 		},
 		{
 			"tcp input",
-			"tcp://deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
-			"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
+			"tcp://" + address + "@127.0.0.1:8080",
+			address + "@127.0.0.1:8080",
 			true,
 		},
 		{
 			"udp input",
-			"udp://deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
-			"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
+			"udp://" + address + "@127.0.0.1:8080",
+			address + "@127.0.0.1:8080",
 			true,
 		},
-		{"malformed tcp input", "tcp//deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080", "", false},
-		{"malformed udp input", "udp//deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080", "", false},
+		{"malformed tcp input", "tcp//" + address + "@127.0.0.1:8080", "", false},
+		{"malformed udp input", "udp//" + address + "@127.0.0.1:8080", "", false},
 
 		// {"127.0.0:8080", false},
 		{"invalid host", "notahost", "", false},
@@ -226,8 +232,8 @@ func TestParseAddressString(t *testing.T) {
 		{"notHex nodeId w/tcp", "tcp://xxxxbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080", "", false},
 		{
 			"correct nodeId w/tcp",
-			"tcp://deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
-			"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
+			"tcp://" + address + "@127.0.0.1:8080",
+			address + "@127.0.0.1:8080",
 			true,
 		},
 

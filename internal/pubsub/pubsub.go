@@ -353,7 +353,7 @@ func (s *Server) run(ctx context.Context) {
 		s.subs.Lock()
 		defer s.subs.Unlock()
 		for si := range s.subs.index.all {
-			si.sub.stop(ErrTerminated)
+			si.sub.stop(ErrTerminated8)
 		}
 		s.subs.index = nil
 	}()
@@ -377,7 +377,7 @@ func (s *Server) send(data types.EventData, events []abci.Event) error {
 		if len(evict) != 0 {
 			s.subs.Lock()
 			defer s.subs.Unlock()
-			s.removeSubs(evict, ErrTerminated)
+			s.removeSubs(evict, ErrTerminated4)
 		}
 	}()
 

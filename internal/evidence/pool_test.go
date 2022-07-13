@@ -90,8 +90,8 @@ func TestEvidencePoolBasic(t *testing.T) {
 
 	select {
 	case <-evAdded:
-	case <-time.After(5 * time.Second):
-		t.Fatal("evidence was not added to list after 5s")
+	case <-time.After(15 * time.Second):
+		t.Fatal("evidence was not added to list after 9s")
 	}
 
 	next := pool.EvidenceFront()
@@ -366,8 +366,8 @@ func TestEventOnEvidenceValidated(t *testing.T) {
 
 	select {
 	case <-done:
-	case <-time.After(1 * time.Second):
-		t.Fatal("did not receive a block header after 1 sec.")
+	case <-time.After(5 * time.Second):
+		t.Fatal("did not receive a block header after 5 sec.")
 	}
 
 }

@@ -41,7 +41,7 @@ func TestPeerManagerOptions_Validate(t *testing.T) {
 			PersistentPeers: []types.NodeID{"foo"},
 		}, false},
 		"uppercase PersistentPeers NodeID": {p2p.PeerManagerOptions{
-			PersistentPeers: []types.NodeID{"0000111122223333444455556666777788889999000011112222333344445555"},
+			PersistentPeers: []types.NodeID{"000011112222333344445555666677778888999900001111222233334444555"},
 		}, false},
 		"PersistentPeers at MaxConnected": {p2p.PeerManagerOptions{
 			PersistentPeers: []types.NodeID{nodeID, nodeID, nodeID},

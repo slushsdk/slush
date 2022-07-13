@@ -3,7 +3,6 @@ package consensus
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +10,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -408,7 +409,7 @@ func subscribeToVoterBuffered(ctx context.Context, t *testing.T, cs *State, addr
 		for {
 			msg, err := votesSub.Next(ctx)
 			if err != nil {
-				if !errors.Is(err, tmpubsub.ErrTerminated) && !errors.Is(err, context.Canceled) {
+				if !errors.Is(err, tmpubsub.ErrTerminated2) && !errors.Is(err, context.Canceled) {
 					t.Errorf("error terminating pubsub %s", err)
 				}
 				return
