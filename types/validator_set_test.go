@@ -213,9 +213,9 @@ func TestProposerSelection1(t *testing.T) {
 }
 
 func TestProposerSelection2(t *testing.T) {
-	addr0 := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	addr1 := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
-	addr2 := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2}
+	addr0 := append(make([]byte, crypto.AddressSize-1), 0)
+	addr1 := append(make([]byte, crypto.AddressSize-1), 1)
+	addr2 := append(make([]byte, crypto.AddressSize-1), 2)
 
 	// when all voting power is same, we go in order of addresses
 	val0, val1, val2 := newValidator(addr0, 100), newValidator(addr1, 100), newValidator(addr2, 100)
@@ -270,7 +270,7 @@ func TestProposerSelection2(t *testing.T) {
 	N := 1
 	for i := 0; i < 120*N; i++ {
 		prop := vals.GetProposer()
-		ii := prop.Address[19]
+		ii := prop.Address[crypto.AddressSize-1]
 		propCount[ii]++
 		vals.IncrementProposerPriority(1)
 	}
@@ -306,10 +306,10 @@ func TestProposerSelection2(t *testing.T) {
 
 func TestProposerSelection3(t *testing.T) {
 	vset := NewValidatorSet([]*Validator{
-		newValidator([]byte("avalidator_address12"), 1),
-		newValidator([]byte("bvalidator_address12"), 1),
-		newValidator([]byte("cvalidator_address12"), 1),
-		newValidator([]byte("dvalidator_address12"), 1),
+		newValidator(append(make([]byte, crypto.AddressSize-1), 1), 1),
+		newValidator(append(make([]byte, crypto.AddressSize-1), 2), 1),
+		newValidator(append(make([]byte, crypto.AddressSize-1), 3), 1),
+		newValidator(append(make([]byte, crypto.AddressSize-1), 4), 1),
 	})
 
 	proposerOrder := make([]*Validator, 4)
