@@ -17,14 +17,7 @@ var (
 
 	// ErrTerminated is returned by Next when the subscription was terminated by
 	// the publisher.
-	// ErrTerminated  = errors.New("subscription terminated by publisher")
-	ErrTerminated2 = errors.New("subscription terminated by publisher2")
-	ErrTerminated3 = errors.New("subscription terminated by publisher3")
-	ErrTerminated4 = errors.New("subscription terminated by publisher4")
-	ErrTerminated5 = errors.New("subscription terminated by publisher5")
-	ErrTerminated6 = errors.New("subscription terminated by publisher6")
-	ErrTerminated7 = errors.New("subscription terminated by publisher7")
-	ErrTerminated8 = errors.New("subscription terminated by publisher8")
+	ErrTerminated = errors.New("subscription terminated by publisher")
 )
 
 // A Subscription represents a client subscription for a particular query.

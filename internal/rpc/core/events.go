@@ -70,7 +70,7 @@ func (env *Environment) Subscribe(ctx context.Context, req *coretypes.RequestSub
 			if errors.Is(err, tmpubsub.ErrUnsubscribed) {
 				// The subscription was removed by the client.
 				return
-			} else if errors.Is(err, tmpubsub.ErrTerminated5) {
+			} else if errors.Is(err, tmpubsub.ErrTerminated) {
 				// The subscription was terminated by the publisher.
 				resp := callInfo.RPCRequest.MakeError(err)
 				ok := callInfo.WSConn.TryWriteRPCResponse(opctx, resp)
