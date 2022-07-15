@@ -114,7 +114,7 @@ func TestPublishDoesNotBlock(t *testing.T) {
 	select {
 	case <-published:
 		sub.mustReceive(ctx, pubstring("Quicksilver"))
-		sub.mustFail(ctx, pubsub.ErrTerminated7)
+		sub.mustFail(ctx, pubsub.ErrTerminated)
 	case <-time.After(3 * time.Second):
 		t.Fatal("Publishing should not have blocked")
 	}
@@ -156,7 +156,7 @@ func TestSlowSubscriber(t *testing.T) {
 	// We had capacity for one item, so we should get that item, but after that
 	// the subscription should have been terminated by the publisher.
 	sub.mustReceive(ctx, pubstring("Fat Cobra"))
-	sub.mustFail(ctx, pubsub.ErrTerminated3)
+	sub.mustFail(ctx, pubsub.ErrTerminated)
 }
 
 func TestDifferentClients(t *testing.T) {

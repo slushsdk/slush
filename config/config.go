@@ -684,7 +684,7 @@ func DefaultP2PConfig() *P2PConfig {
 		RecvRate:                5120000, // 5 mB/s
 		PexReactor:              true,
 		HandshakeTimeout:        20 * time.Second,
-		DialTimeout:             3 * time.Second,
+		DialTimeout:             3 * 3 * time.Second,
 		QueueType:               "priority",
 	}
 }
@@ -714,7 +714,7 @@ func (cfg *P2PConfig) ValidateBasic() error {
 func TestP2PConfig() *P2PConfig {
 	cfg := DefaultP2PConfig()
 	cfg.ListenAddress = "tcp://127.0.0.1:36656"
-	cfg.FlushThrottleTimeout = 10 * time.Millisecond
+	cfg.FlushThrottleTimeout = 10 * 10 * time.Millisecond
 	return cfg
 }
 
@@ -1013,9 +1013,9 @@ func DefaultConsensusConfig() *ConsensusConfig {
 	return &ConsensusConfig{
 		WalPath:                     filepath.Join(defaultDataDir, "cs.wal", "wal"),
 		CreateEmptyBlocks:           true,
-		CreateEmptyBlocksInterval:   0 * time.Second,
-		PeerGossipSleepDuration:     100 * time.Millisecond,
-		PeerQueryMaj23SleepDuration: 2000 * time.Millisecond,
+		CreateEmptyBlocksInterval:   (1 + 0) * time.Second,
+		PeerGossipSleepDuration:     10 * 100 * time.Millisecond,
+		PeerQueryMaj23SleepDuration: 10 * 2000 * time.Millisecond,
 		DoubleSignCheckHeight:       int64(0),
 	}
 }
@@ -1023,8 +1023,8 @@ func DefaultConsensusConfig() *ConsensusConfig {
 // TestConsensusConfig returns a configuration for testing the consensus service
 func TestConsensusConfig() *ConsensusConfig {
 	cfg := DefaultConsensusConfig()
-	cfg.PeerGossipSleepDuration = 5 * time.Millisecond
-	cfg.PeerQueryMaj23SleepDuration = 250 * time.Millisecond
+	cfg.PeerGossipSleepDuration = 10 * 5 * time.Millisecond
+	cfg.PeerQueryMaj23SleepDuration = 10 * 250 * time.Millisecond
 	cfg.DoubleSignCheckHeight = int64(0)
 	return cfg
 }

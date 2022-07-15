@@ -443,13 +443,13 @@ func TestTimelyProposal(t *testing.T) {
 
 	cfg := pbtsTestConfiguration{
 		synchronyParams: types.SynchronyParams{
-			Precision:    10 * time.Millisecond,
-			MessageDelay: 140 * time.Millisecond,
+			Precision:    1 * 10 * time.Millisecond,
+			MessageDelay: 10 * 140 * time.Millisecond,
 		},
-		timeoutPropose:                    40 * time.Millisecond,
+		timeoutPropose:                    10 * 40 * time.Millisecond,
 		genesisTime:                       initialTime,
-		height2ProposedBlockOffset:        15 * time.Millisecond,
-		height2ProposalTimeDeliveryOffset: 30 * time.Millisecond,
+		height2ProposedBlockOffset:        1 * 15 * time.Millisecond,
+		height2ProposalTimeDeliveryOffset: 10 * 30 * time.Millisecond,
 	}
 
 	pbtsTest := newPBTSTestHarness(ctx, t, cfg)
