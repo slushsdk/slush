@@ -1,0 +1,245 @@
+[
+    {
+        "members": [
+            {
+                "name": "header",
+                "offset": 0,
+                "type": "LightHeaderData"
+            },
+            {
+                "name": "commit",
+                "offset": 17,
+                "type": "CommitData"
+            }
+        ],
+        "name": "SignedHeaderData",
+        "size": 27,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "version",
+                "offset": 0,
+                "type": "ConsensusData"
+            },
+            {
+                "name": "chain_id",
+                "offset": 2,
+                "type": "felt"
+            },
+            {
+                "name": "height",
+                "offset": 3,
+                "type": "felt"
+            },
+            {
+                "name": "time",
+                "offset": 4,
+                "type": "TimestampData"
+            },
+            {
+                "name": "last_block_id",
+                "offset": 6,
+                "type": "BlockIDData"
+            },
+            {
+                "name": "last_commit_hash",
+                "offset": 9,
+                "type": "felt"
+            },
+            {
+                "name": "data_hash",
+                "offset": 10,
+                "type": "felt"
+            },
+            {
+                "name": "validators_hash",
+                "offset": 11,
+                "type": "felt"
+            },
+            {
+                "name": "next_validators_hash",
+                "offset": 12,
+                "type": "felt"
+            },
+            {
+                "name": "consensus_hash",
+                "offset": 13,
+                "type": "felt"
+            },
+            {
+                "name": "app_hash",
+                "offset": 14,
+                "type": "felt"
+            },
+            {
+                "name": "last_results_hash",
+                "offset": 15,
+                "type": "felt"
+            },
+            {
+                "name": "proposer_address",
+                "offset": 16,
+                "type": "felt"
+            }
+        ],
+        "name": "LightHeaderData",
+        "size": 17,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "block",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "app",
+                "offset": 1,
+                "type": "felt"
+            }
+        ],
+        "name": "ConsensusData",
+        "size": 2,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "hash",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "part_set_header",
+                "offset": 1,
+                "type": "PartSetHeaderData"
+            }
+        ],
+        "name": "BlockIDData",
+        "size": 3,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "total",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "hash",
+                "offset": 1,
+                "type": "felt"
+            }
+        ],
+        "name": "PartSetHeaderData",
+        "size": 2,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "Seconds",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "nanos",
+                "offset": 1,
+                "type": "felt"
+            }
+        ],
+        "name": "TimestampData",
+        "size": 2,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "height",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "round",
+                "offset": 1,
+                "type": "felt"
+            },
+            {
+                "name": "block_id",
+                "offset": 2,
+                "type": "BlockIDData"
+            },
+            {
+                "name": "signatures",
+                "offset": 5,
+                "type": "CommitSigData"
+            }
+        ],
+        "name": "CommitData",
+        "size": 10,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "block_id_flag",
+                "offset": 0,
+                "type": "TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag"
+            },
+            {
+                "name": "validators_address",
+                "offset": 1,
+                "type": "felt"
+            },
+            {
+                "name": "timestamp",
+                "offset": 2,
+                "type": "TimestampData"
+            },
+            {
+                "name": "signature",
+                "offset": 4,
+                "type": "felt"
+            }
+        ],
+        "name": "CommitSigData",
+        "size": 5,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "BlockIDFlag",
+                "offset": 0,
+                "type": "felt"
+            }
+        ],
+        "name": "TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag",
+        "size": 1,
+        "type": "struct"
+    },
+    {
+        "inputs": [
+            {
+                "name": "trustedHeader",
+                "type": "SignedHeaderData"
+            },
+            {
+                "name": "untrustedHeader",
+                "type": "SignedHeaderData"
+            }
+        ],
+        "name": "verifyAdjacent",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "type": "function"
+    }
+]
