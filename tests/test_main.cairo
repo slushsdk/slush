@@ -6,7 +6,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 # func test_verifyAdjacent{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
 @external
-func test_verifyAdjacent():
+func test_verifyAdjacent() -> () :
 
 
     # create instances of the headers
