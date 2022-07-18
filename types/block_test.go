@@ -5,6 +5,7 @@ import (
 	// number generator here and we can run the tests a bit faster
 	"context"
 	"crypto/rand"
+	encoding_binary "encoding/binary"
 	"encoding/hex"
 	"math"
 	mrand "math/rand"
@@ -13,16 +14,16 @@ import (
 	"testing"
 	"time"
 
-	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/libs/bits"
 	"github.com/tendermint/tendermint/libs/bytes"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
 )
 
@@ -405,34 +406,36 @@ func TestHeaderHash(t *testing.T) {
 						s.Type().Field(i).Name)
 
 					switch f := f.Interface().(type) {
-					case int64, bytes.HexBytes, string:
-						byteSlices = append(byteSlices, cdcEncode(f))
+					case int64:
+						fB := make([]byte, 8)
+						encoding_binary.BigEndian.PutUint64(fB, uint64(f))
+						byteSlices = append(byteSlices, ihash.ByteRounder(fB))
+					case bytes.HexBytes:
+						byteSlices = append(byteSlices, ihash.ByteRounder(f))
+					case string:
+						byteSlices = append(byteSlices, ihash.ByteRounder([]byte(f)))
 					case time.Time:
-						bz, err := gogotypes.StdTimeMarshal(f)
-						require.NoError(t, err)
+						bz := HashTime(f)
+
 						byteSlices = append(byteSlices, bz)
 					case version.Consensus:
-						pbc := tmversion.Consensus{
-							Block: f.Block,
-							App:   f.App,
-						}
-						bz, err := pbc.Marshal()
-						require.NoError(t, err)
+						bz := f.Hash()
+
 						byteSlices = append(byteSlices, bz)
 					case BlockID:
-						pbbi := f.ToProto()
-						bz, err := pbbi.Marshal()
-						require.NoError(t, err)
+						fProto := CanonicalizeBlockID(f.ToProto())
+						bz := BlockIDHasher(*(fProto))
+
 						byteSlices = append(byteSlices, bz)
 					default:
 						t.Errorf("unknown type %T", f)
 					}
 				}
-				dst, _ := hex.DecodeString("86C7509710A4ECFD79B5E703399FAC56C01722B5F380ED7122FA8746AB18B028")
-				assert.Equal(t,
-					bytes.HexBytes(dst), tc.header.Hash())
+				// dst, _ := hex.DecodeString("86C7509710A4ECFD79B5E703399FAC56C01722B5F380ED7122FA8746AB18B028")
 				// assert.Equal(t,
-				// 	bytes.HexBytes(merkle.HashFromByteSlices(byteSlices)), tc.header.Hash())
+				// 	bytes.HexBytes(dst), tc.header.Hash())
+				assert.Equal(t,
+					bytes.HexBytes(merkle.HashFromByteSlices(byteSlices)), tc.header.Hash())
 			}
 		})
 	}

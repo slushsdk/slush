@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	gogotypes "github.com/gogo/protobuf/types"
 
 	"github.com/tendermint/tendermint/crypto"
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
@@ -450,22 +449,11 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	if h == nil || len(h.ValidatorsHash) == 0 {
 		return nil
 	}
-	hpb := h.Version.ToProto()
-	hbz, err := hpb.Marshal()
-	if err != nil {
-		return nil
-	}
+	hbz := h.Version.Hash()
 
-	pbt, err := gogotypes.StdTimeMarshal(h.Time)
-	if err != nil {
-		return nil
-	}
+	pbt := HashTime(h.Time)
 
-	pbbi := h.LastBlockID.ToProto()
-	bzbi, err := pbbi.Marshal()
-	if err != nil {
-		return nil
-	}
+	bzbi := BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 
 	heightB := make([]byte, 8)
 	chainIDB := []byte(h.ChainID)
