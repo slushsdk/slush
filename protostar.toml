@@ -1,0 +1,10 @@
+["protostar.config"]
+protostar_version = "0.2.6"
+
+["protostar.project"]
+libs_path = "tendermint-cairo"
+
+["protostar.contracts"]
+main = [
+    "src/main.cairo",
+]
