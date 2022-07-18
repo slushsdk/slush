@@ -453,7 +453,12 @@ func (h *Header) Hash() tmbytes.HexBytes {
 
 	pbt := HashTime(h.Time)
 
-	bzbi := BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
+	bzbi := make([]byte, 8)
+	if h.LastBlockID.IsNil() {
+		bzbi = make([]byte, 8)
+	} else {
+		bzbi = BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
+	}
 
 	heightB := make([]byte, 8)
 	chainIDB := []byte(h.ChainID)
