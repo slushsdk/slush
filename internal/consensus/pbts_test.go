@@ -371,17 +371,17 @@ func TestProposerWaitsForGenesisTime(t *testing.T) {
 func TestProposerWaitsForPreviousBlock(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	initialTime := time.Now().Add(time.Millisecond * 50)
+	initialTime := time.Now().Add(time.Millisecond * 5 * 50)
 	cfg := pbtsTestConfiguration{
 		synchronyParams: types.SynchronyParams{
-			Precision:    100 * time.Millisecond,
-			MessageDelay: 500 * time.Millisecond,
+			Precision:    4 * 100 * time.Millisecond,
+			MessageDelay: 4 * 500 * time.Millisecond,
 		},
-		timeoutPropose:                    50 * time.Millisecond,
+		timeoutPropose:                    10 * 50 * time.Millisecond,
 		genesisTime:                       initialTime,
-		height2ProposalTimeDeliveryOffset: 150 * time.Millisecond,
-		height2ProposedBlockOffset:        100 * time.Millisecond,
-		height4ProposedBlockOffset:        800 * time.Millisecond,
+		height2ProposalTimeDeliveryOffset: 5 * 150 * time.Millisecond,
+		height2ProposedBlockOffset:        5 * 100 * time.Millisecond,
+		height4ProposedBlockOffset:        5 * 800 * time.Millisecond,
 	}
 
 	pbtsTest := newPBTSTestHarness(ctx, t, cfg)

@@ -41,7 +41,7 @@ const (
 	testSubscriber = "test-client"
 
 	// genesis, chain_id, priv_val
-	ensureTimeout = time.Millisecond * 200
+	ensureTimeout = 10 * time.Millisecond * 200
 )
 
 // A cleanupFunc cleans up any config / test files created for a particular
@@ -609,7 +609,7 @@ func ensureNoNewRoundStep(t *testing.T, stepCh <-chan tmpubsub.Message) {
 
 func ensureNoNewTimeout(t *testing.T, stepCh <-chan tmpubsub.Message, timeout int64) {
 	t.Helper()
-	timeoutDuration := time.Duration(timeout*10) * time.Nanosecond
+	timeoutDuration := 1 * time.Duration(timeout*10) * time.Nanosecond
 	ensureNoMessageBeforeTimeout(
 		t,
 		stepCh,
@@ -632,7 +632,9 @@ func ensureNewEvent(t *testing.T, ch <-chan tmpubsub.Message, height int64, roun
 
 func ensureNewRound(t *testing.T, roundCh <-chan tmpubsub.Message, height int64, round int32) {
 	t.Helper()
-	msg := ensureMessageBeforeTimeout(t, roundCh, ensureTimeout)
+	fmt.Println("line 635")
+	msg := ensureMessageBeforeTimeout(t, roundCh, 1*ensureTimeout)
+	fmt.Println("line 637")
 	newRoundEvent, ok := msg.Data().(types.EventDataNewRound)
 	require.True(t, ok, "expected a EventDataNewRound, got %T. Wrong subscription channel?",
 		msg.Data())
