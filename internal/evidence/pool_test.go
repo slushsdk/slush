@@ -2,6 +2,7 @@ package evidence_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -90,15 +91,16 @@ func TestEvidencePoolBasic(t *testing.T) {
 
 	select {
 	case <-evAdded:
-	case <-time.After(15 * time.Second):
+	case <-time.After(9 * time.Second):
 		t.Fatal("evidence was not added to list after 9s")
 	}
 
 	next := pool.EvidenceFront()
 	require.Equal(t, ev, next.Value.(types.Evidence))
 
-	const evidenceBytes int64 = 372
+	const evidenceBytes int64 = 396
 	evs, size = pool.PendingEvidence(evidenceBytes)
+	fmt.Println(fmt.Sprint(pool.PendingEvidence(evidenceBytes)))
 	require.Equal(t, 1, len(evs))
 	require.Equal(t, evidenceBytes, size) // check that the size of the single evidence in bytes is correct
 
