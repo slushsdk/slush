@@ -169,16 +169,10 @@ func TestRootConfig(t *testing.T) {
 			cmd := testRootCmd(conf)
 
 			// run with the args and env
-			fmt.Println("tc.logLvl is : " + tc.logLvl)
-			fmt.Println("conf.logLvl is : " + conf.LogLevel)
-
 			tc.args = append([]string{cmd.Use}, tc.args...)
-			fmt.Println("tc.logLvl is : " + tc.logLvl)
-			fmt.Println("conf.logLvl is : " + conf.LogLevel)
+			fmt.Println("This error also appears in the original Tendermint Client")
 
 			err = cli.RunWithArgs(ctx, cmd, tc.args, tc.env)
-			fmt.Println("tc.logLvl is : " + tc.logLvl)
-			fmt.Println("conf.logLvl is : " + conf.LogLevel)
 
 			require.NoError(t, err)
 

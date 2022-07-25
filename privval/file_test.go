@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -109,7 +109,7 @@ func TestUnmarshalValidatorState(t *testing.T) {
 
 func TestUnmarshalValidatorKey(t *testing.T) {
 	// create some fixed values
-	privKey := ed25519.GenPrivKey()
+	privKey := stark.GenPrivKey()
 	pubKey := privKey.PubKey()
 	addr := pubKey.Address()
 	pubBytes := pubKey.Bytes()

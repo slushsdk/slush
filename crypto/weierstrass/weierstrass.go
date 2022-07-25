@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can
 // be found in the LICENCE file.
 
-// Package weierstrass provides a standard interface for short-form
+// Package weierstrass provides a standard interface for Short-form
 // Weierstrass elliptic curves over prime fields.
 //
 // As a result, it may not be as efficient as the standard library's
@@ -18,7 +18,7 @@ import (
 	"math/big"
 )
 
-// Curve represents a short-form Weierstrass curve.
+// Curve represents a Short-form Weierstrass curve.
 //
 // The behaviour of Add, Double, and ScalarMult when the input is not a
 // point on the curve is undefined.
@@ -66,9 +66,9 @@ type CurveParams struct {
 // affine coordinates.
 func (curve *CurveParams) Params() *CurveParams { return curve }
 
-// short returns the short Weierstrass form of a curve,
+// Short returns the Short Weierstrass form of a curve,
 // y² = x³ + ax + b, for a some x.
-func (curve *CurveParams) short(x *big.Int) *big.Int {
+func (curve *CurveParams) Short(x *big.Int) *big.Int {
 	x3 := new(big.Int).Mul(x, x)
 	x3.Mul(x3, x)
 
@@ -93,7 +93,7 @@ func (curve *CurveParams) IsOnCurve(x, y *big.Int) bool {
 	y2 := new(big.Int).Mul(y, y)
 	y2.Mod(y2, curve.P)
 
-	return curve.short(x).Cmp(y2) == 0
+	return curve.Short(x).Cmp(y2) == 0
 }
 
 // zForAffine returns a Jacobian Z value for the affine point (x, y). If
@@ -418,7 +418,7 @@ func Marshal(curve Curve, x, y *big.Int) []byte {
 // MarshalCompressed converts a point on the curve into the compressed
 // form specified in SEC 1, Version 2.0, Section 2.3.3. If the point is
 // not on the curve (or is the conventional point at infinity), the
-// behaviour is undefined.
+// behaviour is undefined.3
 func MarshalCompressed(curve Curve, x, y *big.Int) []byte {
 	byteLen := (curve.Params().BitSize + 7) / 8
 	compressed := make([]byte, 1+byteLen)
@@ -472,7 +472,7 @@ func UnmarshalCompressed(curve Curve, data []byte) (x, y *big.Int) {
 		return nil, nil
 	}
 	// y² = x³ - 3x + b (mod p).
-	y = curve.Params().short(x)
+	y = curve.Params().Short(x)
 	y = y.ModSqrt(y, p)
 	if y == nil {
 		// notest

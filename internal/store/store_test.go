@@ -14,9 +14,9 @@ import (
 
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/stark"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/state/test/factory"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
@@ -32,7 +32,7 @@ func makeTestExtCommit(height int64, timestamp time.Time) *types.ExtendedCommit 
 	extCommitSigs := []types.ExtendedCommitSig{{
 		CommitSig: types.CommitSig{
 			BlockIDFlag:      types.BlockIDFlagCommit,
-			ValidatorAddress: tmrand.Bytes(crypto.AddressSize),
+			ValidatorAddress: stark.GenPrivKey().PubKey().Bytes(),
 			Timestamp:        timestamp,
 			Signature:        []byte("Signature"),
 		},
@@ -104,7 +104,7 @@ func TestBlockStoreSaveLoadBlock(t *testing.T) {
 		Height:          1,
 		ChainID:         "block_test",
 		Time:            tmtime.Now(),
-		ProposerAddress: tmrand.Bytes(crypto.AddressSize),
+		ProposerAddress: stark.GenPrivKey().PubKey().Bytes(),
 	}
 
 	// End of setup, test data
@@ -140,7 +140,7 @@ func TestBlockStoreSaveLoadBlock(t *testing.T) {
 					Height:          5,
 					ChainID:         "block_test",
 					Time:            tmtime.Now(),
-					ProposerAddress: tmrand.Bytes(crypto.AddressSize)},
+					ProposerAddress: stark.GenPrivKey().PubKey().Bytes()},
 				makeTestExtCommit(5, tmtime.Now()).ToCommit(),
 			),
 			parts:      validPartSet,
@@ -540,7 +540,7 @@ func TestLoadBlockMeta(t *testing.T) {
 	// 3. A good blockMeta serialized and saved to the DB should be retrievable
 	meta := &types.BlockMeta{Header: types.Header{
 		Version: version.Consensus{
-			Block: version.BlockProtocol, App: 0}, Height: 1, ProposerAddress: tmrand.Bytes(crypto.AddressSize)}}
+			Block: version.BlockProtocol, App: 0}, Height: 1, ProposerAddress: stark.GenPrivKey().PubKey().Bytes()}}
 	pbm := meta.ToProto()
 	err = db.Set(blockMetaKey(height), mustEncode(pbm))
 	require.NoError(t, err)
