@@ -48,7 +48,7 @@ func TestGetPubKey(t *testing.T) {
 			} else {
 				pk, err := tc.pv.GetPubKey(ctx)
 				require.NoError(t, err)
-				assert.Equal(t, resp.PubKey.GetEd25519(), pk.Bytes())
+				assert.Equal(t, resp.PubKey.GetStark(), pk.Bytes())
 			}
 		})
 	}

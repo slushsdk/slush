@@ -92,7 +92,7 @@ Example:
 		"P2P Port")
 	cmd.Flags().BoolVar(&randomMonikers, "random-monikers", false,
 		"randomize the moniker for each generated node")
-	cmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeEd25519,
+	cmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
 		"Key type to generate privval file with. Options: ed25519, secp256k1")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {

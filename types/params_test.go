@@ -16,6 +16,7 @@ var (
 	valEd25519   = []string{ABCIPubKeyTypeEd25519}
 	valSecp256k1 = []string{ABCIPubKeyTypeSecp256k1}
 	valSr25519   = []string{ABCIPubKeyTypeSr25519}
+	valStark     = []string{ABCIPubKeyTypeStark}
 )
 
 func TestConsensusParamsValidation(t *testing.T) {
@@ -197,7 +198,7 @@ type makeParamsArgs struct {
 
 func makeParams(args makeParamsArgs) ConsensusParams {
 	if args.pubkeyTypes == nil {
-		args.pubkeyTypes = valEd25519
+		args.pubkeyTypes = valStark
 	}
 	if args.propose == nil {
 		args.propose = durationPtr(1)

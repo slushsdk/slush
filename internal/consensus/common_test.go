@@ -41,7 +41,7 @@ const (
 	testSubscriber = "test-client"
 
 	// genesis, chain_id, priv_val
-	ensureTimeout = 10 * time.Millisecond * 200
+	ensureTimeout = 5 * time.Millisecond * 200
 )
 
 // A cleanupFunc cleans up any config / test files created for a particular
@@ -653,7 +653,7 @@ func ensureNewRound(t *testing.T, roundCh <-chan tmpubsub.Message, height int64,
 
 func ensureNewTimeout(t *testing.T, timeoutCh <-chan tmpubsub.Message, height int64, round int32, timeout int64) {
 	t.Helper()
-	timeoutDuration := time.Duration(timeout*10) * time.Nanosecond
+	timeoutDuration := 1 * time.Duration(timeout*10) * time.Nanosecond
 	ensureNewEvent(t, timeoutCh, height, round, timeoutDuration)
 }
 

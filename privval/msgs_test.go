@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/stark"
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 	privproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -52,7 +52,7 @@ func exampleProposal() *types.Proposal {
 }
 
 func TestPrivvalVectors(t *testing.T) {
-	pk := ed25519.GenPrivKeyFromSecret([]byte("it's a secret")).PubKey()
+	pk := stark.GenPrivKeyFromSecret([]byte("it's a secret")).PubKey()
 	ppk, err := encoding.PubKeyToProto(pk)
 	require.NoError(t, err)
 

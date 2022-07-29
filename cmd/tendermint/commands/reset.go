@@ -60,10 +60,10 @@ Only use in testing. This can cause the node to double sign`,
 		},
 	}
 
-	resetSignerCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeEd25519,
+	resetSignerCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
 		"Signer key type. Options: ed25519, secp256k1")
 
-	resetAllCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeEd25519,
+	resetAllCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
 		"Signer key type. Options: ed25519, secp256k1")
 
 	resetCmd.AddCommand(resetBlocksCmd)
