@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	tmnet "github.com/tendermint/tendermint/libs/net"
 	"github.com/tendermint/tendermint/version"
 )
@@ -99,7 +99,7 @@ func TestNodeInfoValidate(t *testing.T) {
 }
 
 func testNodeID() NodeID {
-	return NodeIDFromPubKey(ed25519.GenPrivKey().PubKey())
+	return NodeIDFromPubKey(stark.GenPrivKey().PubKey())
 }
 
 func testNodeInfo(t *testing.T, id NodeID, name string) NodeInfo {

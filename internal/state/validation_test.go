@@ -13,7 +13,7 @@ import (
 	abciclient "github.com/tendermint/tendermint/abci/client"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/eventbus"
 	mpmocks "github.com/tendermint/tendermint/internal/mempool/mocks"
 	"github.com/tendermint/tendermint/internal/proxy"
@@ -98,7 +98,7 @@ func TestValidateBlockHeader(t *testing.T) {
 		{"LastResultsHash wrong", func(block *types.Block) { block.LastResultsHash = wrongHash }},
 
 		{"EvidenceHash wrong", func(block *types.Block) { block.EvidenceHash = wrongHash }},
-		{"Proposer wrong", func(block *types.Block) { block.ProposerAddress = ed25519.GenPrivKey().PubKey().Address() }},
+		{"Proposer wrong", func(block *types.Block) { block.ProposerAddress = stark.GenPrivKey().PubKey().Address() }},
 		{"Proposer invalid", func(block *types.Block) { block.ProposerAddress = []byte("wrong size") }},
 
 		{"first LastCommit contains signatures", func(block *types.Block) {

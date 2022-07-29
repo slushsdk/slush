@@ -12,7 +12,6 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/stark"
 
 	sm "github.com/tendermint/tendermint/internal/state"
@@ -196,7 +195,7 @@ func TestPruneStates(t *testing.T) {
 			db := dbm.NewMemDB()
 
 			stateStore := sm.NewStore(db)
-			pk := ed25519.GenPrivKey().PubKey()
+			pk := stark.GenPrivKey().PubKey()
 
 			// Generate a bunch of state data. Validators change for heights ending with 3, and
 			// parameters when ending with 5.

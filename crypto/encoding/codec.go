@@ -8,7 +8,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
@@ -45,7 +44,7 @@ func PubKeyToProto(k crypto.PubKey) (cryptoproto.PublicKey, error) {
 	case stark.PubKey:
 		kp = cryptoproto.PublicKey{
 			Sum: &cryptoproto.PublicKey_Stark{
-				Stark: k.MarshalCompressed(),
+				Stark: k,
 			},
 		}
 	default:
@@ -86,10 +85,8 @@ func PubKeyFromProto(k cryptoproto.PublicKey) (crypto.PubKey, error) {
 			return nil, fmt.Errorf("invalid size for PubKeyStark. Got %d, expected %d",
 				len(k.Stark), stark.PubKeySize)
 		}
-		pk := stark.UnmarshalCompressed(weierstrass.Stark(), k.Stark)
-		if pk.IsNil() {
-			panic("Unmarshalling lead to nil key")
-		}
+		pk := make(stark.PubKey, stark.PubKeySize)
+		copy(pk, k.Stark)
 		return pk, nil
 	default:
 		return nil, fmt.Errorf("fromproto: key type %v is not supported", k)

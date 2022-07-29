@@ -887,7 +887,7 @@ func (cs *State) newStep() {
 // Updates (state transitions) happen on timeouts, complete proposals, and 2/3 majorities.
 // State must be locked before any internal state is updated.
 func (cs *State) receiveRoutine(ctx context.Context, maxSteps int) {
-	fmt.Println("line 890, we receive messages ")
+	// fmt.Println("line 890, we receive messages ")
 
 	onExit := func(cs *State) {
 		// NOTE: the internalMsgQueue may have signed messages from our
@@ -973,7 +973,7 @@ func (cs *State) receiveRoutine(ctx context.Context, maxSteps int) {
 			}
 
 			// handles proposals, block parts, votes
-			fmt.Println("line 976 Handling internal message ")
+			// fmt.Println("line 976 Handling internal message ")
 			cs.handleMsg(ctx, mi)
 
 		case ti := <-cs.timeoutTicker.Chan(): // tockChan:
@@ -1053,7 +1053,7 @@ func (cs *State) handleMsg(ctx context.Context, mi msgInfo) {
 	case *VoteMessage:
 		// attempt to add the vote and dupeout the validator if its a duplicate signature
 		// if the vote gives us a 2/3-any or 2/3-one, we transition
-		fmt.Println("line 1053 Handling message")
+		// fmt.Println("line 1053 Handling message")
 
 		added, err = cs.tryAddVote(ctx, msg.Vote, peerID)
 		if added {
@@ -1083,7 +1083,7 @@ func (cs *State) handleMsg(ctx context.Context, mi msgInfo) {
 	}
 
 	if err != nil {
-		fmt.Println("line 1087, there is an error")
+		// fmt.Println("line 1087, there is an error")
 
 		cs.logger.Error(
 			"failed to process message",
@@ -1094,7 +1094,7 @@ func (cs *State) handleMsg(ctx context.Context, mi msgInfo) {
 			"err", err,
 		)
 	}
-	fmt.Println("line 1098 handleMsg over  ")
+	// fmt.Println("line 1098 handleMsg over  ")
 
 }
 
@@ -1701,10 +1701,10 @@ func (cs *State) enterPrevoteWait(height int64, round int32) {
 // else, precommit nil otherwise.
 func (cs *State) enterPrecommit(ctx context.Context, height int64, round int32) {
 	logger := cs.logger.With("height", height, "round", round)
-	fmt.Println("line 1704 START enterPrecommit ")
+	// fmt.Println("line 1704 START enterPrecommit ")
 
 	if cs.Height != height || round < cs.Round || (cs.Round == round && cstypes.RoundStepPrecommit <= cs.Step) {
-		fmt.Println("line 1707")
+		// fmt.Println("line 1707")
 
 		logger.Debug(
 			"entering precommit step with invalid args",
@@ -1720,7 +1720,7 @@ func (cs *State) enterPrecommit(ctx context.Context, height int64, round int32) 
 		cs.updateRoundStep(round, cstypes.RoundStepPrecommit)
 		cs.newStep()
 	}()
-	fmt.Println("line 1723")
+	// fmt.Println("line 1723")
 
 	// check for a polka
 	blockID, ok := cs.Votes.Prevotes(round).TwoThirdsMajority()
@@ -1732,12 +1732,12 @@ func (cs *State) enterPrecommit(ctx context.Context, height int64, round int32) 
 		} else {
 			logger.Debug("precommit step; no +2/3 prevotes during enterPrecommit; precommitting nil")
 		}
-		fmt.Println("line 1720 ", cs.Height)
+		// fmt.Println("line 1720 ", cs.Height)
 
 		cs.signAddVote(ctx, tmproto.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
-	fmt.Println("line 1740")
+	// fmt.Println("line 1740")
 
 	// At this point +2/3 prevoted for a particular block or nil.
 	if err := cs.eventBus.PublishEventPolka(cs.RoundStateEvent()); err != nil {
@@ -1757,7 +1757,7 @@ func (cs *State) enterPrecommit(ctx context.Context, height int64, round int32) 
 		return
 	}
 	// At this point, +2/3 prevoted for a particular block.
-	fmt.Println("line 1761")
+	// fmt.Println("line 1761")
 
 	// If we never received a proposal for this block, we must precommit nil
 	if cs.Proposal == nil || cs.ProposalBlock == nil {
@@ -1773,7 +1773,7 @@ func (cs *State) enterPrecommit(ctx context.Context, height int64, round int32) 
 		return
 	}
 
-	fmt.Println("line 1776")
+	// fmt.Println("line 1776")
 
 	// If we're already locked on that block, precommit it, and update the LockedRound
 	if cs.LockedBlock.HashesTo(blockID.Hash) {
@@ -1810,7 +1810,7 @@ func (cs *State) enterPrecommit(ctx context.Context, height int64, round int32) 
 		cs.signAddVote(ctx, tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
-	fmt.Println("line 1813")
+	// fmt.Println("line 1813")
 
 	// There was a polka in this round for a block we don't have.
 	// Fetch that block, and precommit nil.
@@ -1860,10 +1860,10 @@ func (cs *State) enterPrecommitWait(height int64, round int32) {
 // Enter: +2/3 precommits for block
 func (cs *State) enterCommit(ctx context.Context, height int64, commitRound int32) {
 	logger := cs.logger.With("height", height, "commit_round", commitRound)
-	fmt.Println("line 1863", cs.Height)
+	// fmt.Println("line 1863", cs.Height)
 
 	if cs.Height != height || cstypes.RoundStepCommit <= cs.Step {
-		fmt.Println("line 1866", cs.Height)
+		// fmt.Println("line 1866", cs.Height)
 
 		logger.Debug(
 			"entering commit step with invalid args",
@@ -1881,11 +1881,11 @@ func (cs *State) enterCommit(ctx context.Context, height int64, commitRound int3
 		cs.CommitRound = commitRound
 		cs.CommitTime = tmtime.Now()
 		cs.newStep()
-		fmt.Println("line 1892", cs.Height, height, ctx)
+		// fmt.Println("line 1892", cs.Height, height, ctx)
 
 		// Maybe finalize immediately.
 		cs.tryFinalizeCommit(ctx, height)
-		fmt.Println("line 1896", cs.Height)
+		// fmt.Println("line 1896", cs.Height)
 
 	}()
 
@@ -1951,10 +1951,10 @@ func (cs *State) tryFinalizeCommit(ctx context.Context, height int64) {
 		)
 		return
 	}
-	fmt.Println("line 1957", cs.Height, height)
+	// fmt.Println("line 1957", cs.Height, height)
 	cs.finalizeCommit(ctx, height)
 
-	fmt.Println("line 1958", cs.Height, height)
+	// fmt.Println("line 1958", cs.Height, height)
 
 }
 
@@ -2321,7 +2321,7 @@ func (cs *State) handleCompleteProposal(ctx context.Context, height int64) {
 func (cs *State) tryAddVote(ctx context.Context, vote *types.Vote, peerID types.NodeID) (bool, error) {
 	added, err := cs.addVote(ctx, vote, peerID)
 	if err != nil {
-		fmt.Println("line 2284" + fmt.Sprint(cs.LastCommit.HasAll()))
+		// fmt.Println("line 2284" + fmt.Sprint(cs.LastCommit.HasAll()))
 
 		// If the vote height is off, we'll just ignore it,
 		// But if it's a conflicting sig, add it to the cs.evpool.
@@ -2698,7 +2698,7 @@ func (cs *State) signAddVote(
 		// The signer will sign the extension, make sure to remove the data on the way out
 		vote.StripExtension()
 	}
-	fmt.Println("line 2672 Internal message is sent here")
+	// fmt.Println("line 2672 Internal message is sent here")
 
 	cs.sendInternalMessage(ctx, msgInfo{&VoteMessage{vote}, "", tmtime.Now()})
 	cs.logger.Debug("signed and pushed vote", "height", cs.Height, "round", cs.Round, "vote", vote)
