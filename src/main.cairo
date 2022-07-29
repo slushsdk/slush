@@ -202,9 +202,9 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     assert untrusted_chain_id = trusted_chain_id
 
     # check if commit hights are the same
-    tempvar untrusted_commit_height: felt = untrustedHeader.header.height
-    tempvar trusted_commit_height: felt = trustedHeader.header.height
-    assert untrusted_commit_height = trusted_commit_height
+    tempvar untrusted_commit_height: felt = untrustedHeader.commit.height
+    tempvar untrusted_header_height: felt = untrustedHeader.header.height
+    assert untrusted_commit_height = untrusted_header_height
 
     # check if the header hash is the one we expect
     # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L137
