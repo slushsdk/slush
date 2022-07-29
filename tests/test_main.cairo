@@ -16,6 +16,7 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     #     array_ptr=array_ptr, elm_size=2, n_elms=3, key=2
     # )
     let time0 = TimestampData(Seconds = 12, nanos = 0)
+    let time01 = TimestampData(Seconds = 13, nanos = 0)
     let Tendermint_BlockIDFLag = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
     let commitsig1 = CommitSigData( block_id_flag = Tendermint_BlockIDFLag, validators_address = 1, timestamp = time0, signature = 1)
     let consensus1 = ConsensusData(block = 1, app =1 )
@@ -30,7 +31,7 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     )
     
     let header2  = LightHeaderData(
-        version  = consensus1, chain_id = 4, height = 11100112, time = time0,
+        version  = consensus1, chain_id = 4, height = 11100112, time = time01,
         last_block_id = blockid1, last_commit_hash = 1, data_hash = 1,
         validators_hash= 1, next_validators_hash = 2, consensus_hash = 3, 
         app_hash = 4, last_results_hash = 5, proposer_address = 6   
@@ -43,7 +44,7 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
         signatures = commitsig1)
 
     let trustedHeader1 = SignedHeaderData(header= header1, commit = comit1)
-    let unustedHeader1 = SignedHeaderData(header= header2, commit = comit2)
+    let untrustedHeader1 = SignedHeaderData(header= header2, commit = comit2)
 
 
    
@@ -101,7 +102,7 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
 
     assert expired2 = 0
 
-    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= unustedHeader1,
+    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1,
     trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
 
     # TODO write test for verifyNewHeaderAndVals
