@@ -46,7 +46,6 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     let unustedHeader1 = SignedHeaderData(header= header2, commit = comit2)
 
 
-   verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= unustedHeader1) 
    
     # test whether the time comparison works
 
@@ -90,10 +89,21 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
 
     let trustingPeriod = DurationData(Seconds = 1, nanos = 9)
     let currentTime = DurationData(Seconds = 20, nanos = 10)
+    let maxClockDrift= DurationData(Seconds = 20, nanos = 10)
 
     let (expired: felt) = isExpired(trustedHeader1, trustingPeriod, currentTime)
 
     assert expired = 1
+    
+    let currentTime2 = DurationData(Seconds = 2, nanos = 10)
 
+    let (expired2: felt) = isExpired(trustedHeader1, trustingPeriod, currentTime2)
+
+    assert expired2 = 0
+
+    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= unustedHeader1,
+    trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
+
+    # TODO write test for verifyNewHeaderAndVals
     return ()
 end
