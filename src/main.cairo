@@ -164,14 +164,92 @@ func isExpired{range_check_ptr}(
 
 end
 
-@external
-func verifyAdjacent (
+# returns 1 if a>b, else 0
+func greater_than{range_check_ptr}(
+    a: felt,
+    b: felt
+    )->(res:felt):
+    let (is_le_val: felt) = is_le(b, a)
+    if is_le_val == 1:
+        # check if they are equal
+        tempvar ab_diff: felt = a - b
+        let (not_equal: felt) = is_not_zero(ab_diff) 
+        if not_equal == 1:
+            return(1)
+        else:
+            return(0)
+        end 
+    else:
+        return(0)
+    end
+
+end
+
+func verifyNewHeaderAndVals{range_check_ptr}(
+    untrustedHeader: SignedHeaderData,
+    # untrustedVals: ValidatorSetData, # TODO implement ValidatorSetData
     trustedHeader: SignedHeaderData,
-    untrustedHeader: SignedHeaderData
+    currentTime: DurationData,
+    maxClockDrift: DurationData
+    )->(res:felt):
+
+    # set of simple checks to see if the header is valid
+
+    # check if the chain id is the same
+
+    tempvar untrusted_chain_id: felt = untrustedHeader.header.chain_id
+    tempvar trusted_chain_id: felt = trustedHeader.header.chain_id
+    assert untrusted_chain_id = trusted_chain_id
+
+    # check if commit hights are the same
+    tempvar untrusted_commit_height: felt = untrustedHeader.header.height
+    tempvar trusted_commit_height: felt = trustedHeader.header.height
+    assert untrusted_commit_height = trusted_commit_height
+
+    # check if the header hash is the one we expect
+    # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L137
+
+    # check if the untrusted header height to be greater
+    # than the trusted header height
+    tempvar untrusted_height: felt = untrustedHeader.header.height
+    tempvar trusted_height: felt = trustedHeader.header.height
+
+    let (untrusted_greater: felt) = greater_than(untrusted_height, trusted_height)
+    assert untrusted_greater = 1
+
+    # check if the untrusted header time is greater than the trusted header time
+    tempvar untrusted_time: TimestampData = untrustedHeader.header.time
+    tempvar trusted_time: TimestampData = trustedHeader.header.time
+    let (untrusted_time_greater: felt) = time_greater_than(untrusted_time, trusted_time)
+    assert untrusted_time_greater = 1
+
+    # check if the untrusted header time is greater than the current time
+    tempvar untrusted_time: TimestampData= untrustedHeader.header.time
+
+    let driftTime: TimestampData = TimestampData(
+        Seconds= currentTime.Seconds + maxClockDrift.Seconds,
+        nanos= currentTime.nanos + maxClockDrift.nanos
+    )
+    let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
+    assert untrusted_time_greater_current = 1
+
+    # check if the header validators hash is the onne supplied
+    # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L161
+
+
+    return(1)
+end
+
+
+
+@external
+func verifyAdjacent{range_check_ptr} (
+    trustedHeader: SignedHeaderData,
+    untrustedHeader: SignedHeaderData,
     # untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
     currentTime: DurationData,
-    # maxClockDrift: DurationData
+    maxClockDrift: DurationData
 
     # the following res returns a 0 or 1 boolean
 ) -> (res: felt) :
@@ -190,6 +268,8 @@ func verifyAdjacent (
     # make sure the header is not expired
     assert expired = 0
 
+    verifyNewHeaderAndVals(untrustedHeader, trustedHeader,
+    currentTime, maxClockDrift)
 
     return (1)
 end 
