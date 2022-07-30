@@ -24,7 +24,6 @@ end
 
 # CommitSigData is done
 struct CommitSigData:
-
     member block_id_flag: TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag
     member validators_address: felt # TODO should be bytes
     member timestamp: TimestampData
@@ -52,6 +51,10 @@ struct DurationData:
     member nanos: felt # TODO should be int32
 end
 
+struct CommitSigDataArray:
+    member array: CommitSigData
+    member len: felt
+end
 
 # TODO: implement signatures as an array of unknown length
 struct CommitData:
@@ -59,7 +62,7 @@ struct CommitData:
     member round: felt #TODO replace with int32
     member block_id: BlockIDData # TODO implement BlockIDData
     # the following line should be a list of CommitSigData
-    member signatures: CommitSigData # TODO implement CommitSigData
+    member signatures: CommitSigDataArray* # TODO implement CommitSigData
 end
 
 # ConsensusData is done
@@ -91,6 +94,32 @@ struct SignedHeaderData:
     member header: LightHeaderData
     member commit: CommitData
 end
+
+# Array types
+struct ValidatorDataArray:
+    member array: ValidatorData*
+    member len: felt
+end
+
+struct PrivateKeyData:
+    member ed25519: felt # TODO bytes
+    member secp256k1: felt # TODO bytes
+    member sr25519: felt # TODO bytes
+end
+
+struct ValidatorData:
+    member Address: felt # TODO bytes
+    member pub_key: PrivateKeyData
+    member voting_power: felt # TODO int64
+    member proposer_priority: felt # TODO int64
+end
+
+struct ValidatorSetData:
+    member validators: ValidatorDataArray
+    member proposer: ValidatorData
+    member total_voting_power: felt # TODO int64
+end
+
 
 # function for checking whether which time stamp is larger
 # returns 1 if first is larger, 0 in both other cases
@@ -185,6 +214,11 @@ func greater_than{range_check_ptr}(
 
 end
 
+# TODO change dummy hash function to a real one
+func ourHashFunction{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res:felt):
+    return(11)
+end
+
 func verifyNewHeaderAndVals{range_check_ptr}(
     untrustedHeader: SignedHeaderData,
     # untrustedVals: ValidatorSetData, # TODO implement ValidatorSetData
@@ -208,6 +242,9 @@ func verifyNewHeaderAndVals{range_check_ptr}(
 
     # check if the header hash is the one we expect
     # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L137
+    # let (untrusted_header_block_hash: felt) = ourHashFunction(untrustedHeader)
+    # tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
+    # assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
 
     # check if the untrusted header height to be greater
     # than the trusted header height
@@ -240,7 +277,20 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     return(1)
 end
 
-
+# return 0 (false) or 1 (true)
+func verifyCommitLight(
+    vals: ValidatorSetData,
+    chainID: felt, # please check this type guys
+    blockID: BlockIDData,
+    height: felt, # TODO int64
+    commit: CommitData
+)->(res: felt):
+    tempvar vals_validators_length: felt = vals.validators.len
+    tempvar commit_signatures_length: felt = commit.signatures.len
+    assert vals_validators_length = commit_signatures_length
+    
+    return(0)
+end
 
 @external
 func verifyAdjacent{range_check_ptr} (
