@@ -15,6 +15,11 @@ struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag:
 
 end
 
+const BLOCK_ID_FLAG_UNKNOWN = 0
+const BLOCK_ID_FLAG_ABSENT = 1
+const BLOCK_ID_FLAG_COMMIT = 2
+const BLOCK_ID_FLAG_NIL = 3
+
 # TimestampData is done
 struct TimestampData:
     member Seconds: felt # TODO should be int64
@@ -52,7 +57,7 @@ struct DurationData:
 end
 
 struct CommitSigDataArray:
-    member array: CommitSigData
+    member array: CommitSigData*
     member len: felt
 end
 
@@ -62,7 +67,8 @@ struct CommitData:
     member round: felt #TODO replace with int32
     member block_id: BlockIDData # TODO implement BlockIDData
     # the following line should be a list of CommitSigData
-    member signatures: CommitSigDataArray* # TODO implement CommitSigData
+    # member signatures: CommitSigDataArray # TODO implement CommitSigData
+    # the above line is invalid because is a pointer
 end
 
 # ConsensusData is done
@@ -277,25 +283,104 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     return(1)
 end
 
+func get_tallied_voting_power(
+    commit: CommitData,
+    signatures_len: felt,
+    signatures: CommitSigData*,
+    validators_len: felt,
+    validators: ValidatorData*
+)->(res:felt):
+    let (res: felt) = get_tallied_voting_power_helper(
+        signatures_len,
+        signatures,
+        validators_len,
+        validators
+    )
+    return (res)
+end
+
+func get_tallied_voting_power_helper(
+    signatures_len: felt,
+    signatures: CommitSigData*,
+    validators_len: felt,
+    validators: ValidatorData*
+)->(res: felt):
+    alloc_locals
+    if signatures_len == 0:
+        return (0)
+    end
+
+    local signature: CommitSigData = [signatures]
+    local val: ValidatorData = [validators]
+
+    if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
+        let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
+            signatures_len - 1,
+            signatures + 1,
+            validators_len -1,
+            validators + 1
+        )
+        return (rest_of_voting_power)
+    end
+    
+    # TODO Delim encoding
+    # TODO verifySig filter
+    
+    
+    let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
+        signatures_len - 1,
+        signatures + 1,
+        validators_len - 1,
+        validators + 1
+    )
+    return (val.voting_power + rest_of_voting_power)
+
+
+
+end
+
 # return 0 (false) or 1 (true)
-func verifyCommitLight(
+func verifyCommitLight{range_check_ptr}(
     vals: ValidatorSetData,
     chainID: felt, # please check this type guys
     blockID: BlockIDData,
     height: felt, # TODO int64
-    commit: CommitData
+    commit: CommitData,
+    commit_signatures_length: felt,
+    commit_signatures_array: CommitSigData*
 )->(res: felt):
     tempvar vals_validators_length: felt = vals.validators.len
-    tempvar commit_signatures_length: felt = commit.signatures.len
     assert vals_validators_length = commit_signatures_length
     
+    tempvar commit_height = commit.height
+    assert height = commit_height
+
+    # This is the only way to compare two structs (BlockID)
+    tempvar blockid_hash = blockID.hash
+    tempvar blockid_part_set_header_total = blockID.part_set_header.total
+    tempvar blockid_part_set_header_hash = blockID.part_set_header.hash
+
+    tempvar commit_blockid_hash = commit.block_id.hash
+    tempvar commit_blockid_part_set_header_total = commit.block_id.part_set_header.total
+    tempvar commit_blockid_part_set_header_hash = commit.block_id.part_set_header.hash
+
+    assert blockid_hash = commit_blockid_hash
+    assert blockid_part_set_header_total = commit_blockid_part_set_header_total
+    assert blockid_part_set_header_hash = commit_blockid_part_set_header_hash
+
+    
+
     return(0)
 end
 
 @external
 func verifyAdjacent{range_check_ptr} (
     trustedHeader: SignedHeaderData,
+    trustedHeader_commit_signatures_len: felt,
+    trustedHeader_commit_signatures: CommitSigData*,
     untrustedHeader: SignedHeaderData,
+    untrustedHeader_commit_signatures_len: felt,
+    untrustedHeader_commit_signatures: CommitSigData*,
     # untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
     currentTime: DurationData,
