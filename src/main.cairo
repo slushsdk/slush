@@ -20,6 +20,8 @@ const BLOCK_ID_FLAG_ABSENT = 1
 const BLOCK_ID_FLAG_COMMIT = 2
 const BLOCK_ID_FLAG_NIL = 3
 
+const MAX_TOTAL_VOTING_POWER = 4611686018427387904 # == 1 << (63 - 1)
+
 # TimestampData is done
 struct TimestampData:
     member Seconds: felt # TODO should be int64
@@ -281,6 +283,51 @@ func verifyNewHeaderAndVals{range_check_ptr}(
 
 
     return(1)
+end
+
+# the solidity code here is not very professional
+# I remove the total_voting_power_parameter
+# because we work with immutable variables
+func get_total_voting_power(
+    vals_len: felt,
+    vals: ValidatorData*
+) -> (res: felt):
+    if vals_len == 0:
+        return (0)
+    end
+    let (sum: felt) = get_total_voting_power(vals_len - 1, vals + 1)
+    # TODO assert sum < MAX_TOTAL_VOTING_POWER
+    let first_vals: ValidatorData = [vals]
+    let voting_power: felt = first_vals.voting_power
+    return (voting_power + sum)
+end
+
+# TODO complete the verify function
+func ed25519_verify(
+    message: felt,
+    public_key: felt,
+    signature: felt
+) -> (res: felt):
+    return (1)
+end
+
+# TODO complete the verify function
+func secp256k1_verify(
+    message: felt,
+    public_key: felt,
+    signature: felt
+) -> (res: felt):
+    return (1)
+end
+
+# TODO complete
+func verifySig(
+    val: ValidatorData,
+    message: felt, # bytes
+    sig: felt # bytes
+) -> (res: felt):
+    return (0)    
+
 end
 
 func get_tallied_voting_power(
