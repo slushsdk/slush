@@ -40,8 +40,9 @@ import (
 const (
 	testSubscriber = "test-client"
 
+	multiplier = 250
 	// genesis, chain_id, priv_val
-	ensureTimeout = 5 * time.Millisecond * 200
+	ensureTimeout = multiplier * time.Millisecond * 200
 )
 
 // A cleanupFunc cleans up any config / test files created for a particular
@@ -602,7 +603,7 @@ func ensureNoNewEventOnChannel(t *testing.T, ch <-chan tmpubsub.Message) {
 	ensureNoMessageBeforeTimeout(
 		t,
 		ch,
-		ensureTimeout,
+		1/100*ensureTimeout,
 		"We should be stuck waiting, not receiving new event on the channel")
 }
 
@@ -611,7 +612,7 @@ func ensureNoNewRoundStep(t *testing.T, stepCh <-chan tmpubsub.Message) {
 	ensureNoMessageBeforeTimeout(
 		t,
 		stepCh,
-		ensureTimeout,
+		1/multiplier*ensureTimeout,
 		"We should be stuck waiting, not receiving NewRoundStep event")
 }
 
@@ -778,7 +779,7 @@ func ensureVote(t *testing.T, voteCh <-chan tmpubsub.Message, height int64, roun
 
 func ensureNewEventOnChannel(t *testing.T, ch <-chan tmpubsub.Message) {
 	t.Helper()
-	ensureMessageBeforeTimeout(t, ch, ensureTimeout)
+	ensureMessageBeforeTimeout(t, ch, ensureTimeout*2/1)
 }
 
 func ensureMessageBeforeTimeout(t *testing.T, ch <-chan tmpubsub.Message, to time.Duration) tmpubsub.Message {

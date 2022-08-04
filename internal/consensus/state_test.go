@@ -1899,7 +1899,7 @@ func TestProcessProposalAccept(t *testing.T) {
 		expectedNilPrevote bool
 	}{
 		{
-			name:               "accepted block is prevoted",
+			name:               "accepted block is  prevoted",
 			accept:             true,
 			expectedNilPrevote: false,
 		},

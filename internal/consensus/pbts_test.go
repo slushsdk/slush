@@ -22,7 +22,7 @@ import (
 const (
 	// blockTimeIota is used in the test harness as the time between
 	// blocks when not otherwise specified.
-	blockTimeIota = time.Millisecond
+	blockTimeIota = 1 * time.Millisecond
 )
 
 // pbtsTestHarness constructs a Tendermint network that can be used for testing the
@@ -348,7 +348,7 @@ func TestProposerWaitsForGenesisTime(t *testing.T) {
 			Precision:    10 * time.Millisecond,
 			MessageDelay: 10 * time.Millisecond,
 		},
-		timeoutPropose:                    10 * time.Millisecond,
+		timeoutPropose:                    1 * 10 * time.Millisecond,
 		genesisTime:                       initialTime,
 		height2ProposalTimeDeliveryOffset: 10 * time.Millisecond,
 		height2ProposedBlockOffset:        10 * time.Millisecond,

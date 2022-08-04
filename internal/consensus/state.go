@@ -1169,7 +1169,7 @@ func (cs *State) handleTxsAvailable(ctx context.Context) {
 		}
 
 		// +1ms to ensure RoundStepNewRound timeout always happens after RoundStepNewHeight
-		timeoutCommit := cs.StartTime.Sub(tmtime.Now()) + 1*time.Millisecond
+		timeoutCommit := cs.StartTime.Sub(tmtime.Now()) + 10*1*time.Millisecond
 		cs.scheduleTimeout(timeoutCommit, cs.Height, 0, cstypes.RoundStepNewRound)
 
 	case cstypes.RoundStepNewRound: // after timeoutCommit
@@ -1307,7 +1307,7 @@ func (cs *State) enterPropose(ctx context.Context, height int64, round int32) {
 	if cs.privValidatorPubKey != nil && cs.isProposer(cs.privValidatorPubKey.Address()) {
 		proposerWaitTime := proposerWaitTime(tmtime.DefaultSource{}, cs.state.LastBlockTime)
 		if proposerWaitTime > 0 {
-			cs.scheduleTimeout(proposerWaitTime, height, round, cstypes.RoundStepNewRound)
+			cs.scheduleTimeout(10*proposerWaitTime, height, round, cstypes.RoundStepNewRound)
 			return
 		}
 	}
@@ -1328,7 +1328,7 @@ func (cs *State) enterPropose(ctx context.Context, height int64, round int32) {
 	}()
 
 	// If we don't get the proposal and all block parts quick enough, enterPrevote
-	cs.scheduleTimeout(cs.proposeTimeout(round), height, round, cstypes.RoundStepPropose)
+	cs.scheduleTimeout(10*cs.proposeTimeout(round), height, round, cstypes.RoundStepPropose)
 
 	// Nothing more to do if we're not a validator
 	if cs.privValidator == nil {
@@ -1691,7 +1691,7 @@ func (cs *State) enterPrevoteWait(height int64, round int32) {
 	}()
 
 	// Wait for some more prevotes; enterPrecommit
-	cs.scheduleTimeout(cs.voteTimeout(round), height, round, cstypes.RoundStepPrevoteWait)
+	cs.scheduleTimeout(10*cs.voteTimeout(round), height, round, cstypes.RoundStepPrevoteWait)
 }
 
 // Enter: `timeoutPrevote` after any +2/3 prevotes.
@@ -1854,7 +1854,7 @@ func (cs *State) enterPrecommitWait(height int64, round int32) {
 	}()
 
 	// wait for some more precommits; enterNewRound
-	cs.scheduleTimeout(cs.voteTimeout(round), height, round, cstypes.RoundStepPrecommitWait)
+	cs.scheduleTimeout(15*cs.voteTimeout(round), height, round, cstypes.RoundStepPrecommitWait)
 }
 
 // Enter: +2/3 precommits for block
