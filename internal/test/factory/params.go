@@ -11,11 +11,11 @@ import (
 func ConsensusParams() *types.ConsensusParams {
 	c := types.DefaultConsensusParams()
 	c.Timeout = types.TimeoutParams{
-		Commit:              10 * time.Millisecond,
-		Propose:             40 * time.Millisecond,
-		ProposeDelta:        1 * time.Millisecond,
-		Vote:                10 * time.Millisecond,
-		VoteDelta:           1 * time.Millisecond,
+		Commit:              2 * 10 * time.Millisecond,
+		Propose:             2 * 40 * time.Millisecond,
+		ProposeDelta:        2 * 1 * time.Millisecond,
+		Vote:                2 * 10 * time.Millisecond,
+		VoteDelta:           2 * 1 * time.Millisecond,
 		BypassCommitTimeout: true,
 	}
 	c.ABCI.VoteExtensionsEnableHeight = 1
