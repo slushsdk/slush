@@ -69,7 +69,7 @@ struct CommitData:
     member round: felt #TODO replace with int32
     member block_id: BlockIDData # TODO implement BlockIDData
     # the following line should be a list of CommitSigData
-    # member signatures: CommitSigDataArray # TODO implement CommitSigData
+    member signatures: CommitSigDataArray # TODO implement CommitSigData
     # the above line is invalid because is a pointer
 end
 
@@ -393,11 +393,12 @@ func verifyCommitLight{range_check_ptr}(
     blockID: BlockIDData,
     height: felt, # TODO int64
     commit: CommitData,
-    commit_signatures_length: felt,
-    commit_signatures_array: CommitSigData*
+    # commit_signatures_length: felt,
+    # commit_signatures_array: CommitSigData*
 )->(res: felt):
     tempvar vals_validators_length: felt = vals.validators.len
-    assert vals_validators_length = commit_signatures_length
+    # assert vals_validators_length = commit_signatures_length
+    assert vals_validators_length = commit.signatures.len
     
     tempvar commit_height = commit.height
     assert height = commit_height
@@ -420,14 +421,14 @@ func verifyCommitLight{range_check_ptr}(
     return(0)
 end
 
-@external
+# @external
 func verifyAdjacent{range_check_ptr} (
     trustedHeader: SignedHeaderData,
-    trustedHeader_commit_signatures_len: felt,
-    trustedHeader_commit_signatures: CommitSigData*,
+    # trustedHeader_commit_signatures_len: felt,
+    # trustedHeader_commit_signatures: CommitSigData*,
     untrustedHeader: SignedHeaderData,
-    untrustedHeader_commit_signatures_len: felt,
-    untrustedHeader_commit_signatures: CommitSigData*,
+    # untrustedHeader_commit_signatures_len: felt,
+    # untrustedHeader_commit_signatures: CommitSigData*,
     # untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
     currentTime: DurationData,
