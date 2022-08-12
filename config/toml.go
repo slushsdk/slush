@@ -2,12 +2,14 @@ package config
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
+	stark "github.com/tendermint/tendermint/crypto/stark"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
@@ -610,7 +612,24 @@ func writeFile(filePath string, contents []byte, mode os.FileMode) error {
 	return nil
 }
 
-const testGenesisFmt = `{
+var pv = stark.GenPrivKey()
+var pvb, _ = json.Marshal(pv)
+var pvJSON = string(pvb)
+
+var pb = pv.PubKey()
+var pbb, _ = json.Marshal(pb)
+var pbJSON = string(pbb)
+
+var address = pb.Address()
+var addressb, _ = json.Marshal(address)
+var addressJSON = string(addressb)
+
+var pbname = "\"" + pb.TypeTag() + "\""
+var pvname = "\"" + pv.TypeTag() + "\""
+
+var name = "\"" + pb.Type() + "\""
+
+var testGenesisFmt = `{
   "genesis_time": "2018-10-10T08:20:13.695936996Z",
   "chain_id": "%s",
   "initial_height": "1",
@@ -639,7 +658,7 @@ const testGenesisFmt = `{
 		},
 		"validator": {
 			"pub_key_types": [
-				"ed25519"
+				` + name + `
 			]
 		},
 		"version": {}
@@ -647,8 +666,8 @@ const testGenesisFmt = `{
   "validators": [
     {
       "pub_key": {
-        "type": "tendermint/PubKeyEd25519",
-        "value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="
+        "type": ` + pbname + `,
+        "value":` + pbJSON + `
       },
       "power": "10",
       "name": ""
@@ -657,19 +676,19 @@ const testGenesisFmt = `{
   "app_hash": ""
 }`
 
-const testPrivValidatorKey = `{
-  "address": "A3258DCBF45DCA0DF052981870F2D1441A36D145",
+var testPrivValidatorKey = `{
+  "address": ` + addressJSON + `,
   "pub_key": {
-    "type": "tendermint/PubKeyEd25519",
-    "value": "AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="
+    "type": ` + pbname + `,
+    "value": ` + pbJSON + `
   },
   "priv_key": {
-    "type": "tendermint/PrivKeyEd25519",
-    "value": "EVkqJO/jIXp3rkASXfh9YnyToYXRXhBr6g9cQVxPFnQBP/5povV4HTjvsy530kybxKHwEi85iU8YL0qQhSYVoQ=="
+    "type": ` + pvname + `,
+    "value": ` + pvJSON + `
   }
 }`
 
-const testPrivValidatorState = `{
+var testPrivValidatorState = `{
   "height": "0",
   "round": 0,
   "step": 0

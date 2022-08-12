@@ -66,7 +66,7 @@ var (
 	initialHeight = uniformChoice{0, 1000}
 	evidence      = uniformChoice{0, 1, 10}
 	ipv6          = uniformChoice{false, true}
-	keyType       = uniformChoice{types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1}
+	keyType       = uniformChoice{types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1, types.ABCIPubKeyTypeStark}
 	abciDelays    = uniformChoice{"none", "small", "large"}
 
 	voteExtensionEnableHeightOffset = uniformChoice{int64(0), int64(10), int64(100)}

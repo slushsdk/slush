@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 )
 
@@ -60,13 +58,24 @@ func TestGenesisBad(t *testing.T) {
 
 func TestBasicGenesisDoc(t *testing.T) {
 	// test a good one by raw json
+
+	var pv = stark.GenPrivKey()
+
+	var pb = pv.PubKey()
+	var pbb, _ = json.Marshal(pb)
+	var pbJSON = string(pbb)
+
+	var pbname = "\"" + pb.TypeTag() + "\""
+
+	var name = "\"" + pb.Type() + "\""
+
 	genDocBytes := []byte(
 		`{
 			"genesis_time": "0001-01-01T00:00:00Z",
 			"chain_id": "test-chain-QDKdJr",
 			"initial_height": "1000",
 			"validators": [{
-				"pub_key":{"type":"tendermint/PubKeyStark","value":"AT/+8f10f86d337f7d1b98b43027e0b99164adaa06b03801c9686fc4643875ee25a7="},
+				"pub_key":{"type":` + pbname + `,"value":` + pbJSON + `},
 				"power":"10",
 				"name":""
 			}],
@@ -82,15 +91,12 @@ func TestBasicGenesisDoc(t *testing.T) {
 					"commit": "10000000000",
 					"bypass_commit_timeout": false
 				},
-				"validator": {"pub_key_types":["stark"]},
+				"validator": {"pub_key_types":[` + name + `]},
 				"block": {"max_bytes": "100"},
 				"evidence": {"max_age_num_blocks": "100", "max_age_duration": "10"}
 			}
 		}`,
 	)
-	pb2 := stark.GenPrivKey().PubKey()
-	pbb, _ := jsontypes.Marshal(pb2)
-	fmt.Println(string(pbb), "hello")
 
 	_, err := GenesisDocFromJSON(genDocBytes)
 	assert.NoError(t, err, "expected no error for good genDoc json")

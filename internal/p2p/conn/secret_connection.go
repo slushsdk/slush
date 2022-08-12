@@ -23,8 +23,8 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/libs/async"
 	"github.com/tendermint/tendermint/internal/libs/protoio"
 	tmp2p "github.com/tendermint/tendermint/proto/tendermint/p2p"
@@ -166,8 +166,8 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 
 	remPubKey, remSignature := authSigMsg.Key, authSigMsg.Sig
 
-	if _, ok := remPubKey.(ed25519.PubKey); !ok {
-		return nil, fmt.Errorf("expected ed25519 pubkey, got %T", remPubKey)
+	if _, ok := remPubKey.(stark.PubKey); !ok {
+		return nil, fmt.Errorf("expected stark pubkey, got %T", remPubKey)
 	}
 
 	if !remPubKey.VerifySignature(challenge[:], remSignature) {
