@@ -7,15 +7,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 )
 
 //-------------------------------------------
 // helper funcs
 
-func newPrivKey() ed25519.PrivKey {
-	return ed25519.GenPrivKey()
+func newPrivKey() stark.PrivKey {
+	return stark.GenPrivKey()
 }
 
 //-------------------------------------------

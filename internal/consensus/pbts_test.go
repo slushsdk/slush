@@ -446,10 +446,10 @@ func TestTimelyProposal(t *testing.T) {
 			Precision:    1 * 10 * time.Millisecond,
 			MessageDelay: 10 * 140 * time.Millisecond,
 		},
-		timeoutPropose:                    10 * 40 * time.Millisecond,
+		timeoutPropose:                    20 * 40 * time.Millisecond,
 		genesisTime:                       initialTime,
 		height2ProposedBlockOffset:        1 * 15 * time.Millisecond,
-		height2ProposalTimeDeliveryOffset: 10 * 30 * time.Millisecond,
+		height2ProposalTimeDeliveryOffset: 20 * 30 * time.Millisecond,
 	}
 
 	pbtsTest := newPBTSTestHarness(ctx, t, cfg)

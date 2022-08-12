@@ -2,12 +2,12 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/internal/libs/protoio"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -148,12 +148,16 @@ func (vote *Vote) ExtendedCommitSig() ExtendedCommitSig {
 // See CanonicalizeVote
 func VoteSignBytes(chainID string, vote *tmproto.Vote) []byte {
 	pb := CanonicalizeVote(chainID, vote)
-	bz, err := protoio.MarshalDelimited(&pb)
-	if err != nil {
-		panic(err)
-	}
+	// bz, err := protoio.MarshalDelimited(&pb)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	bz := HashCanonicalVoteNoTime(pb)
+	timeb := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeb, uint64(vote.GetTimestamp().UnixNano()))
 
-	return bz
+	return append(timeb, bz...)
+
 }
 
 // VoteExtensionSignBytes returns the proto-encoding of the canonicalized vote
@@ -163,10 +167,11 @@ func VoteSignBytes(chainID string, vote *tmproto.Vote) []byte {
 // length-prefixed for backwards-compatibility with the Amino encoding.
 func VoteExtensionSignBytes(chainID string, vote *tmproto.Vote) []byte {
 	pb := CanonicalizeVoteExtension(chainID, vote)
-	bz, err := protoio.MarshalDelimited(&pb)
-	if err != nil {
-		panic(err)
-	}
+	// bz, err := protoio.MarshalDelimited(&pb)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	bz := HashCanonicalVoteExtension(pb)
 
 	return bz
 }

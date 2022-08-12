@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/libs/log"
 	tmnet "github.com/tendermint/tendermint/libs/net"
 )
@@ -43,7 +43,7 @@ func NewSignerListener(listenAddr string, logger log.Logger) (*SignerListenerEnd
 		listener = NewUnixListener(ln)
 	case "tcp":
 		// TODO: persist this key so external signer can actually authenticate us
-		listener = NewTCPListener(ln, ed25519.GenPrivKey())
+		listener = NewTCPListener(ln, stark.GenPrivKey())
 	default:
 		panic("invalid protocol: " + protocol) // semantically unreachable
 	}

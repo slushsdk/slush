@@ -88,25 +88,52 @@ func CanonicalTime(t time.Time) string {
 	return tmtime.Canonical(t).Format(TimeFormat)
 }
 
-func HashCanonicalVote(canVote tmproto.CanonicalVote) []byte {
+func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 
 	var voteArray []byte
 	typeByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Type))
 
 	heightByte := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Height))
+	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
 
 	roundByte := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Round))
+	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
 
-	blockIDHash := BlockIDHasher(*canVote.GetBlockID())
+	var blockIDHash []byte
+	if canVote.BlockID == nil {
+		blockIDHash = []byte{}
+	} else {
+		blockIDHash = BlockIDHasher(*canVote.GetBlockID())
+	}
 
-	timestampHash := HashTime(canVote.Timestamp)
+	//timestampHash := HashTime(canVote.Timestamp)
 
 	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainID))
 
-	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, timestampHash, chainIDByte}, make([]byte, 0))
+	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, chainIDByte}, make([]byte, 0))
+	hasher := ihash.New()
+	hasher.Write(voteArray)
+	r := hasher.Sum(nil)
+
+	return r
+}
+
+func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
+
+	var voteArray []byte
+
+	extensionByte := ihash.ByteRounder(canVote.Extension)
+
+	heightByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
+
+	roundByte := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
+
+	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainId))
+
+	voteArray = bytes.Join([][]byte{extensionByte, heightByte, roundByte, chainIDByte}, make([]byte, 0))
 	hasher := ihash.New()
 	hasher.Write(voteArray)
 	r := hasher.Sum(nil)
