@@ -3,9 +3,10 @@ from src.main import (verifyAdjacent, SignedHeaderData,
 DurationData, LightHeaderData, ConsensusData, TimestampData, PartSetHeaderData, 
 BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSigData, 
 CommitSigDataArray, time_greater_than, isExpired, PrivateKeyData, ValidatorData,
-ValidatorDataArray, ValidatorSetData, verifyCommitLight )
+ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 
 
 # func test_verifyAdjacent{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
@@ -20,14 +21,27 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     # )
     let time0 = TimestampData(Seconds = 12, nanos = 0)
     let time01 = TimestampData(Seconds = 13, nanos = 0)
-    let Tendermint_BlockIDFLag = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
+    let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
+    let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     alloc_locals 
-    local commitsig1 : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag, validators_address = 1, timestamp = time0, signature = 1)
-     let (local commitsig1_pointer: CommitSigData*) =alloc()   
+    local commitsig_Absent : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Absent, validators_address = 1, timestamp = time0, signature = 1)
+    local commitsig_Commit : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 1, timestamp = time0, signature = 1)
+    let (local commitsig1_pointer: CommitSigData*) =alloc()   
+    let(_,ap_commitsig) = get_fp_and_pc()
+    let commitsig_fp= cast(ap_commitsig, CommitSigData*)
+    %{print(ids.commitsig1_pointer )%}
     # tempvar commitsig1_pointer[0] = CommitSigData( block_id_flag = Tendermint_BlockIDFLag, validators_address = 1, timestamp = time0, signature = 1)
-    assert commitsig1_pointer[0] = commitsig1 
+    assert commitsig1_pointer[0] = commitsig_Absent
+    let(fp_commitsig1) = get_ap()
+    %{print("ids.fp_commitsig1")%}
+    assert commitsig1_pointer[1] = commitsig_Commit
+    let(fp_commitsig2) = get_ap()
+    %{print(ids.fp_commitsig1)%}
+    %{print(ids.fp_commitsig2)%}
+    assert commitsig1_pointer[2] = commitsig_Commit 
+    assert commitsig1_pointer[3] = commitsig_Commit 
 
-    let commitsig1_array = CommitSigDataArray(array = commitsig1_pointer, len = 1)
+    let commitsig1_array = CommitSigDataArray(array = commitsig1_pointer, len = 4)
     let consensus1 = ConsensusData(block = 1, app =1 )
     let part_set_header1 = PartSetHeaderData(total = 1, hash = 1)
     let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
@@ -55,8 +69,6 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     let trustedHeader1 = SignedHeaderData(header= header1, commit = comit1)
     let untrustedHeader1 = SignedHeaderData(header= header2, commit = comit2)
 
-
-   
     # test whether the time comparison works
 
     let time1 = TimestampData(Seconds = 12, nanos = 9)
@@ -70,7 +82,6 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     let time7 = TimestampData(Seconds = 14, nanos = 9)
     let time8 = TimestampData(Seconds = 14, nanos = 10)
     let time9 = TimestampData(Seconds = 14, nanos = 11)
-    
 
 
     let (time55) = time_greater_than(time5, time5)
@@ -93,10 +104,8 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     
     let (time59) = time_greater_than(time5, time9)
     assert time59 = 0
-  
 
     # test whether the time comparison works
-
     let trustingPeriod = DurationData(Seconds = 1, nanos = 9)
     let currentTime = DurationData(Seconds = 20, nanos = 10)
     let maxClockDrift= DurationData(Seconds = 20, nanos = 10)
@@ -118,21 +127,45 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     
 
     # test verifyCommitLight
-
     # create inputs for verifyCommitLight function
-
     # PrivateKeyData
     let private_key1: PrivateKeyData  = PrivateKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2)
     let validator_data1: ValidatorData =  ValidatorData(Address = 1, pub_key = private_key1, voting_power= 2, proposer_priority = 3)
-    
 
     let (local ValidatorData_pointer: ValidatorData*) =alloc()
+    let(fp_validators,_) = get_fp_and_pc()
+    let validator_fp = cast(fp_validators, ValidatorData*)
     assert ValidatorData_pointer[0] = validator_data1
+    let(fp_commitsig3) = get_ap()
+    assert ValidatorData_pointer[1] = validator_data1
+    let(fp_commitsig4) = get_ap()
+
+    assert ValidatorData_pointer[2] = validator_data1
+    let(fp_commitsig5) = get_ap()
+    assert ValidatorData_pointer[3] = validator_data1
+    let(fp_commitsig6) = get_ap()
+    %{print(ids.fp_commitsig3)%}
+    %{print(ids.fp_commitsig4)%}
+    %{print(ids.fp_commitsig5)%}
+    %{print(ids.fp_commitsig6)%}
+    
     let validator_array: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer, len = 1)
     
     let validator_set: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power =3 )
 
-    verifyCommitLight(vals = validator_set, chainID= 1, blockID = blockid1, height= 11100111, commit = comit1)
+    # verifyCommitLight(vals = validator_set, chainID= 1, blockID = blockid1, height= 11100111, commit = comit1)
+
+    # test get_tallied_voting_power recurive function for adding up voting power
+
+    # use
+        # commit comit1
+        # 
+    let (all_votes:felt)= get_tallied_voting_power(commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer)
+    %{print("ids.all_votes")%}
+    %{print(ids.commitsig1_pointer)%}
+    %{print(ids.all_votes)%}
+    assert all_votes = 6
+
 
     return ()
 end
