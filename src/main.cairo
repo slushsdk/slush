@@ -353,6 +353,8 @@ func get_tallied_voting_power_helper(
     validators: ValidatorData*
 )->(res: felt):
     alloc_locals
+
+    # need to set the value to 0 here or to -1?
     if signatures_len == 0:
         return (0)
     end
@@ -360,13 +362,23 @@ func get_tallied_voting_power_helper(
     local signature: CommitSigData = [signatures]
     local val: ValidatorData = [validators]
 
-    if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
+    tempvar BlockIDFlag = signature.block_id_flag.BlockIDFlag
+    %{print("validators")%}
+    tempvar valsize = ValidatorData.SIZE
+    %{print(ids.valsize)%}
+    %{print("BLOCK_ID_FLAG")%}
+    %{print(ids.BLOCK_ID_FLAG_COMMIT)%}
+    %{print(ids.BlockIDFlag)%}
+    # if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
+    if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
         let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
             signatures_len - 1,
-            signatures + 1,
-            validators_len -1,
-            validators + 1
+            signatures + 5,
+            validators_len -1 ,
+            validators +6 
         )
+        %{print("ids.rest_of_voting_power_fail")%}
+        %{print(ids.rest_of_voting_power)%}
         return (rest_of_voting_power)
     end
     
@@ -376,14 +388,13 @@ func get_tallied_voting_power_helper(
     
     let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
         signatures_len - 1,
-        signatures + 1,
-        validators_len - 1,
-        validators + 1
+        signatures + 5,
+        validators_len -1 ,
+        validators +6
     )
+    %{print("ids.rest_of_voting_power")%}
+    %{print(ids.rest_of_voting_power)%}
     return (val.voting_power + rest_of_voting_power)
-
-
-
 end
 
 # return 0 (false) or 1 (true)
@@ -415,8 +426,6 @@ func verifyCommitLight{range_check_ptr}(
     assert blockid_hash = commit_blockid_hash
     assert blockid_part_set_header_total = commit_blockid_part_set_header_total
     assert blockid_part_set_header_hash = commit_blockid_part_set_header_hash
-
-    
 
     return(0)
 end
