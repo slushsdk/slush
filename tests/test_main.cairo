@@ -3,7 +3,7 @@ from src.main import (verifyAdjacent, SignedHeaderData,
 DurationData, LightHeaderData, ConsensusData, TimestampData, PartSetHeaderData, 
 BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSigData, 
 CommitSigDataArray, time_greater_than, isExpired, PrivateKeyData, ValidatorData,
-ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power )
+ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power, get_total_voting_power )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
@@ -149,7 +149,7 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     %{print(ids.fp_commitsig5)%}
     %{print(ids.fp_commitsig6)%}
     
-    let validator_array: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer, len = 1)
+    let validator_array: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer, len = 4)
     
     let validator_set: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power =3 )
 
@@ -161,11 +161,18 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
         # commit comit1
         # 
     let (all_votes:felt)= get_tallied_voting_power(commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer)
+    let (total_voting_power:felt)= get_total_voting_power( validators_len = 4, validators = ValidatorData_pointer)
     %{print("ids.all_votes")%}
     %{print(ids.commitsig1_pointer)%}
     %{print(ids.all_votes)%}
     assert all_votes = 6
+    assert total_voting_power= 8
 
+    # call verifyCommitLight
+    let blockid2 = BlockIDData(hash = 1, part_set_header = part_set_header1)
+
+    let valsInstance: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power = total_voting_power)
+    verifyCommitLight(vals = valsInstance , chainID= 1, blockID = blockid2, height = 11100111, commit = comit1)
 
     return ()
 end
