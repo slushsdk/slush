@@ -160,7 +160,7 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     # use
         # commit comit1
         # 
-    let (all_votes:felt)= get_tallied_voting_power(commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer)
+    let (all_votes:felt)= get_tallied_voting_power(signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer)
     let (total_voting_power:felt)= get_total_voting_power( validators_len = 4, validators = ValidatorData_pointer)
     %{print("ids.all_votes")%}
     %{print(ids.commitsig1_pointer)%}

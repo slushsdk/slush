@@ -334,22 +334,6 @@ func verifySig(
 end
 
 func get_tallied_voting_power(
-    commit: CommitData,
-    signatures_len: felt,
-    signatures: CommitSigData*,
-    validators_len: felt,
-    validators: ValidatorData*
-)->(res:felt):
-    let (res: felt) = get_tallied_voting_power_helper(
-        signatures_len,
-        signatures,
-        validators_len,
-        validators
-    )
-    return (res)
-end
-
-func get_tallied_voting_power_helper(
     signatures_len: felt,
     signatures: CommitSigData*,
     validators_len: felt,
@@ -370,7 +354,7 @@ func get_tallied_voting_power_helper(
 
     # if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
     if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
-        let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
+        let (rest_of_voting_power: felt) = get_tallied_voting_power(
             signatures_len - 1,
             signatures + 5,
             validators_len -1,
@@ -383,7 +367,7 @@ func get_tallied_voting_power_helper(
     # TODO verifySig filter
     
     
-    let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
+    let (rest_of_voting_power: felt) = get_tallied_voting_power(
         signatures_len - 1,
         signatures + 5,
         validators_len -1 ,
@@ -435,7 +419,7 @@ func verifyCommitLight{range_check_ptr}(
     tempvar commit_signatures_array: CommitSigData* = commit.signatures.array
 
     # call get_tallied_voting_power to get the counts
-    let (tallied_voting_power: felt) = get_tallied_voting_power(commit=commit, signatures_len=commit_signatures_length, signatures=commit_signatures_array, validators_len=vals_validators_length, validators=vals_validators_array)
+    let (tallied_voting_power: felt) = get_tallied_voting_power(signatures_len=commit_signatures_length, signatures=commit_signatures_array, validators_len=vals_validators_length, validators=vals_validators_array)
     
     let (total_voting_power: felt) = get_total_voting_power(validators_len=vals_validators_length, validators=vals_validators_array)
 
