@@ -2,7 +2,7 @@
 from starkware.cairo.common.math import assert_nn
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
-
+from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_unsigned_div_rem, uint256_lt
 
 struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag:
 
@@ -289,16 +289,19 @@ end
 # I remove the total_voting_power_parameter
 # because we work with immutable variables
 func get_total_voting_power(
-    vals_len: felt,
-    vals: ValidatorData*
+    validators_len: felt,
+    validators: ValidatorData*
 ) -> (res: felt):
-    if vals_len == 0:
+    if validators_len == 0:
         return (0)
     end
-    let (sum: felt) = get_total_voting_power(vals_len - 1, vals + 1)
+    %{print(ids.validators_len)%}
+    let (sum: felt) = get_total_voting_power(validators_len - 1, validators + 6)
     # TODO assert sum < MAX_TOTAL_VOTING_POWER
-    let first_vals: ValidatorData = [vals]
+    let first_vals: ValidatorData = [validators]
     let voting_power: felt = first_vals.voting_power
+    %{print('ids.voting_power')%}
+    %{print(ids.voting_power)%}
     return (voting_power + sum)
 end
 
@@ -363,22 +366,16 @@ func get_tallied_voting_power_helper(
     local val: ValidatorData = [validators]
 
     tempvar BlockIDFlag = signature.block_id_flag.BlockIDFlag
-    %{print("validators")%}
     tempvar valsize = ValidatorData.SIZE
-    %{print(ids.valsize)%}
-    %{print("BLOCK_ID_FLAG")%}
-    %{print(ids.BLOCK_ID_FLAG_COMMIT)%}
-    %{print(ids.BlockIDFlag)%}
+
     # if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
     if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
         let (rest_of_voting_power: felt) = get_tallied_voting_power_helper(
             signatures_len - 1,
             signatures + 5,
-            validators_len -1 ,
+            validators_len -1,
             validators +6 
         )
-        %{print("ids.rest_of_voting_power_fail")%}
-        %{print(ids.rest_of_voting_power)%}
         return (rest_of_voting_power)
     end
     
@@ -392,8 +389,6 @@ func get_tallied_voting_power_helper(
         validators_len -1 ,
         validators +6
     )
-    %{print("ids.rest_of_voting_power")%}
-    %{print(ids.rest_of_voting_power)%}
     return (val.voting_power + rest_of_voting_power)
 end
 
@@ -407,14 +402,20 @@ func verifyCommitLight{range_check_ptr}(
     # commit_signatures_length: felt,
     # commit_signatures_array: CommitSigData*
 )->(res: felt):
-    tempvar vals_validators_length: felt = vals.validators.len
-    # assert vals_validators_length = commit_signatures_length
-    assert vals_validators_length = commit.signatures.len
+    alloc_locals
+    # tempvar vals_validators_length_temp: felt = vals.validators.len
+    local vals_validators_length: felt = vals.validators.len
+    # let (local vals_validators_length: felt) = vals_validators_length_temp
+    tempvar commit_signatures_length: felt = commit.signatures.len
+    assert vals_validators_length = commit_signatures_length
     
     tempvar commit_height = commit.height
     assert height = commit_height
 
     # This is the only way to compare two structs (BlockID)
+    # following checks are equivalent to: require(commit.block_id.isEqual(blockID), "invalid commit -- wrong block ID");
+    # need to check all parts of the struct
+
     tempvar blockid_hash = blockID.hash
     tempvar blockid_part_set_header_total = blockID.part_set_header.total
     tempvar blockid_part_set_header_hash = blockID.part_set_header.hash
@@ -426,6 +427,37 @@ func verifyCommitLight{range_check_ptr}(
     assert blockid_hash = commit_blockid_hash
     assert blockid_part_set_header_total = commit_blockid_part_set_header_total
     assert blockid_part_set_header_hash = commit_blockid_part_set_header_hash
+
+    # get the commit_signatures pointer
+    # get the validatordata pointer
+
+    tempvar vals_validators_array: ValidatorData*= vals.validators.array
+    tempvar commit_signatures_array: CommitSigData* = commit.signatures.array
+
+    # call get_tallied_voting_power to get the counts
+    let (tallied_voting_power: felt) = get_tallied_voting_power(commit=commit, signatures_len=commit_signatures_length, signatures=commit_signatures_array, validators_len=vals_validators_length, validators=vals_validators_array)
+    
+    let (total_voting_power: felt) = get_total_voting_power(validators_len=vals_validators_length, validators=vals_validators_array)
+
+    # let tallied_voting_power_uint= Uint256(low= 1, high=0 )
+    let tallied_voting_power_uint = Uint256(low= tallied_voting_power, high=0 )
+    let total_voting_power_uint= Uint256(low= total_voting_power, high=0 )
+
+    let numerator  = Uint256(low= 2, high=0)
+    let denominator  = Uint256(low= 3, high=0)
+
+   # find 2/3 of the total voting power with multiplying by uint256_mul and dividing uint256_unsigned_div_rem
+
+    let (mul_low , mul_high ) = uint256_mul(a= total_voting_power_uint,b= numerator)
+
+    let (div_quotient , div_remainder ) =  uint256_unsigned_div_rem(a= mul_low, div= denominator )
+
+    # compare the value resulting from the dvsion to the tallied_voting_power_uint
+
+    let (more_tallied_votes:felt) = uint256_lt(div_quotient, tallied_voting_power_uint)
+
+    assert more_tallied_votes=1
+
 
     return(0)
 end
