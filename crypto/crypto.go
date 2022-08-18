@@ -2,6 +2,7 @@ package crypto
 
 import (
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
 )
@@ -25,7 +26,12 @@ type Address = bytes.HexBytes
 // See: https://docs.tendermint.com/master/spec/core/data_structures.html#address
 func AddressHash(bz []byte) Address {
 	h := ihash.Sum256(bz)
-	return Address(h[:AddressSize])
+	size := AddressSize
+	if size <= 32 {
+		return Address(h[:size])
+	}
+
+	return Address(h[:32])
 }
 
 // Checksum returns the SHA256 of the bz.

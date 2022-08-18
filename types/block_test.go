@@ -804,10 +804,10 @@ func TestBlockProtoBuf(t *testing.T) {
 	c1 := randCommit(ctx, t, time.Now())
 
 	b1 := MakeBlock(h, []Tx{Tx([]byte{1})}, &Commit{Signatures: []CommitSig{}}, []Evidence{})
-	b1.ProposerAddress = stark.GenPrivKey().PubKey().Bytes()
+	b1.ProposerAddress = stark.GenPrivKey().PubKey().Address()
 
 	b2 := MakeBlock(h, []Tx{Tx([]byte{1})}, c1, []Evidence{})
-	b2.ProposerAddress = stark.GenPrivKey().PubKey().Bytes()
+	b2.ProposerAddress = stark.GenPrivKey().PubKey().Address()
 	evidenceTime := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
 	evi, err := NewMockDuplicateVoteEvidence(ctx, h, evidenceTime, "block-test-chain")
 	require.NoError(t, err)
@@ -815,7 +815,7 @@ func TestBlockProtoBuf(t *testing.T) {
 	b2.EvidenceHash = b2.Evidence.Hash()
 
 	b3 := MakeBlock(h, []Tx{}, c1, []Evidence{})
-	b3.ProposerAddress = stark.GenPrivKey().PubKey().Bytes()
+	b3.ProposerAddress = stark.GenPrivKey().PubKey().Address()
 	testCases := []struct {
 		msg      string
 		b1       *Block
@@ -877,7 +877,7 @@ func MakeRandHeader() Header {
 	t := time.Now()
 	height := mrand.Int63()
 	randBytes := tmrand.Bytes(crypto.HashSize)
-	randAddress := stark.GenPrivKey().PubKey().Bytes()
+	randAddress := stark.GenPrivKey().PubKey().Address()
 	h := Header{
 		Version:            version.Consensus{Block: version.BlockProtocol, App: 1},
 		ChainID:            chainID,

@@ -311,8 +311,8 @@ func TestReactor_SyncTime(t *testing.T) {
 			return rts.reactors[rts.nodes[1]].GetRemainingSyncTime() > time.Nanosecond &&
 				rts.reactors[rts.nodes[1]].pool.getLastSyncRate() > 0.001
 		},
-		10*time.Second,
-		10*time.Millisecond,
+		4*10*time.Second,
+		3*10*time.Millisecond,
 		"expected node to be partially synced",
 	)
 }

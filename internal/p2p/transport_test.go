@@ -2,8 +2,10 @@ package p2p_test
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -459,11 +461,12 @@ func TestConnection_String(t *testing.T) {
 }
 
 func TestEndpoint_NodeAddress(t *testing.T) {
+	pb := stark.GenPrivKey().PubKey()
 	var (
 		ip4    = []byte{1, 2, 3, 4}
 		ip4in6 = net.IPv4(1, 2, 3, 4)
 		ip6    = []byte{0xb1, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01}
-		id     = types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
+		id     = types.NodeID(strings.ToLower(fmt.Sprint(pb.Address())))
 	)
 
 	testcases := []struct {
@@ -514,11 +517,12 @@ func TestEndpoint_NodeAddress(t *testing.T) {
 }
 
 func TestEndpoint_String(t *testing.T) {
+	pb := stark.GenPrivKey().PubKey()
 	var (
 		ip4    = []byte{1, 2, 3, 4}
 		ip4in6 = net.IPv4(1, 2, 3, 4)
 		ip6    = []byte{0xb1, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01}
-		nodeID = types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
+		nodeID = types.NodeID(strings.ToLower(fmt.Sprint(pb.Address())))
 	)
 
 	testcases := []struct {

@@ -14,6 +14,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/types"
 )
@@ -25,7 +26,8 @@ import (
 // tests.
 
 func TestPeerManagerOptions_Validate(t *testing.T) {
-	nodeID := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	pb := stark.GenPrivKey().PubKey()
+	nodeID := types.NodeID(strings.ToLower(fmt.Sprint(pb.Address())))
 
 	testcases := map[string]struct {
 		options p2p.PeerManagerOptions
@@ -35,7 +37,7 @@ func TestPeerManagerOptions_Validate(t *testing.T) {
 
 		// PersistentPeers
 		"valid PersistentPeers NodeID": {p2p.PeerManagerOptions{
-			PersistentPeers: []types.NodeID{"0000111122223333444455556666777788889999000011112222333344445555"},
+			PersistentPeers: []types.NodeID{types.NodeID(strings.ToLower(fmt.Sprint(pb.Address())))},
 		}, true},
 		"invalid PersistentPeers NodeID": {p2p.PeerManagerOptions{
 			PersistentPeers: []types.NodeID{"foo"},

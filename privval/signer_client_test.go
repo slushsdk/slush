@@ -185,7 +185,7 @@ func TestSignerVote(t *testing.T) {
 
 			ts := time.Now()
 			hash := tmrand.Bytes(crypto.HashSize)
-			valAddr := stark.GenPrivKey().PubKey().Bytes()
+			valAddr := stark.GenPrivKey().PubKey().Address()
 
 			want := &types.Vote{
 				Type:             tmproto.PrecommitType,
@@ -227,7 +227,7 @@ func TestSignerVoteResetDeadline(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ts := time.Now()
 			hash := tmrand.Bytes(crypto.HashSize)
-			valAddr := stark.GenPrivKey().PubKey().Bytes()
+			valAddr := stark.GenPrivKey().PubKey().Address()
 			want := &types.Vote{
 				Type:             tmproto.PrecommitType,
 				Height:           1,
@@ -280,7 +280,7 @@ func TestSignerVoteKeepAlive(t *testing.T) {
 
 			ts := time.Now()
 			hash := tmrand.Bytes(crypto.HashSize)
-			valAddr := stark.GenPrivKey().PubKey().Bytes()
+			valAddr := stark.GenPrivKey().PubKey().Address()
 			want := &types.Vote{
 				Type:             tmproto.PrecommitType,
 				Height:           1,
@@ -371,7 +371,7 @@ func TestSignerSignVoteErrors(t *testing.T) {
 
 			ts := time.Now()
 			hash := tmrand.Bytes(crypto.HashSize)
-			valAddr := stark.GenPrivKey().PubKey().Bytes()
+			valAddr := stark.GenPrivKey().PubKey().Address()
 			vote := &types.Vote{
 				Type:             tmproto.PrecommitType,
 				Height:           1,
