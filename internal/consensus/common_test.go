@@ -40,7 +40,7 @@ import (
 const (
 	testSubscriber = "test-client"
 
-	multiplier = 250
+	multiplier = 30
 	// genesis, chain_id, priv_val
 	ensureTimeout = multiplier * time.Millisecond * 200
 )

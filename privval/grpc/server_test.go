@@ -59,7 +59,7 @@ func TestSignVote(t *testing.T) {
 
 	ts := time.Now()
 	hash := tmrand.Bytes(crypto.HashSize)
-	valAddr := stark.GenPrivKey().PubKey().Bytes()
+	valAddr := stark.GenPrivKey().PubKey().Address()
 
 	testCases := []struct {
 		name       string
