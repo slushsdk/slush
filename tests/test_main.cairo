@@ -120,7 +120,12 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
 
     assert expired2 = 0
 
-    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1,
+    let (local ValidatorData_pointer0: ValidatorData*) =alloc()
+    let private_key0: PrivateKeyData  = PrivateKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2)
+    let validator_data0: ValidatorData =  ValidatorData(Address = 1, pub_key = private_key0, voting_power= 2, proposer_priority = 3)
+    let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 4)
+    let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =3 )
+    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1, untrustedVals=validator_set0,
     trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
 
     # TODO write test for verifyNewHeaderAndVals

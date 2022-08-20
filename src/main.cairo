@@ -128,6 +128,11 @@ struct ValidatorSetData:
     member total_voting_power: felt # TODO int64
 end
 
+struct FractionData:
+    member numerator: felt
+    member denominator: felt
+end
+
 
 # function for checking whether which time stamp is larger
 # returns 1 if first is larger, 0 in both other cases
@@ -454,7 +459,7 @@ func verifyAdjacent{range_check_ptr} (
     untrustedHeader: SignedHeaderData,
     # untrustedHeader_commit_signatures_len: felt,
     # untrustedHeader_commit_signatures: CommitSigData*,
-    # untrustedVals: ValidatorSetData,
+    untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
     currentTime: DurationData,
     maxClockDrift: DurationData
@@ -479,7 +484,68 @@ func verifyAdjacent{range_check_ptr} (
     verifyNewHeaderAndVals(untrustedHeader, trustedHeader,
     currentTime, maxClockDrift)
 
+    verifyCommitLight(
+        vals=untrustedVals,
+        chainID=trustedHeader.header.chain_id, # please check this type guys
+        blockID=untrustedHeader.commit.block_id,
+        height=untrustedHeader.header.height, # TODO int64
+        commit=untrustedHeader.commit
+    )
+
     return (1)
 end 
+
+func verifyNonAdjacent{range_check_ptr} (
+    trustedHeader: SignedHeaderData,
+    trustedVals: ValidatorSetData,
+    untrustedHeader: SignedHeaderData,
+    untrustedVals: ValidatorSetData,
+    trustingPeriod: DurationData,
+    currentTime: DurationData,
+    maxClockDrift: DurationData,
+    trustLevel: FractionData
+) -> (res: felt):
+    tempvar untrusted_header_height = untrustedHeader.header.height
+    tempvar trusted_header_height = trustedHeader.header.height
+    if untrusted_header_height != trusted_header_height + 1:
+        assert 1 = 2
+    end
+
+    ###############
+    # TODO Hash check
+    #    require(
+    #        trustedVals.hash() == trustedHeader.header.next_validators_hash.toBytes32(),
+    #        "LC: headers trusted validators does not hash to latest trusted validators"
+    #    );
+    ###############
+
+
+    let (expired:felt) =  isExpired(
+        header= untrustedHeader,
+        trustingPeriod= trustingPeriod,
+        currentTime= currentTime
+    ) 
+
+    # make sure the header is not expired
+    assert expired = 0
+
+    verifyNewHeaderAndVals(untrustedHeader, trustedHeader,
+    currentTime, maxClockDrift)
+
+    verifyCommitLight(
+        vals=untrustedVals,
+        chainID=trustedHeader.header.chain_id, # please check this type guys
+        blockID=untrustedHeader.commit.block_id,
+        height=untrustedHeader.header.height, # TODO int64
+        commit=untrustedHeader.commit
+    )
+    return (0)
+end
+
+
+
+
+
+
 
 
