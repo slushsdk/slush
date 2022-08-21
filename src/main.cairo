@@ -507,7 +507,7 @@ func verifyNonAdjacent{range_check_ptr} (
 ) -> (res: felt):
     tempvar untrusted_header_height = untrustedHeader.header.height
     tempvar trusted_header_height = trustedHeader.header.height
-    if untrusted_header_height != trusted_header_height + 1:
+    if untrusted_header_height == trusted_header_height + 1:
         assert 1 = 2
     end
 
