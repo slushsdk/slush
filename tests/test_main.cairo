@@ -1,8 +1,8 @@
 %lang starknet
 from src.main import (verifyAdjacent, SignedHeaderData,
-DurationData, LightHeaderData, ConsensusData, TimestampData, PartSetHeaderData, 
+DurationData, LightHeaderData, ConsensusData, TimestampData,SignatureData, PartSetHeaderData, 
 BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSigData, 
-CommitSigDataArray, time_greater_than, isExpired, PrivateKeyData, ValidatorData,
+CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
 ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power, get_total_voting_power )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
@@ -24,8 +24,11 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     alloc_locals 
-    local commitsig_Absent : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Absent, validators_address = 1, timestamp = time0, signature = 1)
-    local commitsig_Commit : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 1, timestamp = time0, signature = 1)
+    
+    let signature_data: SignatureData = SignatureData(signature_r = 0, signature_s =1)
+
+    local commitsig_Absent : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Absent, validators_address = 1, timestamp = time0, signature= signature_data)
+    local commitsig_Commit : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 1, timestamp = time0, signature= signature_data)
     let (local commitsig1_pointer: CommitSigData*) =alloc()   
     let(_,ap_commitsig) = get_fp_and_pc()
     let commitsig_fp= cast(ap_commitsig, CommitSigData*)
@@ -122,8 +125,8 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
 
     let (local ValidatorData_pointer0: ValidatorData*) =alloc()
     let(fp_validators0,_) = get_fp_and_pc()
-    let private_key0: PrivateKeyData  = PrivateKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2)
-    let validator_data0: ValidatorData =  ValidatorData(Address = 1, pub_key = private_key0, voting_power= 2, proposer_priority = 3)
+    let public_key0: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa = 3)
+    let validator_data0: ValidatorData =  ValidatorData(Address = 1, pub_key = public_key0, voting_power= 2, proposer_priority = 3)
     let validator_fp0 = cast(fp_validators0, ValidatorData*)
     assert ValidatorData_pointer0[0] = validator_data0
     let(fp_commitsig13) = get_ap()
@@ -150,8 +153,8 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     # test verifyCommitLight
     # create inputs for verifyCommitLight function
     # PrivateKeyData
-    let private_key1: PrivateKeyData  = PrivateKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2)
-    let validator_data1: ValidatorData =  ValidatorData(Address = 1, pub_key = private_key1, voting_power= 2, proposer_priority = 3)
+    let public_key1: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa=3)
+    let validator_data1: ValidatorData =  ValidatorData(Address = 1, pub_key = public_key1, voting_power= 2, proposer_priority = 3)
 
     let (local ValidatorData_pointer: ValidatorData*) =alloc()
     let(fp_validators,_) = get_fp_and_pc()
