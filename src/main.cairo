@@ -1,8 +1,10 @@
 %lang starknet
 from starkware.cairo.common.math import assert_nn
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_unsigned_div_rem, uint256_lt
+from starkware.cairo.common.signature import verify_ecdsa_signature
+
 
 struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag:
 
@@ -28,13 +30,18 @@ struct TimestampData:
     member nanos: felt # TODO should be int32
 end
 
+struct SignatureData:
+    member signature_r: felt
+    member signature_s: felt
+
+end
 
 # CommitSigData is done
 struct CommitSigData:
     member block_id_flag: TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag
     member validators_address: felt # TODO should be bytes
     member timestamp: TimestampData
-    member signature: felt # TODO should be bytes
+    member signature: SignatureData # TODO should be bytes
 
 end
 
@@ -109,15 +116,16 @@ struct ValidatorDataArray:
     member len: felt
 end
 
-struct PrivateKeyData:
+struct PublicKeyData:
     member ed25519: felt # TODO bytes
     member secp256k1: felt # TODO bytes
     member sr25519: felt # TODO bytes
+    member ecdsa: felt 
 end
 
 struct ValidatorData:
     member Address: felt # TODO bytes
-    member pub_key: PrivateKeyData
+    member pub_key: PublicKeyData
     member voting_power: felt # TODO int64
     member proposer_priority: felt # TODO int64
 end
@@ -329,13 +337,25 @@ func secp256k1_verify(
 end
 
 # TODO complete
-func verifySig(
+func verifySig{ecdsa_ptr : SignatureBuiltin*}(
     val: ValidatorData,
     message: felt, # bytes
-    sig: felt # bytes
+    signature: SignatureData 
 ) -> (res: felt):
-    return (0)    
+    alloc_locals
 
+    # call verify_ecdsa_signature
+    # here the two parts of the signature will be passed on from Tendermint
+    local pub_key: felt = val.pub_key.ecdsa
+    # local sig_r: felt = val.pub_key.ecdsa_r
+    
+    local sig_r = signature.signature_r
+    local sig_s = signature.signature_s
+    
+
+    # behaves like an assert
+    verify_ecdsa_signature(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
+    return(1)
 end
 
 func get_tallied_voting_power(
@@ -361,7 +381,7 @@ func get_tallied_voting_power(
     if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
         let (rest_of_voting_power: felt) = get_tallied_voting_power(
             signatures_len - 1,
-            signatures + 5,
+            signatures + 6,
             validators_len -1,
             validators +6 
         )
@@ -374,7 +394,7 @@ func get_tallied_voting_power(
     
     let (rest_of_voting_power: felt) = get_tallied_voting_power(
         signatures_len - 1,
-        signatures + 5,
+        signatures + 6,
         validators_len -1 ,
         validators +6
     )
