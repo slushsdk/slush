@@ -4,6 +4,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_unsigned_div_rem, uint256_lt
 from starkware.cairo.common.signature import verify_ecdsa_signature
+from starkware.cairo.common.hash import hash2
 
 
 struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag:
@@ -336,6 +337,71 @@ func secp256k1_verify(
     return (1)
 end
 
+
+func canonicalPartSetHeaderHasher{
+    pedersen_ptr : HashBuiltin*}(
+    part_set_header: PartSetHeaderData)
+    ->(res_hash:felt):
+
+    alloc_locals
+    local total: felt = part_set_header.total
+    local hash: felt = part_set_header.hash
+    let (res_hash) = hash2{hash_ptr=pedersen_ptr}(total, hash)
+
+    return(res_hash)
+
+end
+
+
+func blockIDHasher{pedersen_ptr : HashBuiltin*}(block_id: BlockIDData)->(res_hash: felt):
+    alloc_locals
+
+    local bidd_hash: felt = block_id.hash
+    local part_set_header: PartSetHeaderData = block_id.part_set_header
+
+    let (psh_hash) = canonicalPartSetHeaderHasher(part_set_header)
+    let (res_hash) = hash2{hash_ptr=pedersen_ptr}(bidd_hash, psh_hash)
+
+    return(res_hash)
+end
+
+func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
+    commit: CommitData, chain_id: felt)->(res:felt):
+    alloc_locals
+    
+    local type: felt = 1 # stand in value for Type https://github.com/kelemeno/tendermint-stark/blob/main/types/canonical.go#L95
+    local height: felt = commit.height
+    local round: felt = commit.round
+    local block_id: BlockIDData= commit.block_id
+
+    let (res_bidd) = blockIDHasher(block_id = block_id) 
+    
+    let (res_1) = hash2{hash_ptr=pedersen_ptr}(type, height)
+    let (res_2) = hash2{hash_ptr=pedersen_ptr}(res_1, round)
+    let (res_3) = hash2{hash_ptr=pedersen_ptr}(res_2, res_bidd)
+    let (res_4) = hash2{hash_ptr=pedersen_ptr}(res_3, chain_id)
+
+    return(res_4)
+
+end
+
+func voteSignBytes{}(
+    commit: CommitData,
+    chain_id: felt,
+    idx: felt
+    )->():
+
+    # join chainID and vote
+    # hash joint
+    # get a timestamp
+    # append hash to timestamp
+
+
+    return()
+
+end
+
+
 # TODO complete
 func verifySig{ecdsa_ptr : SignatureBuiltin*}(
     val: ValidatorData,
@@ -389,6 +455,7 @@ func get_tallied_voting_power(
     end
     
     # TODO Delim encoding
+    # voteSignBytes
     # TODO verifySig filter
     
     

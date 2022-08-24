@@ -3,10 +3,12 @@ from src.main import (verifyAdjacent, SignedHeaderData,
 DurationData, LightHeaderData, ConsensusData, TimestampData,SignatureData, PartSetHeaderData, 
 BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSigData, 
 CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
-ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power, get_total_voting_power )
+ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power,
+get_total_voting_power, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
+from starkware.cairo.common.hash import hash2
 
 
 # func test_verifyAdjacent{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
@@ -27,8 +29,14 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     
     let signature_data: SignatureData = SignatureData(signature_r = 0, signature_s =1)
 
-    local commitsig_Absent : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Absent, validators_address = 1, timestamp = time0, signature= signature_data)
-    local commitsig_Commit : CommitSigData = CommitSigData( block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 1, timestamp = time0, signature= signature_data)
+    local commitsig_Absent : CommitSigData = CommitSigData(
+    block_id_flag = Tendermint_BlockIDFLag_Absent, validators_address = 1,
+    timestamp = time0, signature= signature_data)
+
+    local commitsig_Commit : CommitSigData = CommitSigData(
+    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 1,
+    timestamp = time0, signature= signature_data)
+
     let (local commitsig1_pointer: CommitSigData*) =alloc()   
     let(_,ap_commitsig) = get_fp_and_pc()
     let commitsig_fp= cast(ap_commitsig, CommitSigData*)
@@ -198,5 +206,91 @@ func test_verifyAdjacent{range_check_ptr}() -> () :
     let valsInstance: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power = total_voting_power)
     verifyCommitLight(vals = valsInstance , chainID= 1, blockID = blockid2, height = 11100111, commit = comit1)
 
+
     return ()
+end
+
+
+func hasher{pedersen_ptr : HashBuiltin*}(a:felt, b:felt)->(res:felt):
+
+    let (hash) = hash2{hash_ptr=pedersen_ptr}(a,b)
+    %{print('ids.hash')%}
+    %{print(ids.hash)%}
+    return(hash)
+
+end
+
+@external
+func test_hash{pedersen_ptr : HashBuiltin*}() -> (res:felt):
+
+    let (res1) = hasher(1,2)
+    %{print(ids.res1)%}
+    return(res1)
+
+end
+
+
+@external
+func test_psh_hasher{pedersen_ptr:HashBuiltin*}()->(res:felt):
+    let part_set_header1 = PartSetHeaderData(total = 1, hash = 2)
+    let (res_psh) = canonicalPartSetHeaderHasher(part_set_header1)
+
+    %{print(ids.res_psh)%}
+    return(res_psh)
+end
+
+@external
+func test_blockIDHasher{pedersen_ptr:HashBuiltin*}()->(res:felt):
+    let part_set_header1 = PartSetHeaderData(total = 1, hash = 2)
+    let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
+    let (res_bidd) = blockIDHasher(block_id = blockid1) 
+
+    %{print(ids.res_bidd)%}
+    return(res_bidd)
+end
+
+@external
+func test_hashCanonicalVoteNoTime{pedersen_ptr:HashBuiltin*}()->(res:felt):
+    alloc_locals
+    let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
+    let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
+    let time0 = TimestampData(Seconds = 12, nanos = 0)
+    
+    # create the comit content
+    let signature_data: SignatureData = SignatureData(signature_r = 0, signature_s =1)
+
+    local commitsig_Absent : CommitSigData = CommitSigData(
+    block_id_flag = Tendermint_BlockIDFLag_Absent, validators_address = 1,
+    timestamp = time0, signature= signature_data)
+
+    local commitsig_Commit : CommitSigData = CommitSigData(
+    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 1,
+    timestamp = time0, signature= signature_data)
+
+    let (local commitsig1_pointer: CommitSigData*) =alloc()   
+    let(_,ap_commitsig) = get_fp_and_pc()
+    let commitsig_fp= cast(ap_commitsig, CommitSigData*)
+    assert commitsig1_pointer[0] = commitsig_Absent
+    let(fp_commitsig1) = get_ap()
+    assert commitsig1_pointer[1] = commitsig_Commit
+    let(fp_commitsig2) = get_ap()
+    assert commitsig1_pointer[2] = commitsig_Commit 
+    assert commitsig1_pointer[3] = commitsig_Commit 
+
+    let commitsig1_array = CommitSigDataArray(array = commitsig1_pointer, len = 4)
+    
+
+    # comit content created
+    
+    let part_set_header1 = PartSetHeaderData(total = 1, hash = 2)
+
+
+    let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
+    let comit1 = CommitData(height = 11100111, round = 1, block_id = blockid1,
+        signatures = commitsig1_array)
+
+    let (res_hashCVNT) = hashCanonicalVoteNoTime(commit= comit1, chain_id=1) 
+
+    %{print(ids.res_hashCVNT)%}
+    return(res_hashCVNT)
 end
