@@ -7,6 +7,23 @@ from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.hash import hash2
 
 
+struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType:
+
+    # In the original Solidity code, an enum is used
+    # to represent the different types of blocks.
+    # However, in Cairo there are no enums, so we use
+    # the following constants
+    # will take values of 0,1,2,3 based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintLight.sol#L8870
+    member SignedMsgType: felt 
+
+end
+    
+const   SIGNED_MSG_TYPE_UNKNOWN = 0
+const SIGNED_MSG_TYPE_PREVOTE = 1
+const SIGNED_MSG_TYPE_PRECOMMIT = 2
+const SIGNED_MSG_TYPE_PROPOSAL = 3
+
+
 struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag:
 
     # In the original Solidity code, an enum is used
@@ -81,6 +98,20 @@ struct CommitData:
     # the above line is invalid because is a pointer
 end
 
+# TODO: implement signatures as an array of unknown length
+struct CanonicalVoteData:
+    member TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType: felt 
+    member height: felt #TODO replace with int64
+    member round: felt #TODO replace with int32
+    member block_id: BlockIDData # TODO implement BlockIDData
+    member timestamp: TimestampData
+    member chain_id: felt
+
+    # the following line should be a list of CommitSigData
+    # member signature: SignatureData # TODO implement CommitSigData
+    # the above line is invalid because is a pointer
+end
+
 # ConsensusData is done
 struct ConsensusData:
     member block: felt # TODO replace with uint64
@@ -102,7 +133,6 @@ struct LightHeaderData:
     member app_hash: felt # TODO replace with bytes
     member last_results_hash: felt # TODO replace with bytes
     member proposer_address: felt # TODO replace with bytes
-    
 end
 
 # Done
@@ -366,44 +396,58 @@ func blockIDHasher{pedersen_ptr : HashBuiltin*}(block_id: BlockIDData)->(res_has
 end
 
 func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
-    commit: CommitData, chain_id: felt)->(res:felt):
+    CVData: CanonicalVoteData)->(res:felt):
     alloc_locals
     
     local type: felt = 1 # stand in value for Type https://github.com/kelemeno/tendermint-stark/blob/main/types/canonical.go#L95
-    local height: felt = commit.height
-    local round: felt = commit.round
-    local block_id: BlockIDData= commit.block_id
+    local height: felt = CVData.height
+    local round: felt = CVData.round
+    local chain_id: felt = CVData.chain_id
+    local block_id: BlockIDData= CVData.block_id
 
     let (res_bidd) = blockIDHasher(block_id = block_id) 
     
-    let (res_1) = hash2{hash_ptr=pedersen_ptr}(type, height)
-    let (res_2) = hash2{hash_ptr=pedersen_ptr}(res_1, round)
-    let (res_3) = hash2{hash_ptr=pedersen_ptr}(res_2, res_bidd)
-    let (res_4) = hash2{hash_ptr=pedersen_ptr}(res_3, chain_id)
+    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(type, height)
+    let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, round)
+    let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, res_bidd)
+    let (res_4: felt) = hash2{hash_ptr=pedersen_ptr}(res_3, chain_id)
 
     return(res_4)
 
 end
 
-func voteSignBytes{}(
+func voteSignBytes{pedersen_ptr: HashBuiltin*}(
+    counter: felt,
     commit: CommitData,
     chain_id: felt,
-    idx: felt
-    )->():
+    )->(res_hash :felt):
+    alloc_locals
 
-    # join chainID and vote
-    # hash joint
-    # get a timestamp
-    # append hash to timestamp
+    # get parts of CommitData
+    # build a new CVData from this
+    
+    local height: felt = commit.height
+    local round: felt = commit.round
+    # we're not even using the timestamps now, co can comment this out
+    local signatures_array: CommitSigData* = commit.signatures.array
+    local this_signature: CommitSigData = signatures_array[counter]
+    local timestamp: TimestampData = this_signature.timestamp
+    local block_id: BlockIDData= commit.block_id
 
+    let CVData: CanonicalVoteData = CanonicalVoteData(
+    TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType= 1,
+    height = height, round = round, block_id = block_id,
+    timestamp= timestamp, chain_id= chain_id)
 
-    return()
+    let res_hash: felt = hashCanonicalVoteNoTime(CVData = CVData )
+
+    return(res_hash)
 
 end
 
 
 # TODO complete
-func verifySig{ecdsa_ptr : SignatureBuiltin*}(
+func verifySig{ecdsa_ptr: SignatureBuiltin*}(
     val: ValidatorData,
     message: felt, # bytes
     signature: SignatureData 
@@ -420,15 +464,21 @@ func verifySig{ecdsa_ptr : SignatureBuiltin*}(
     
 
     # behaves like an assert
-    verify_ecdsa_signature(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
+    verify_ecdsa_signature{ecdsa_ptr=ecdsa_ptr}(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
+    # verify_ecdsa_signature(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
     return(1)
 end
 
-func get_tallied_voting_power(
+func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*}( 
+    counter: felt,
+    commit: CommitData,
     signatures_len: felt,
     signatures: CommitSigData*,
     validators_len: felt,
-    validators: ValidatorData*
+    validators: ValidatorData*,
+    chain_id :felt,
+
 )->(res: felt):
     alloc_locals
 
@@ -446,30 +496,42 @@ func get_tallied_voting_power(
     # if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
     if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
         let (rest_of_voting_power: felt) = get_tallied_voting_power(
+            counter +1,
+            commit,
             signatures_len - 1,
             signatures + 6,
             validators_len -1,
-            validators +6 
+            validators +6, 
+            chain_id=1
         )
         return (rest_of_voting_power)
     end
     
-    # TODO Delim encoding
-    # voteSignBytes
-    # TODO verifySig filter
+
+    # create a message with voteSignBytes, pass signature to this and signatures_len
+    # verify this message with verifySig
+
+    let message: felt = voteSignBytes(counter, commit, chain_id)
+    
+    local commit_sig_signature: SignatureData = signature.signature
+    verifySig(val, message, commit_sig_signature)
     
     
     let (rest_of_voting_power: felt) = get_tallied_voting_power(
+        counter+1,
+        commit, 
         signatures_len - 1,
         signatures + 6,
         validators_len -1 ,
-        validators +6
+        validators +6,
+        chain_id=1
     )
     return (val.voting_power + rest_of_voting_power)
 end
 
 # return 0 (false) or 1 (true)
-func verifyCommitLight{range_check_ptr}(
+func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*}(
     vals: ValidatorSetData,
     chainID: felt, # please check this type guys
     blockID: BlockIDData,
@@ -511,7 +573,9 @@ func verifyCommitLight{range_check_ptr}(
     tempvar commit_signatures_array: CommitSigData* = commit.signatures.array
 
     # call get_tallied_voting_power to get the counts
-    let (tallied_voting_power: felt) = get_tallied_voting_power(signatures_len=commit_signatures_length, signatures=commit_signatures_array, validators_len=vals_validators_length, validators=vals_validators_array)
+    let (tallied_voting_power: felt) = get_tallied_voting_power{ecdsa_ptr=ecdsa_ptr}(counter = 0,commit=commit,
+     signatures_len=commit_signatures_length, signatures=commit_signatures_array,
+      validators_len=vals_validators_length, validators=vals_validators_array, chain_id= 1)
     
     let (total_voting_power: felt) = get_total_voting_power(validators_len=vals_validators_length, validators=vals_validators_array)
 
@@ -539,7 +603,8 @@ func verifyCommitLight{range_check_ptr}(
 end
 
 # @external
-func verifyAdjacent{range_check_ptr} (
+func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*} (
     trustedHeader: SignedHeaderData,
     # trustedHeader_commit_signatures_len: felt,
     # trustedHeader_commit_signatures: CommitSigData*,
@@ -582,7 +647,8 @@ func verifyAdjacent{range_check_ptr} (
     return (1)
 end 
 
-func verifyNonAdjacent{range_check_ptr} (
+func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*} (
     trustedHeader: SignedHeaderData,
     trustedVals: ValidatorSetData,
     untrustedHeader: SignedHeaderData,
@@ -619,7 +685,7 @@ func verifyNonAdjacent{range_check_ptr} (
     verifyNewHeaderAndVals(untrustedHeader, trustedHeader,
     currentTime, maxClockDrift)
 
-    verifyCommitLight(
+    verifyCommitLight{ecdsa_ptr=ecdsa_ptr}(
         vals=untrustedVals,
         chainID=trustedHeader.header.chain_id, # please check this type guys
         blockID=untrustedHeader.commit.block_id,
