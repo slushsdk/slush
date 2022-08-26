@@ -83,6 +83,7 @@ func newDefaultNode(
 	logger log.Logger,
 ) (service.Service, error) {
 	nodeKey, err := types.LoadOrGenNodeKey(cfg.NodeKeyFile())
+	fmt.Println("hello line 86", nodeKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load or gen node key %s: %w", cfg.NodeKeyFile(), err)
 	}
