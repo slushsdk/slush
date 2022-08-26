@@ -23,8 +23,8 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     # let (smallest_ptr : MyStruct*) = search_sorted_lower(
     #     array_ptr=array_ptr, elm_size=2, n_elms=3, key=2
     # )
-    let time0 = TimestampData(Seconds = 12, nanos = 0)
-    let time01 = TimestampData(Seconds = 13, nanos = 0)
+    let time0 = TimestampData( nanos = 0)
+    let time01 = TimestampData(nanos = 0)
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     alloc_locals 
@@ -84,17 +84,17 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 
     # test whether the time comparison works
 
-    let time1 = TimestampData(Seconds = 12, nanos = 9)
-    let time2 = TimestampData(Seconds = 12, nanos = 10)
-    let time3 = TimestampData(Seconds = 12, nanos = 11)
+    let time1 = TimestampData( nanos = 9)
+    let time2 = TimestampData(nanos = 10)
+    let time3 = TimestampData(nanos = 11)
     
-    let time4 = TimestampData(Seconds = 13, nanos = 9)
-    let time5 = TimestampData(Seconds = 13, nanos = 10)
-    let time6 = TimestampData(Seconds = 13, nanos = 11)
+    let time4 = TimestampData(nanos = 9)
+    let time5 = TimestampData(nanos = 10)
+    let time6 = TimestampData(nanos = 11)
     
-    let time7 = TimestampData(Seconds = 14, nanos = 9)
-    let time8 = TimestampData(Seconds = 14, nanos = 10)
-    let time9 = TimestampData(Seconds = 14, nanos = 11)
+    let time7 = TimestampData(nanos = 9)
+    let time8 = TimestampData(nanos = 10)
+    let time9 = TimestampData(nanos = 11)
 
 
     let (time55) = time_greater_than(time5, time5)
@@ -119,15 +119,15 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     assert time59 = 0
 
     # test whether the time comparison works
-    let trustingPeriod = DurationData(Seconds = 1, nanos = 9)
-    let currentTime = DurationData(Seconds = 20, nanos = 10)
-    let maxClockDrift= DurationData(Seconds = 20, nanos = 10)
+    let trustingPeriod = DurationData(nanos = 9)
+    let currentTime = DurationData(nanos = 10)
+    let maxClockDrift= DurationData(nanos = 10)
 
     let (expired: felt) = isExpired(trustedHeader1, trustingPeriod, currentTime)
 
     assert expired = 1
     
-    let currentTime2 = DurationData(Seconds = 2, nanos = 10)
+    let currentTime2 = DurationData(nanos = 10)
 
     let (expired2: felt) = isExpired(trustedHeader1, trustingPeriod, currentTime2)
 
@@ -257,7 +257,7 @@ func test_hashCanonicalVoteNoTime{pedersen_ptr:HashBuiltin*}()->(res:felt):
     alloc_locals
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
-    let time0 = TimestampData(Seconds = 12, nanos = 0)
+    let time0 = TimestampData(nanos = 0)
     
     # create the comit content
     let signature_data: SignatureData = SignatureData(signature_r = 0, signature_s =1)
@@ -306,8 +306,8 @@ func test_voteSignBytes{pedersen_ptr : HashBuiltin*}()->(res:felt):
     alloc_locals
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
-    let time0 = TimestampData(Seconds = 12, nanos = 0)
-    let time1 = TimestampData(Seconds = 13, nanos = 0)
+    let time0 = TimestampData(nanos = 0)
+    let time1 = TimestampData(nanos = 0)
     
     # create the comit content
     let signature_data: SignatureData = SignatureData(signature_r = 0, signature_s =1)
@@ -342,11 +342,11 @@ func test_voteSignBytes{pedersen_ptr : HashBuiltin*}()->(res:felt):
     let comit1 = CommitData(height = 11100111, round = 1, block_id = blockid1,
         signatures = commitsig1_array)
 
-    let (res_hash1) = voteSignBytes(counter=1, commit= comit1, chain_id=1) 
+    let (timestamp1, res_hash1) = voteSignBytes(counter=1, commit= comit1, chain_id=1) 
 
     %{print('ids.res_hash1')%}
     %{print(ids.res_hash1)%}
-    let (res_hash2) = voteSignBytes(counter=0, commit= comit1, chain_id=1) 
+    let (timestamp2, res_hash2) = voteSignBytes(counter=0, commit= comit1, chain_id=1) 
 
     %{print(ids.res_hash2)%}
     return(res_hash1) 
