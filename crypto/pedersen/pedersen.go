@@ -12,6 +12,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/utils"
 )
 
+const Size = 32
+
 type PedersenHash struct {
 	input []byte
 }
@@ -20,12 +22,32 @@ func New() hash.Hash {
 	return new(PedersenHash)
 }
 
+//This appends the hash to b
 func (ph *PedersenHash) Sum(b []byte) []byte {
 	if b == nil {
-		return pedersenHash(ph.input)
+		return ByteRounder(pedersenHash(ph.input))
 	}
-	fmt.Println("Not reading writer obj")
-	return pedersenHash(b)
+
+	return ByteRounder(append(b, pedersenHash(ph.input)...))
+}
+
+//Hashes b
+func Sum256(b []byte) [32]byte {
+	ph := new(PedersenHash)
+	ph.Write(b)
+
+	var res [32]byte
+	copy(res[:], ph.Sum(nil))
+	return res
+}
+
+//We want to pass in 64 bit numbers from pedersen, so we want to round the byte array to be that long.
+func ByteRounder(ba []byte) []byte {
+
+	rem := len(ba) % 8
+	rem = (8 - rem) % 8
+	return append(ba, make([]byte, rem)...)
+
 }
 
 func (ph *PedersenHash) BlockSize() int {
@@ -37,7 +59,7 @@ func (ph *PedersenHash) Size() int {
 }
 
 func (ph *PedersenHash) Reset() {
-	panic("Not implemented")
+	ph.input = []byte{}
 }
 
 func (ph *PedersenHash) Write(p []byte) (n int, err error) {
@@ -48,6 +70,9 @@ func (ph *PedersenHash) Write(p []byte) (n int, err error) {
 func pedersenHash(b []byte) []byte {
 	chunks := utils.Split(b, 8)
 
+	if len(chunks) == 0 {
+		return Digest(big.NewInt(0)).Bytes()
+	}
 	lastWordSize := len(chunks[len(chunks)-1])
 	isLastWordFull := lastWordSize == 8
 
@@ -60,7 +85,7 @@ func pedersenHash(b []byte) []byte {
 	pedersenInput := make([]*big.Int, len(chunks))
 
 	for i := 0; i < len(chunks); i++ {
-		pedersenInput[i] = big.NewInt(int64(binary.BigEndian.Uint64(chunks[i])))
+		pedersenInput[i] = big.NewInt(0).SetUint64(uint64(binary.BigEndian.Uint64(chunks[i])))
 	}
 
 	pedersenOutput := ArrayDigest(pedersenInput...)
