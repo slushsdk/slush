@@ -18,7 +18,7 @@ struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType:
 
 end
     
-const   SIGNED_MSG_TYPE_UNKNOWN = 0
+const SIGNED_MSG_TYPE_UNKNOWN = 0
 const SIGNED_MSG_TYPE_PREVOTE = 1
 const SIGNED_MSG_TYPE_PRECOMMIT = 2
 const SIGNED_MSG_TYPE_PROPOSAL = 3
@@ -44,7 +44,7 @@ const MAX_TOTAL_VOTING_POWER = 4611686018427387904 # == 1 << (63 - 1)
 
 # TimestampData is done
 struct TimestampData:
-    member Seconds: felt # TODO should be int64
+    # member Seconds: felt # TODO should be int64
     member nanos: felt # TODO should be int32
 end
 
@@ -79,7 +79,7 @@ end
 
 # DurationData is done
 struct DurationData:
-    member Seconds: felt # TODO should be int64
+    # member Seconds: felt # TODO should be int64
     member nanos: felt # TODO should be int32
 end
 
@@ -173,6 +173,54 @@ struct FractionData:
 end
 
 
+# # function for checking whether which time stamp is larger
+# # returns 1 if first is larger, 0 in both other cases
+# func time_greater_than{range_check_ptr}(
+#     t1: TimestampData,
+#     t2: TimestampData 
+#     )->(res:felt):
+#     alloc_locals
+
+#     let (is_le_val: felt) = is_le(t2.Seconds, t1.Seconds)
+
+#     if is_le_val == 1:
+#         # check if t1 is equal to t2
+#         # let (local t1S: felt) = t1.Seconds
+#         # let (local t2S: felt) = t2.Seconds
+#         tempvar t1S: felt = t1.Seconds
+#         tempvar t2S: felt = t2.Seconds 
+#         tempvar time_diff: felt = t1S - t2S
+#         let (not_equal: felt) = is_not_zero(time_diff) 
+        
+#         if not_equal == 1:
+#             return(1)
+#         else:
+#         # they are equal, check nanos
+#             let (is_le_val_nanos: felt) = is_le(t2.nanos, t1.nanos)
+            
+#             if is_le_val_nanos == 1:
+#                 tempvar t1n: felt = t1.nanos
+#                 tempvar t2n: felt = t2.nanos
+#                 tempvar time_diff_nanos: felt = t1n - t2n
+#                 let (not_equal_nanos: felt) = is_not_zero(time_diff_nanos)
+            
+
+#                 if not_equal_nanos == 1:
+#                     return(1)
+#                 else:
+#                     return(0)
+#                 end          
+
+#             else:
+#                 return(0)
+#             end
+#         end 
+#     else:
+#         return(0)  
+#     end
+
+# end
+
 # function for checking whether which time stamp is larger
 # returns 1 if first is larger, 0 in both other cases
 func time_greater_than{range_check_ptr}(
@@ -181,46 +229,25 @@ func time_greater_than{range_check_ptr}(
     )->(res:felt):
     alloc_locals
 
-    let (is_le_val: felt) = is_le(t2.Seconds, t1.Seconds)
+    let (is_le_val: felt) = is_le(t2.nanos, t1.nanos)
 
     if is_le_val == 1:
         # check if t1 is equal to t2
-        # let (local t1S: felt) = t1.Seconds
-        # let (local t2S: felt) = t2.Seconds
-        tempvar t1S: felt = t1.Seconds
-        tempvar t2S: felt = t2.Seconds 
-        tempvar time_diff: felt = t1S - t2S
+        tempvar t1_nanos: felt = t1.nanos
+        tempvar t2_nanos: felt = t2.nanos
+        tempvar time_diff: felt = t1_nanos - t2_nanos
         let (not_equal: felt) = is_not_zero(time_diff) 
         
         if not_equal == 1:
             return(1)
         else:
-        # they are equal, check nanos
-            let (is_le_val_nanos: felt) = is_le(t2.nanos, t1.nanos)
-            
-            if is_le_val_nanos == 1:
-                tempvar t1n: felt = t1.nanos
-                tempvar t2n: felt = t2.nanos
-                tempvar time_diff_nanos: felt = t1n - t2n
-                let (not_equal_nanos: felt) = is_not_zero(time_diff_nanos)
-            
-
-                if not_equal_nanos == 1:
-                    return(1)
-                else:
-                    return(0)
-                end          
-
-            else:
-                return(0)
-            end
-        end 
+            return(0)
+        end
     else:
         return(0)  
     end
 
 end
-
 
 # check if the header is valid
 func isExpired{range_check_ptr}(
@@ -233,12 +260,12 @@ func isExpired{range_check_ptr}(
     # create new DurationData struct
 
     let expirationTime: TimestampData = TimestampData(
-        Seconds= header.header.time.Seconds + trustingPeriod.Seconds,
+        # Seconds= header.header.time.Seconds + trustingPeriod.Seconds,
         nanos= header.header.time.nanos + trustingPeriod.nanos
     )
 
     let currentTime_TimestampData = TimestampData(
-        Seconds= currentTime.Seconds,
+        # Seconds= currentTime.Seconds,
         nanos= currentTime.nanos
     )
     return time_greater_than(currentTime_TimestampData, expirationTime)
@@ -316,7 +343,7 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     tempvar untrusted_time: TimestampData= untrustedHeader.header.time
 
     let driftTime: TimestampData = TimestampData(
-        Seconds= currentTime.Seconds + maxClockDrift.Seconds,
+        # Seconds= currentTime.Seconds + maxClockDrift.Seconds,
         nanos= currentTime.nanos + maxClockDrift.nanos
     )
     let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
@@ -420,7 +447,7 @@ func voteSignBytes{pedersen_ptr: HashBuiltin*}(
     counter: felt,
     commit: CommitData,
     chain_id: felt,
-    )->(res_hash :felt):
+    )->(timestamp: TimestampData ,res_hash :felt):
     alloc_locals
 
     # get parts of CommitData
@@ -441,7 +468,9 @@ func voteSignBytes{pedersen_ptr: HashBuiltin*}(
 
     let res_hash: felt = hashCanonicalVoteNoTime(CVData = CVData )
 
-    return(res_hash)
+    # need to append time to the hash
+
+    return(timestamp, res_hash)
 
 end
 
@@ -511,7 +540,10 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     # create a message with voteSignBytes, pass signature to this and signatures_len
     # verify this message with verifySig
 
-    let message: felt = voteSignBytes(counter, commit, chain_id)
+    let (timestamp: TimestampData,res_hash: felt) = voteSignBytes(counter, commit, chain_id)
+
+    local timestamp_nanos: felt = timestamp.nanos
+    let message: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash)
     
     local commit_sig_signature: SignatureData = signature.signature
     verifySig(val, message, commit_sig_signature)
