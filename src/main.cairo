@@ -132,6 +132,7 @@ struct LightHeaderData:
     member consensus_hash: felt # TODO replace with bytes
     member app_hash: felt # TODO replace with bytes
     member last_results_hash: felt # TODO replace with bytes
+    member evidence_hash: felt # TODO replace with bytes
     member proposer_address: felt # TODO replace with bytes
 end
 
@@ -543,7 +544,8 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     let (timestamp: TimestampData,res_hash: felt) = voteSignBytes(counter, commit, chain_id)
 
     local timestamp_nanos: felt = timestamp.nanos
-    let message: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash)
+    let message1: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash)
+    let message: felt = hash2{hash_ptr=pedersen_ptr}(message1, message1)
     
     local commit_sig_signature: SignatureData = signature.signature
     verifySig(val, message, commit_sig_signature)
