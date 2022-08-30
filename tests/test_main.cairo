@@ -5,7 +5,7 @@ BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSi
 CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
 ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power,
 get_total_voting_power, canonicalPartSetHeaderHasher, blockIDHasher, 
-hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData )
+hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , )
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
@@ -63,14 +63,14 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
         version  = consensus1, chain_id = 4, height = 11100111, time = time0,
         last_block_id = blockid1, last_commit_hash = 1, data_hash = 1,
         validators_hash= 1, next_validators_hash = 2, consensus_hash = 3, 
-        app_hash = 4, last_results_hash = 5, proposer_address = 6   
+        app_hash = 4, last_results_hash = 5, evidence_hash =1,  proposer_address = 6   
     )
     
     let header2  = LightHeaderData(
         version  = consensus1, chain_id = 4, height = 11100112, time = time01,
         last_block_id = blockid1, last_commit_hash = 1, data_hash = 1,
         validators_hash= 1, next_validators_hash = 2, consensus_hash = 3, 
-        app_hash = 4, last_results_hash = 5, proposer_address = 6   
+        app_hash = 4, last_results_hash = 5, evidence_hash = 1, proposer_address = 6   
     )
 
     let comit1 = CommitData(height = 11100111, round = 1, block_id = blockid1,
@@ -359,5 +359,115 @@ func test_sign_verify{}()->():
 
 return()
 
+
+end
+
+
+
+@external
+func test_real_data{range_check_ptr,
+pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
+    alloc_locals
+
+    # create the header
+    let header1_trusted: LightHeaderData = LightHeaderData(
+    version = ConsensusData(block = 11, app= 1),
+    chain_id = 1, # this is stand in value
+    height = 1,
+    time = TimestampData(nanos = 1661775573134 ), # these are in fact mili seconds
+    last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 0, hash = 0)),
+    last_commit_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
+    next_validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
+    consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+    app_hash = 0,
+    last_results_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
+    proposer_address =  2106537075444065953880442667644615794908289081863782843215853903740729500594
+    )
+
+    # create commit
+    let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
+
+    let signature_data_trusted: SignatureData = SignatureData(signature_r = 302570576979, signature_s =365276247188)
+
+    local commitsig_Absent_trusted : CommitSigData = CommitSigData(
+    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
+    timestamp = TimestampData(nanos= 1661775578517), signature= signature_data_trusted)
+
+    let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
+    assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
+    let commitsig1_array_trusted = CommitSigDataArray(array = commitsig1_pointer_trusted, len = 1)
+
+    let commit1_trusted: CommitData = CommitData(height = 1, 
+    round = 0, 
+    block_id= BlockIDData(
+            hash= 917023189488941218194787075389384798279597946141998621209104598914929927209,
+            part_set_header = PartSetHeaderData(total = 1, hash=2049127694060112449178420607861863570400312281348272756673744827068373319666)),
+    signatures = commitsig1_array_trusted
+    )
+    
+    # create the header from these two
+    let trusted_header: SignedHeaderData = SignedHeaderData(header = header1_trusted, commit = commit1_trusted)
+
+    # create the header
+    let header1_untrusted: LightHeaderData = LightHeaderData(
+    version = ConsensusData(block = 11, app= 1),
+    chain_id = 1, # this is stand in value
+    height = 2,
+    time = TimestampData(nanos = 1661775582928 ), # these are in fact mili seconds
+    last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 1, hash = 2049127694060112449178420607861863570400312281348272756673744827068373319666)),
+    last_commit_hash = 3206510756383374436900628853280269837377965041174915829009643860453850809276,
+    data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    validators_hash =1657485403597653774201701838487158114962187584356757705905323730218210757700 ,
+    next_validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
+    consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+    app_hash = 0,
+    last_results_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
+    proposer_address =  2106537075444065953880442667644615794908289081863782843215853903740729500594
+    )
+
+    # create commit
+
+    let signature_data_untrusted: SignatureData = SignatureData(signature_r = 302570576979, signature_s =365276247188)
+
+    local commitsig_Absent_untrusted : CommitSigData = CommitSigData(
+    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
+    timestamp = TimestampData(nanos= 1661775586591), signature= signature_data_untrusted)
+
+    let (local commitsig1_pointer_untrusted: CommitSigData*) =alloc()   
+    assert commitsig1_pointer_untrusted[0] = commitsig_Absent_untrusted
+    let commitsig1_array_untrusted = CommitSigDataArray(array = commitsig1_pointer_untrusted, len = 1)
+
+    let commit1_untrusted: CommitData = CommitData(height = 2, 
+    round = 0, 
+    block_id= BlockIDData(
+            hash= 65543580197910598078846360355791800832815991148552255474111224726005073269504,
+            part_set_header = PartSetHeaderData(total = 1, hash=1375208434809757366091983320647191940997877109629879522000479096080610380267)),
+    signatures = commitsig1_array_untrusted    
+    )
+    
+    # create the header from these two
+    let untrusted_header: SignedHeaderData = SignedHeaderData(header = header1_untrusted, commit = commit1_untrusted)
+
+    # create validator array
+    let (local ValidatorData_pointer0: ValidatorData*) =alloc()
+    let public_key0: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa = 941070101312230901751)
+    let validator_data0: ValidatorData =  ValidatorData(Address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
+    pub_key = public_key0, voting_power= 10, proposer_priority = 0)
+    assert ValidatorData_pointer0[0] = validator_data0
+                                                        
+    let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 1)
+    let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =1 )
+    let currentTime2 = DurationData(nanos = 1661865949749)
+    let maxClockDrift= DurationData(nanos = 10)
+    let trustingPeriod = DurationData(nanos = 99999999999999999999)
+ 
+    verifyAdjacent(trustedHeader= trusted_header, untrustedHeader= untrusted_header, untrustedVals=validator_set0,
+    trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
+
+return()
 
 end
