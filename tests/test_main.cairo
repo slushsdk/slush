@@ -454,7 +454,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
 
     # create validator array
     let (local ValidatorData_pointer0: ValidatorData*) =alloc()
-    let public_key0: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa = 941070101312230901751)
+    let public_key0: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa = 186354605339507257990914121517420953533283196103464706074217121236949050624)
     let validator_data0: ValidatorData =  ValidatorData(Address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
     pub_key = public_key0, voting_power= 10, proposer_priority = 0)
     assert ValidatorData_pointer0[0] = validator_data0
