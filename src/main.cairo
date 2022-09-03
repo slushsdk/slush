@@ -26,11 +26,6 @@ const SIGNED_MSG_TYPE_PROPOSAL = 3
 
 struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag:
 
-    # In the original Solidity code, an enum is used
-    # to represent the different types of blocks.
-    # However, in Cairo there are no enums, so we use
-    # the following constants
-    # will take values of 0,1,2,3 based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintLight.sol#L8870
     member BlockIDFlag: felt 
 
 end
@@ -44,8 +39,7 @@ const MAX_TOTAL_VOTING_POWER = 4611686018427387904 # == 1 << (63 - 1)
 
 # TimestampData is done
 struct TimestampData:
-    # member Seconds: felt # TODO should be int64
-    member nanos: felt # TODO should be int32
+    member nanos: felt 
 end
 
 struct SignatureData:
@@ -54,33 +48,37 @@ struct SignatureData:
 
 end
 
+struct ChainID:
+    member chain_id_array: felt*
+    member len: felt
+end
+
 # CommitSigData is done
 struct CommitSigData:
     member block_id_flag: TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag
-    member validators_address: felt # TODO should be bytes
+    member validators_address: felt # should be bytes
     member timestamp: TimestampData
-    member signature: SignatureData # TODO should be bytes
+    member signature: SignatureData # should be bytes
 
 end
 
 # PartSetHeader is done
 struct PartSetHeaderData:
-    member total: felt # TODO should be uint64
-    member hash: felt # TODO should be bytes
+    member total: felt 
+    member hash: felt
 
 end
 
 # BlockIDData is done
 struct BlockIDData:
-    member hash: felt # TODO needs to be bytes
+    member hash: felt 
     member part_set_header: PartSetHeaderData
 
 end
 
 # DurationData is done
 struct DurationData:
-    # member Seconds: felt # TODO should be int64
-    member nanos: felt # TODO should be int32
+    member nanos: felt 
 end
 
 struct CommitSigDataArray:
@@ -90,53 +88,52 @@ end
 
 # TODO: implement signatures as an array of unknown length
 struct CommitData:
-    member height: felt #TODO replace with int64
-    member round: felt #TODO replace with int32
-    member block_id: BlockIDData # TODO implement BlockIDData
+    member height: felt 
+    member round: felt
+    member block_id: BlockIDData 
     # the following line should be a list of CommitSigData
-    member signatures: CommitSigDataArray # TODO implement CommitSigData
+    member signatures: CommitSigDataArray 
     # the above line is invalid because is a pointer
 end
 
 # TODO: implement signatures as an array of unknown length
 struct CanonicalVoteData:
     member TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType: felt 
-    member height: felt #TODO replace with int64
-    member round: felt #TODO replace with int32
-    member block_id: BlockIDData # TODO implement BlockIDData
+    member height: felt 
+    member round: felt 
+    member block_id: BlockIDData 
     member timestamp: TimestampData
-    member chain_id: felt
+    member chain_id: ChainID 
 
     # the following line should be a list of CommitSigData
-    # member signature: SignatureData # TODO implement CommitSigData
+    # member signature: SignatureData 
     # the above line is invalid because is a pointer
 end
 
 # ConsensusData is done
 struct ConsensusData:
-    member block: felt # TODO replace with uint64
-    member app: felt # TODO replace with uint64
+    member block: felt 
+    member app: felt 
 
 end
 
 struct LightHeaderData:
     member version: ConsensusData # TODO maybe this needs to be a pointer
-    member chain_id: felt # TODO replace with hash of string
-    member height: felt # TODO replace with int64
+    member chain_id: ChainID 
+    member height: felt 
     member time: TimestampData
     member last_block_id: BlockIDData
-    member last_commit_hash: felt # TODO replace with bytes
-    member data_hash: felt # TODO replace with bytes
-    member validators_hash: felt # TODO replace with bytes
-    member next_validators_hash: felt # TODO replace with bytes
-    member consensus_hash: felt # TODO replace with bytes
-    member app_hash: felt # TODO replace with bytes
-    member last_results_hash: felt # TODO replace with bytes
-    member evidence_hash: felt # TODO replace with bytes
-    member proposer_address: felt # TODO replace with bytes
+    member last_commit_hash: felt # replace with bytes
+    member data_hash: felt # replace with bytes
+    member validators_hash: felt # replace with bytes
+    member next_validators_hash: felt # replace with bytes
+    member consensus_hash: felt # replace with bytes
+    member app_hash: felt # replace with bytes
+    member last_results_hash: felt # replace with bytes
+    member evidence_hash: felt # replace with bytes
+    member proposer_address: felt # replace with bytes
 end
 
-# Done
 struct SignedHeaderData:
     member header: LightHeaderData
     member commit: CommitData
@@ -149,78 +146,29 @@ struct ValidatorDataArray:
 end
 
 struct PublicKeyData:
-    member ed25519: felt # TODO bytes
-    member secp256k1: felt # TODO bytes
-    member sr25519: felt # TODO bytes
+    member ed25519: felt # replace w bytes
+    member secp256k1: felt # replace w bytes
+    member sr25519: felt # replace w bytes
     member ecdsa: felt 
 end
 
 struct ValidatorData:
-    member Address: felt # TODO bytes
+    member Address: felt # replace w bytes
     member pub_key: PublicKeyData
-    member voting_power: felt # TODO int64
-    member proposer_priority: felt # TODO int64
+    member voting_power: felt 
+    member proposer_priority: felt 
 end
 
 struct ValidatorSetData:
     member validators: ValidatorDataArray
     member proposer: ValidatorData
-    member total_voting_power: felt # TODO int64
+    member total_voting_power: felt 
 end
 
 struct FractionData:
     member numerator: felt
     member denominator: felt
 end
-
-
-# # function for checking whether which time stamp is larger
-# # returns 1 if first is larger, 0 in both other cases
-# func time_greater_than{range_check_ptr}(
-#     t1: TimestampData,
-#     t2: TimestampData 
-#     )->(res:felt):
-#     alloc_locals
-
-#     let (is_le_val: felt) = is_le(t2.Seconds, t1.Seconds)
-
-#     if is_le_val == 1:
-#         # check if t1 is equal to t2
-#         # let (local t1S: felt) = t1.Seconds
-#         # let (local t2S: felt) = t2.Seconds
-#         tempvar t1S: felt = t1.Seconds
-#         tempvar t2S: felt = t2.Seconds 
-#         tempvar time_diff: felt = t1S - t2S
-#         let (not_equal: felt) = is_not_zero(time_diff) 
-        
-#         if not_equal == 1:
-#             return(1)
-#         else:
-#         # they are equal, check nanos
-#             let (is_le_val_nanos: felt) = is_le(t2.nanos, t1.nanos)
-            
-#             if is_le_val_nanos == 1:
-#                 tempvar t1n: felt = t1.nanos
-#                 tempvar t2n: felt = t2.nanos
-#                 tempvar time_diff_nanos: felt = t1n - t2n
-#                 let (not_equal_nanos: felt) = is_not_zero(time_diff_nanos)
-            
-
-#                 if not_equal_nanos == 1:
-#                     return(1)
-#                 else:
-#                     return(0)
-#                 end          
-
-#             else:
-#                 return(0)
-#             end
-#         end 
-#     else:
-#         return(0)  
-#     end
-
-# end
 
 # function for checking whether which time stamp is larger
 # returns 1 if first is larger, 0 in both other cases
@@ -261,12 +209,10 @@ func isExpired{range_check_ptr}(
     # create new DurationData struct
 
     let expirationTime: TimestampData = TimestampData(
-        # Seconds= header.header.time.Seconds + trustingPeriod.Seconds,
         nanos= header.header.time.nanos + trustingPeriod.nanos
     )
 
     let currentTime_TimestampData = TimestampData(
-        # Seconds= currentTime.Seconds,
         nanos= currentTime.nanos
     )
     return time_greater_than(currentTime_TimestampData, expirationTime)
@@ -301,19 +247,30 @@ end
 
 func verifyNewHeaderAndVals{range_check_ptr}(
     untrustedHeader: SignedHeaderData,
-    # untrustedVals: ValidatorSetData, # TODO implement ValidatorSetData
+    # TODO below line
+    # untrustedVals: ValidatorSetData, 
     trustedHeader: SignedHeaderData,
     currentTime: DurationData,
     maxClockDrift: DurationData
     )->(res:felt):
-
+    alloc_locals
     # set of simple checks to see if the header is valid
 
     # check if the chain id is the same
 
-    tempvar untrusted_chain_id: felt = untrustedHeader.header.chain_id
-    tempvar trusted_chain_id: felt = trustedHeader.header.chain_id
-    assert untrusted_chain_id = trusted_chain_id
+    tempvar untrusted_chain_id: ChainID= untrustedHeader.header.chain_id
+    tempvar trusted_chain_id: ChainID= trustedHeader.header.chain_id
+
+    # check if the lengths of the two chain_ids are the same
+    assert untrusted_chain_id.len = trusted_chain_id.len
+
+    local chain_id_len = untrusted_chain_id.len
+
+    #check if the content of the two chain_ids is the same
+    tempvar untrusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
+    tempvar trusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
+
+    recursive_comparison(untrusted_chain_id_array_ptr, trusted_chain_id_array_ptr, chain_id_len)
 
     # check if commit hights are the same
     tempvar untrusted_commit_height: felt = untrustedHeader.commit.height
@@ -344,7 +301,6 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     tempvar untrusted_time: TimestampData= untrustedHeader.header.time
 
     let driftTime: TimestampData = TimestampData(
-        # Seconds= currentTime.Seconds + maxClockDrift.Seconds,
         nanos= currentTime.nanos + maxClockDrift.nanos
     )
     let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
@@ -377,23 +333,7 @@ func get_total_voting_power(
     return (voting_power + sum)
 end
 
-# TODO complete the verify function
-func ed25519_verify(
-    message: felt,
-    public_key: felt,
-    signature: felt
-) -> (res: felt):
-    return (1)
-end
 
-# TODO complete the verify function
-func secp256k1_verify(
-    message: felt,
-    public_key: felt,
-    signature: felt
-) -> (res: felt):
-    return (1)
-end
 
 
 func canonicalPartSetHeaderHasher{
@@ -427,10 +367,10 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
     CVData: CanonicalVoteData)->(res:felt):
     alloc_locals
     
-    local type: felt = 1 # stand in value for Type https://github.com/kelemeno/tendermint-stark/blob/main/types/canonical.go#L95
+    local type: felt = 1 # TODO stand in value for Type https://github.com/kelemeno/tendermint-stark/blob/main/types/canonical.go#L95
     local height: felt = CVData.height
     local round: felt = CVData.round
-    local chain_id: felt = CVData.chain_id
+    local chain_id: ChainID= CVData.chain_id
     local block_id: BlockIDData= CVData.block_id
 
     let (res_bidd) = blockIDHasher(block_id = block_id) 
@@ -438,7 +378,11 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
     let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(type, height)
     let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, round)
     let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, res_bidd)
-    let (res_4: felt) = hash2{hash_ptr=pedersen_ptr}(res_3, chain_id)
+
+    local chain_id_array: felt* = chain_id.chain_id_array
+    local chain_id_len: felt = chain_id.len
+
+    let (res_4: felt) = recursive_hash(res_3, chain_id_array, chain_id_len )
 
     return(res_4)
 
@@ -447,7 +391,7 @@ end
 func voteSignBytes{pedersen_ptr: HashBuiltin*}(
     counter: felt,
     commit: CommitData,
-    chain_id: felt,
+    chain_id: ChainID,
     )->(timestamp: TimestampData ,res_hash :felt):
     alloc_locals
 
@@ -456,7 +400,6 @@ func voteSignBytes{pedersen_ptr: HashBuiltin*}(
     
     local height: felt = commit.height
     local round: felt = commit.round
-    # we're not even using the timestamps now, co can comment this out
     local signatures_array: CommitSigData* = commit.signatures.array
     local this_signature: CommitSigData = signatures_array[counter]
     local timestamp: TimestampData = this_signature.timestamp
@@ -469,14 +412,13 @@ func voteSignBytes{pedersen_ptr: HashBuiltin*}(
 
     let res_hash: felt = hashCanonicalVoteNoTime(CVData = CVData )
 
-    # need to append time to the hash
+    # need to prepend time to the hash
 
     return(timestamp, res_hash)
 
 end
 
 
-# TODO complete
 func verifySig{ecdsa_ptr: SignatureBuiltin*}(
     val: ValidatorData,
     message: felt, # bytes
@@ -487,16 +429,56 @@ func verifySig{ecdsa_ptr: SignatureBuiltin*}(
     # call verify_ecdsa_signature
     # here the two parts of the signature will be passed on from Tendermint
     local pub_key: felt = val.pub_key.ecdsa
-    # local sig_r: felt = val.pub_key.ecdsa_r
     
     local sig_r = signature.signature_r
     local sig_s = signature.signature_s
-    
 
     # behaves like an assert
     verify_ecdsa_signature{ecdsa_ptr=ecdsa_ptr}(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
-    # verify_ecdsa_signature(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
     return(1)
+end
+
+func recursive_comparison(
+    array_one_ptr: felt*, array_two_ptr: felt*, len:felt)->(res:felt):
+    alloc_locals
+    # takes pointer and length as input
+    # hashes it all together, number of len times
+
+    if len == 0:
+        return(1)
+    end
+
+    local val_one: felt = [array_one_ptr]
+    local val_two: felt = [array_two_ptr]
+
+    assert val_one = val_two
+
+    let (res_hash: felt) = recursive_comparison(array_one_ptr + 1, array_two_ptr+1, len-1)
+
+    return(1)
+
+end
+
+func recursive_hash{pedersen_ptr : HashBuiltin*}(
+    prev_value: felt, commit_id_ptr: felt*, len: felt)->(res_hash:felt):
+    alloc_locals
+    # takes pointer and length as input
+    # hashes it all together, number of len times
+
+    if len == 0:
+        return(prev_value)
+    end
+
+    local commit_id: felt = [commit_id_ptr]
+    %{print(ids.commit_id)%}
+
+    # hash the prev_value and commit_id together
+    let (current_hash: felt) = hash2{hash_ptr=pedersen_ptr}(prev_value, commit_id)
+
+    let (res_hash: felt) = recursive_hash(current_hash, commit_id_ptr+1, len-1)
+
+    return(res_hash)
+
 end
 
 func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
@@ -507,12 +489,11 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     signatures: CommitSigData*,
     validators_len: felt,
     validators: ValidatorData*,
-    chain_id :felt,
+    chain_id : ChainID,
 
 )->(res: felt):
     alloc_locals
 
-    # need to set the value to 0 here or to -1?
     if signatures_len == 0:
         return (0)
     end
@@ -523,7 +504,6 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     tempvar BlockIDFlag = signature.block_id_flag.BlockIDFlag
     tempvar valsize = ValidatorData.SIZE
 
-    # if signature.block_id_flag.BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
     if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
         let (rest_of_voting_power: felt) = get_tallied_voting_power(
             counter +1,
@@ -532,7 +512,7 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
             signatures + 6,
             validators_len -1,
             validators +6, 
-            chain_id=1
+            chain_id=chain_id
         )
         return (rest_of_voting_power)
     end
@@ -558,7 +538,7 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
         signatures + 6,
         validators_len -1 ,
         validators +6,
-        chain_id=1
+        chain_id=chain_id
     )
     return (val.voting_power + rest_of_voting_power)
 end
@@ -567,18 +547,15 @@ end
 func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     ecdsa_ptr: SignatureBuiltin*}(
     vals: ValidatorSetData,
-    chainID: felt, # please check this type guys
+    chain_id: ChainID,
     blockID: BlockIDData,
-    height: felt, # TODO int64
+    height: felt, 
     commit: CommitData,
-    # commit_signatures_length: felt,
-    # commit_signatures_array: CommitSigData*
 )->(res: felt):
     alloc_locals
-    # tempvar vals_validators_length_temp: felt = vals.validators.len
     local vals_validators_length: felt = vals.validators.len
-    # let (local vals_validators_length: felt) = vals_validators_length_temp
     tempvar commit_signatures_length: felt = commit.signatures.len
+    i let (local vals_validators_length: felt) = vals_validators_length_temp
     assert vals_validators_length = commit_signatures_length
     
     tempvar commit_height = commit.height
@@ -609,7 +586,7 @@ func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     # call get_tallied_voting_power to get the counts
     let (tallied_voting_power: felt) = get_tallied_voting_power{ecdsa_ptr=ecdsa_ptr}(counter = 0,commit=commit,
      signatures_len=commit_signatures_length, signatures=commit_signatures_array,
-      validators_len=vals_validators_length, validators=vals_validators_array, chain_id= 1)
+      validators_len=vals_validators_length, validators=vals_validators_array, chain_id= chain_id)
     
     let (total_voting_power: felt) = get_total_voting_power(validators_len=vals_validators_length, validators=vals_validators_array)
 
@@ -640,24 +617,20 @@ end
 func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
     ecdsa_ptr: SignatureBuiltin*} (
     trustedHeader: SignedHeaderData,
-    # trustedHeader_commit_signatures_len: felt,
-    # trustedHeader_commit_signatures: CommitSigData*,
+
     untrustedHeader: SignedHeaderData,
-    # untrustedHeader_commit_signatures_len: felt,
-    # untrustedHeader_commit_signatures: CommitSigData*,
     untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
     currentTime: DurationData,
     maxClockDrift: DurationData
 
-    # the following res returns a 0 or 1 boolean
+    # the following res returns a 0 or 1 (boolean)
 ) -> (res: felt) :
     
     # check if the headers come from adjacent blocks
     assert untrustedHeader.header.height = trustedHeader.header.height + 1
 
     # check that header is expired
-
     let (expired:felt) =  isExpired(
         header= untrustedHeader,
         trustingPeriod= trustingPeriod,
@@ -672,9 +645,9 @@ func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
 
     verifyCommitLight(
         vals=untrustedVals,
-        chainID=trustedHeader.header.chain_id, # please check this type guys
+        chain_id=trustedHeader.header.chain_id, 
         blockID=untrustedHeader.commit.block_id,
-        height=untrustedHeader.header.height, # TODO int64
+        height=untrustedHeader.header.height, 
         commit=untrustedHeader.commit
     )
 
@@ -721,7 +694,7 @@ func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
 
     verifyCommitLight{ecdsa_ptr=ecdsa_ptr}(
         vals=untrustedVals,
-        chainID=trustedHeader.header.chain_id, # please check this type guys
+        chain_id=trustedHeader.header.chain_id, # please check this type guys
         blockID=untrustedHeader.commit.block_id,
         height=untrustedHeader.header.height, # TODO int64
         commit=untrustedHeader.commit
