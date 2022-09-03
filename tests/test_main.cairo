@@ -5,7 +5,7 @@ BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSi
 CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
 ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power,
 get_total_voting_power, canonicalPartSetHeaderHasher, blockIDHasher, 
-hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , )
+hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , recursive_hash, recursive_comparison, ChainID)
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
@@ -54,20 +54,27 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     assert commitsig1_pointer[2] = commitsig_Commit 
     assert commitsig1_pointer[3] = commitsig_Commit 
 
+    let (local chain_id_ptr: felt*) =alloc()   
+   
+    assert chain_id_ptr[0] = 1 
+
+    assert chain_id_ptr[1] = 2
+    let chain_id1= ChainID(chain_id_array =chain_id_ptr , len = 2)
+
     let commitsig1_array = CommitSigDataArray(array = commitsig1_pointer, len = 4)
     let consensus1 = ConsensusData(block = 1, app =1 )
     let part_set_header1 = PartSetHeaderData(total = 1, hash = 1)
     let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
 
     let header1  = LightHeaderData(
-        version  = consensus1, chain_id = 4, height = 11100111, time = time0,
+        version  = consensus1, chain_id = chain_id1, height = 11100111, time = time0,
         last_block_id = blockid1, last_commit_hash = 1, data_hash = 1,
         validators_hash= 1, next_validators_hash = 2, consensus_hash = 3, 
         app_hash = 4, last_results_hash = 5, evidence_hash =1,  proposer_address = 6   
     )
     
     let header2  = LightHeaderData(
-        version  = consensus1, chain_id = 4, height = 11100112, time = time01,
+        version  = consensus1, chain_id =chain_id1, height = 11100112, time = time01,
         last_block_id = blockid1, last_commit_hash = 1, data_hash = 1,
         validators_hash= 1, next_validators_hash = 2, consensus_hash = 3, 
         app_hash = 4, last_results_hash = 5, evidence_hash = 1, proposer_address = 6   
@@ -195,7 +202,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     # use
         # commit comit1
         # 
-    let (all_votes:felt)= get_tallied_voting_power(counter =0, commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer, chain_id=1)
+    let (all_votes:felt)= get_tallied_voting_power(counter =0, commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer, chain_id=chain_id1)
     let (total_voting_power:felt)= get_total_voting_power( validators_len = 4, validators = ValidatorData_pointer)
     %{print("ids.all_votes")%}
     %{print(ids.commitsig1_pointer)%}
@@ -207,7 +214,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     let blockid2 = BlockIDData(hash = 1, part_set_header = part_set_header1)
 
     let valsInstance: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power = total_voting_power)
-    verifyCommitLight(vals = valsInstance , chainID= 1, blockID = blockid2, height = 11100111, commit = comit1)
+    verifyCommitLight(vals = valsInstance , chain_id= chain_id1, blockID = blockid2, height = 11100111, commit = comit1)
 
 
     return ()
@@ -289,15 +296,42 @@ func test_hashCanonicalVoteNoTime{pedersen_ptr:HashBuiltin*}()->(res:felt):
 
 
     let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
+       
+    let (local chain_id_ptr: felt*) =alloc()   
+   
+    assert chain_id_ptr[0] = 1 
+
+    assert chain_id_ptr[1] = 2
+ 
+
+    let chain_id1= ChainID(chain_id_array =chain_id_ptr , len = 2)
     # let comit1 = CommitData(height = 11100111, round = 1, block_id = blockid1,
     #     signatures = commitsig1_array)
     let CVData= CanonicalVoteData(TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType=1,
     height = 11100111, round = 1, block_id = blockid1,
-    timestamp= time0, chain_id=1)
+    timestamp= time0, chain_id=chain_id1)
     let (res_hashCVNT) = hashCanonicalVoteNoTime(CVData= CVData) 
 
     %{print(ids.res_hashCVNT)%}
     return(res_hashCVNT)
+end
+
+@external
+func test_recursive_comparison{pedersen_ptr:HashBuiltin*}()->(res:felt):
+    alloc_locals
+    
+       
+    let (local chain_id_ptr_one: felt*) =alloc()   
+    assert chain_id_ptr_one[0] = 1 
+    assert chain_id_ptr_one[1] = 2
+       
+    let (local chain_id_ptr_two: felt*) =alloc()   
+    assert chain_id_ptr_two[0] = 1 
+    assert chain_id_ptr_two[1] = 2 
+
+    recursive_comparison(chain_id_ptr_one, chain_id_ptr_two, 2)
+    
+    return(1)
 end
 
 @external
@@ -341,12 +375,19 @@ func test_voteSignBytes{pedersen_ptr : HashBuiltin*}()->(res:felt):
     let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
     let comit1 = CommitData(height = 11100111, round = 1, block_id = blockid1,
         signatures = commitsig1_array)
+    
+    let (local chain_id_ptr: felt*) =alloc()   
+   
+    assert chain_id_ptr[0] = 1 
 
-    let (timestamp1, res_hash1) = voteSignBytes(counter=1, commit= comit1, chain_id=1) 
+    assert chain_id_ptr[1] = 2
+    let chain_id1= ChainID(chain_id_array =chain_id_ptr , len = 2)
+
+    let (timestamp1, res_hash1) = voteSignBytes(counter=1, commit= comit1, chain_id=chain_id1) 
 
     %{print('ids.res_hash1')%}
     %{print(ids.res_hash1)%}
-    let (timestamp2, res_hash2) = voteSignBytes(counter=0, commit= comit1, chain_id=1) 
+    let (timestamp2, res_hash2) = voteSignBytes(counter=0, commit= comit1, chain_id=chain_id1) 
 
     %{print(ids.res_hash2)%}
     return(res_hash1) 
@@ -355,7 +396,24 @@ end
 
 
 @external
-func test_sign_verify{}()->():
+func test_recursive_hash{pedersen_ptr : HashBuiltin*}()->():
+    alloc_locals
+    let (local to_hash_array: felt*)= alloc()
+    assert to_hash_array[0] = 1
+    assert to_hash_array[1] = 2
+    assert to_hash_array[2] = 3
+
+    let res_hash:felt = recursive_hash(0, to_hash_array, 3)
+    
+    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(0, 1)
+    let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, 2)
+    let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, 3)
+
+    %{print(ids.res_hash)%}
+    %{print(ids.res_1)%}
+    %{print(ids.res_2)%}
+    %{print(ids.res_3)%}
+    assert res_3 = res_hash
 
 return()
 
@@ -369,10 +427,16 @@ func test_real_data{range_check_ptr,
 pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
     alloc_locals
 
+    let (local chain_id_ptr: felt*) =alloc()   
+   
+    assert chain_id_ptr[0] = 1 
+
+    assert chain_id_ptr[1] = 2
+    let chain_id1= ChainID(chain_id_array =chain_id_ptr , len = 2)
     # create the header
     let header1_trusted: LightHeaderData = LightHeaderData(
     version = ConsensusData(block = 11, app= 1),
-    chain_id = 1, # this is stand in value
+    chain_id = chain_id1, # this is stand in value
     height = 1,
     time = TimestampData(nanos = 1661775573134 ), # these are in fact mili seconds
     last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 0, hash = 0)),
@@ -414,7 +478,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
     # create the header
     let header1_untrusted: LightHeaderData = LightHeaderData(
     version = ConsensusData(block = 11, app= 1),
-    chain_id = 1, # this is stand in value
+    chain_id = chain_id1, # this is stand in value
     height = 2,
     time = TimestampData(nanos = 1661775582928 ), # these are in fact mili seconds
     last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 1, hash = 2049127694060112449178420607861863570400312281348272756673744827068373319666)),
