@@ -694,9 +694,9 @@ func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
 
     verifyCommitLight{ecdsa_ptr=ecdsa_ptr}(
         vals=untrustedVals,
-        chain_id=trustedHeader.header.chain_id, # please check this type guys
+        chain_id=trustedHeader.header.chain_id, 
         blockID=untrustedHeader.commit.block_id,
-        height=untrustedHeader.header.height, # TODO int64
+        height=untrustedHeader.header.height, 
         commit=untrustedHeader.commit
     )
     return (0)
