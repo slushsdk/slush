@@ -426,8 +426,6 @@ func (pv *FilePV) signVote(chainID string, vote *tmproto.Vote) error {
 		return err
 	}
 	vote.Signature = sig
-	fmt.Println("hello line 429 ignBytes:", signBytes)
-	fmt.Println("hello line 430 sig:", sig)
 	vote.ExtensionSignature = extSig
 
 	return nil
@@ -459,7 +457,6 @@ func (pv *FilePV) signProposal(chainID string, proposal *tmproto.Proposal) error
 
 	// It passed the checks. Sign the proposal
 	sig, err := pv.Key.PrivKey.Sign(signBytes)
-	fmt.Println("hello line 462 sig in signProposal:", sig)
 	if err != nil {
 		return err
 	}
