@@ -2,8 +2,10 @@ package abstractions_test
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 )
 
@@ -22,4 +24,12 @@ func TestHasher(t *testing.T) {
 	fmt.Println(hasher.Sum(nil))
 
 	fmt.Println(key)
+}
+
+func TestByteRounder(t *testing.T) {
+	ba := []byte("asdv")
+	n := big.NewInt(0).SetBytes(ba)
+	m := big.NewInt(0).SetBytes(ihash.ByteRounder(ba))
+
+	require.Equal(t, n.Cmp(m), 0)
 }

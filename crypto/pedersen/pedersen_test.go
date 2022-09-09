@@ -21,6 +21,14 @@ func TestPedersenArrayDigest(t *testing.T) {
 	require.Equal(t, result.Cmp(big.NewInt(0)), 1)
 }
 
+// We got this result from the cairo playground pedersen hash function.
+func TestDigest(t *testing.T) {
+	expected, _ := big.NewInt(0).SetString("307958720726328212653290369969069617958360335228383070119367204176047090109", 10)
+	result := pedersen.Digest(big.NewInt(314), big.NewInt(159))
+	require.Equal(t, result.Cmp(expected), 0)
+
+}
+
 func TestPedersenHash(t *testing.T) {
 	hasher := pedersen.New()
 	data := []byte("ABC€")
@@ -33,7 +41,7 @@ func TestPedersenHash(t *testing.T) {
 	require.Equal(t, resultFixedLen, pedersen.Sum256(data))
 
 	resultInt := new(big.Int).SetBytes(result)
-	expected, _ := new(big.Int).SetString("2242061308241901177902337403014839264202837952334584323802454450099490424417", 10)
+	expected, _ := new(big.Int).SetString("2760604002641969939589959074508015067181730793437535659828168196846743269396", 10)
 	require.True(t, resultInt.Cmp(expected) == 0)
 }
 

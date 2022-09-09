@@ -183,11 +183,9 @@ func signVotes(
 	vss ...*validatorStub,
 ) []*types.Vote {
 	votes := make([]*types.Vote, len(vss))
-	// fmt.Println("line 185 STARTING signVotes")
 
 	for i, vs := range vss {
 		votes[i] = signVote(ctx, t, vs, voteType, chainID, blockID)
-		// fmt.Println("line 187 " + fmt.Sprint(votes[i].BlockID))
 
 	}
 	return votes
@@ -276,7 +274,6 @@ func decideProposal(
 
 func addVotes(to *State, votes ...*types.Vote) {
 	for _, vote := range votes {
-		// fmt.Println("line 276 Adding vote" + fmt.Sprint(i) + "__________________________________________________")
 
 		to.peerMsgQueue <- msgInfo{Msg: &VoteMessage{vote}}
 	}
@@ -641,9 +638,7 @@ func ensureNewEvent(t *testing.T, ch <-chan tmpubsub.Message, height int64, roun
 
 func ensureNewRound(t *testing.T, roundCh <-chan tmpubsub.Message, height int64, round int32) {
 	t.Helper()
-	// fmt.Println("line 635")
 	msg := ensureMessageBeforeTimeout(t, roundCh, 1*ensureTimeout)
-	// fmt.Println("line 637")
 	newRoundEvent, ok := msg.Data().(types.EventDataNewRound)
 	require.True(t, ok, "expected a EventDataNewRound, got %T. Wrong subscription channel?",
 		msg.Data())

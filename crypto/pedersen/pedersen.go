@@ -22,13 +22,13 @@ func New() hash.Hash {
 	return new(PedersenHash)
 }
 
-//This appends the hash to b
+//This appends the hash to b. Notable, we
 func (ph *PedersenHash) Sum(b []byte) []byte {
 	if b == nil {
 		return ByteRounder(pedersenHash(ph.input))
 	}
 
-	return ByteRounder(append(b, pedersenHash(ph.input)...))
+	return append(b, ByteRounder(pedersenHash(ph.input))...)
 }
 
 //Hashes b
@@ -45,8 +45,9 @@ func Sum256(b []byte) [32]byte {
 func ByteRounder(ba []byte) []byte {
 
 	rem := len(ba) % 8
+	//Taking reminder with 8 only changes rem if it was originally 0.
 	rem = (8 - rem) % 8
-	return append(ba, make([]byte, rem)...)
+	return append(make([]byte, rem), ba...)
 
 }
 
@@ -80,6 +81,11 @@ func pedersenHash(b []byte) []byte {
 		remainingBytes := 8 - lastWordSize
 		leadingBytes := make([]byte, remainingBytes)
 		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
+	}
+
+	if len(chunks) == 1 {
+		roundedb := ByteRounder(b)
+		return Digest(big.NewInt(0).SetUint64(uint64(binary.BigEndian.Uint64(roundedb))), big.NewInt(1)).Bytes()
 	}
 
 	pedersenInput := make([]*big.Int, len(chunks))
