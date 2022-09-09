@@ -402,10 +402,8 @@ func setupSimulator(ctx context.Context, t *testing.T) *simulatorTestSuite {
 	signAddVotes(ctx, t, css[0], tmproto.PrecommitType, sim.Config.ChainID(),
 		types.BlockID{Hash: rs.ProposalBlock.Hash(), PartSetHeader: rs.ProposalBlockParts.Header()},
 		vss[1:nVals]...)
-	// fmt.Println("line 405")
 
 	ensureNewRound(t, newRoundCh, height+1, 0)
-	// fmt.Println("line 408")
 
 	// HEIGHT 3
 	height++
