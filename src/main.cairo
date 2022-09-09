@@ -1,5 +1,5 @@
 %lang starknet
-from starkware.cairo.common.math import assert_nn
+from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_unsigned_div_rem, uint256_lt
@@ -241,6 +241,9 @@ func greater_than{range_check_ptr}(
 end
 
 # TODO change dummy hash function to a real one
+# hash together the contents of the block header and produce the state root
+# as per https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintHelper.sol#L116
+
 func ourHashFunction{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res:felt):
     return(11)
 end
@@ -308,6 +311,7 @@ func verifyNewHeaderAndVals{range_check_ptr}(
 
     # check if the header validators hash is the onne supplied
     # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L161
+    # which is based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintHelper.sol#L143
 
 
     return(1)
@@ -555,7 +559,6 @@ func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     alloc_locals
     local vals_validators_length: felt = vals.validators.len
     tempvar commit_signatures_length: felt = commit.signatures.len
-    i let (local vals_validators_length: felt) = vals_validators_length_temp
     assert vals_validators_length = commit_signatures_length
     
     tempvar commit_height = commit.height
@@ -703,9 +706,90 @@ func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
 end
 
 
+func hash_64{range_check_ptr, pedersen_ptr : HashBuiltin*}(input1: felt, input2: felt)->(res_hash: felt):
+
+    # Check that 0 <= x < 2**64.
+    [range_check_ptr] = input1
+    assert [range_check_ptr + 1] = 2 ** 64 - 1 - input1
+    
+    # Check that 0 <= x < 2**64.
+    [range_check_ptr + 2] = input2
+    assert [range_check_ptr + 3] = 2 ** 64 - 1 - input2
+
+    let (res_hash) = hash2{hash_ptr=pedersen_ptr}(input1, 1)
+
+    return(res_hash)
+
+end
+
+func split_felt_64{range_check_ptr}(input1: felt)->(high_high:felt, high_low:felt, low_high:felt, low_low:felt):
+
+    # split the felt into two 128 bit parts
+    # split these into further two parts with division
+
+    let (high:felt, low: felt) = split_felt(input1)
+
+    %{print('ids.high split')%}    
+    %{print(ids.high)%}    
+    %{print(ids.low)%}    
 
 
+    let pow2_64: felt = 2**64
+
+    let (high_high:felt, high_low: felt) = unsigned_div_rem(high, pow2_64)
+    let (low_high:felt, low_low: felt) = unsigned_div_rem(low, pow2_64)
+
+    return (high_high, high_low, low_high, low_low)
+end
+
+func split_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
+    previous_hash: felt, input1: felt)->(res_hash: felt):
+    
+    let (high_high, high_low, low_high, low_low) =split_felt_64(input1)
+
+    # now that splitting is done, hash these together
+
+    let (res_hash1) = hash2{hash_ptr=pedersen_ptr}(previous_hash,high_high)
+    let (res_hash2) = hash2{hash_ptr=pedersen_ptr}(res_hash1,high_low)
+    let (res_hash3) = hash2{hash_ptr=pedersen_ptr}(res_hash2,low_high)
+    let (res_hash4) = hash2{hash_ptr=pedersen_ptr}(res_hash3,low_low)
+
+    return(res_hash4)
+end
+
+func split_hash4{range_check_ptr, pedersen_ptr : HashBuiltin*}(input1: felt)->(res_hash: felt):
+    
+
+    let (res_hash4) = split_hash(previous_hash = 0, input1 = input1)
+    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(res_hash4,4)
+
+    return(res_hash5)
+end
+
+func hash_array{range_check_ptr, pedersen_ptr : HashBuiltin*}(
+array_pointer: felt*, counter: felt, previous_hash:felt, total_len : felt )
+->(res_hash: felt):
+
+    if counter == total_len:
+
+        let last_hash: felt = hash2{hash_ptr=pedersen_ptr}(previous_hash,4 * total_len)
+        return(last_hash)
+
+    end    
+
+    let current_felt : felt = [array_pointer]
+
+    %{print('ids.current_felt')%}
+    %{print(ids.current_felt)%}
+    %{print('ids.counter')%}
+    %{print(ids.counter)%}
+
+    let res_split_felt :felt = split_hash(previous_hash = previous_hash, input1 = current_felt)
+
+    let res_hash: felt = hash_array(array_pointer+1, counter+1, res_split_felt, total_len =total_len )
+    
 
 
+    return(res_hash)
 
-
+end
