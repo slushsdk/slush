@@ -5,11 +5,13 @@ BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSi
 CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
 ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power,
 get_total_voting_power, canonicalPartSetHeaderHasher, blockIDHasher, 
-hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , recursive_hash, recursive_comparison, ChainID)
+hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , recursive_hash, recursive_comparison, ChainID,
+hash_64, split_felt_64, split_hash4, hash_array)
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 
 
 # func test_verifyAdjacent{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
@@ -420,7 +422,158 @@ return()
 
 end
 
+@external
+func test_hash64{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
 
+ 
+    let num1: felt = 10
+    let num2: felt = 10
+    let num3: felt =18446744073709551616
+    let num4: felt =18
+    let num5: felt = 10
+    let num6: felt = 18446744073709551617
+    
+
+    hash_64(num1, num2)
+    hash_64(num4, num5)
+    hash_64(num2, num3)
+    return()
+end
+
+
+@external
+func test_split_felt_128{range_check_ptr}()->():
+    let pow2_251: felt = 2**250
+    let pow2_192: felt = 2**192
+    let pow2_128: felt = 2**128
+    let pow2_64: felt = 2**64
+
+    const input1 = 1 * pow2_128+ 1
+
+    let (high_high1, low_low1) =split_felt(input1)
+    
+    %{print('ids.high split')%}    
+    %{print(ids.high_high1)%}    
+ 
+    %{print(ids.low_low1)%}    
+    
+    assert high_high1  =1
+
+    assert low_low1= 1
+    return()
+end
+
+@external
+func test_split_felt_64{range_check_ptr}()->():
+    let pow2_251: felt = 2**250
+    let pow2_192: felt = 2**192
+    let pow2_128: felt = 2**128
+    let pow2_64: felt = 2**64
+
+    const input1 = pow2_251 + pow2_192 + pow2_128 + pow2_64 +1
+
+    let (high_high1:felt, high_low1:felt, low_high1:felt, low_low1:felt) =split_felt_64(input1)
+    
+    assert high_high1  =2**58+1
+    assert high_low1 = 1
+    assert low_high1 = 1
+    assert low_low1= 1
+
+    let reconstructed1 = (high_high1*pow2_64 + high_low1 )* pow2_128 + low_high1 * pow2_64 + low_low1
+    assert input1 = reconstructed1
+    
+    const input3 =1 
+    let (high_high3, high_low3, low_high3, low_low3) =split_felt_64(input3)
+    assert high_high3  =0
+    assert high_low3 = 0
+    assert low_high3 = 0
+    assert low_low3= 1
+
+    return()
+end
+
+@external
+func test_split_hash4{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
+    let pow2_251: felt = 2**250
+    let pow2_192: felt = 2**192
+    let pow2_128: felt = 2**128
+    let pow2_64: felt = 2**64
+    const input1 = pow2_251 + pow2_192 + pow2_128 + pow2_64 +1
+    
+    let high_high1: felt  =2**58+1
+    let high_low1:felt  = 1
+    let low_high1: felt = 1
+    let low_low1: felt= 1
+    let (res_hash_all1) =split_hash4(input1)
+     
+    let (res_hash01) = hash2{hash_ptr=pedersen_ptr}(0,high_high1)
+    let (res_hash02) = hash2{hash_ptr=pedersen_ptr}(res_hash01,high_low1)
+    let (res_hash03) = hash2{hash_ptr=pedersen_ptr}(res_hash02,low_high1)
+    let (res_hash04) = hash2{hash_ptr=pedersen_ptr}(res_hash03,low_low1)
+    let (res_hash05) = hash2{hash_ptr=pedersen_ptr}(res_hash04,4)
+
+    assert res_hash_all1 = res_hash05
+
+    const input3 =1 
+    let (res_hash_all3) =split_hash4(input3)
+    let high_high3:felt  =0
+    let high_low3:felt = 0
+    let low_high3:felt = 0
+    let low_low3:felt= 1
+
+    let (res_hash1) = hash2{hash_ptr=pedersen_ptr}(0,high_high3)
+    let (res_hash2) = hash2{hash_ptr=pedersen_ptr}(res_hash1,high_low3)
+    let (res_hash3) = hash2{hash_ptr=pedersen_ptr}(res_hash2,low_high3)
+    let (res_hash4) = hash2{hash_ptr=pedersen_ptr}(res_hash3,low_low3)
+    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(res_hash4,4)
+
+    assert res_hash_all3 = res_hash5
+    return()
+
+end
+
+@external
+func test_hash_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
+
+    # create array of felts to be split and hashed
+    alloc_locals
+    let (local to_hash_array: felt*)= alloc()
+    assert to_hash_array[0] = 1
+    assert to_hash_array[1] = 2
+
+
+    # call the hash_array fn on this array
+
+    let res_hash_test: felt = hash_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0, total_len = 2)
+
+    # check that this res_hash is the same as hashing the single felt by hand
+
+    let high_high3:felt  =0
+    let high_low3:felt = 0
+    let low_high3:felt = 0
+    let low_low3:felt= 1
+    
+    let high_high4:felt  =0
+    let high_low4:felt = 0
+    let low_high4:felt = 0
+    let low_low4:felt= 2
+
+    let (res_hash1) = hash2{hash_ptr=pedersen_ptr}(0,high_high3)
+    let (res_hash2) = hash2{hash_ptr=pedersen_ptr}(res_hash1,high_low3)
+    let (res_hash3) = hash2{hash_ptr=pedersen_ptr}(res_hash2,low_high3)
+    let (res_hash4) = hash2{hash_ptr=pedersen_ptr}(res_hash3,low_low3)
+
+    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(res_hash4,high_high4)
+    let (res_hash6) = hash2{hash_ptr=pedersen_ptr}(res_hash5,high_low4)
+    let (res_hash7) = hash2{hash_ptr=pedersen_ptr}(res_hash6,low_high4)
+    let (res_hash8) = hash2{hash_ptr=pedersen_ptr}(res_hash7,low_low4)
+    let (res_hash_manual) = hash2{hash_ptr=pedersen_ptr}(res_hash8,8)
+
+    assert res_hash_manual = res_hash_test
+
+    return()
+
+end
 
 @external
 func test_real_data{range_check_ptr,
@@ -429,32 +582,53 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
 
     let (local chain_id_ptr: felt*) =alloc()   
    
-    assert chain_id_ptr[0] = 1 
+    assert chain_id_ptr[0] = 8387236823862306913 
 
-    assert chain_id_ptr[1] = 2
+    assert chain_id_ptr[1] = 7597059414893672244
+    assert chain_id_ptr[2] =6413125869375586304 
+
     let chain_id1= ChainID(chain_id_array =chain_id_ptr , len = 2)
     # create the header
-    let header1_trusted: LightHeaderData = LightHeaderData(
-    version = ConsensusData(block = 11, app= 1),
-    chain_id = chain_id1, # this is stand in value
-    height = 1,
-    time = TimestampData(nanos = 1661775573134 ), # these are in fact mili seconds
-    last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 0, hash = 0)),
-    last_commit_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
-    next_validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
-    consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
-    app_hash = 0,
-    last_results_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
-    proposer_address =  2106537075444065953880442667644615794908289081863782843215853903740729500594
-    )
+    # let header1_trusted: LightHeaderData = LightHeaderData(
+    # version = ConsensusData(block = 11, app= 1),
+    # chain_id = chain_id1, # this is stand in value
+    # height = 1,
+    # time = TimestampData(nanos = 1661775573134 ), # these are in fact mili seconds
+    # last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 0, hash = 0)),
+    # last_commit_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    # data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    # validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
+    # next_validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
+    # consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+    # app_hash = 0,
+    # last_results_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284,
+    # evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
+    # proposer_address =  2106537075444065953880442667644615794908289081863782843215853903740729500594
+    # )
+let header1_trusted: LightHeaderData = LightHeaderData(
+                version = ConsensusData(block = 11, app= 1),
+                chain_id = chain_id1, #this is a placeholder value
+                height = 3,
+                time = TimestampData(nanos =1662043945911823338),  
+                last_block_id = BlockIDData(hash = 1350581887305670976219093551514712393476890349005115090105451481932891709769, 
+                    part_set_header = PartSetHeaderData(total = 1,
+                    hash = 34351677666749332546175138575145207723100782902257477037128735467314946355968
+                    )
+                ),
+                last_commit_hash = 2047209812686578342061870540649056015269274731338538727853891749634521176952,
+                data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                validators_hash = 1444267967370953617069503466938625532441190924391147000892864135511216879794,
+                next_validators_hash = 1444267967370953617069503466938625532441190924391147000892864135511216879794,
+                consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+                app_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+                last_results_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
+                proposer_address =  2707867986766388890175803523717950431936316144166963265239064944701646763119)
 
     # create commit
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
 
-    let signature_data_trusted: SignatureData = SignatureData(signature_r = 302570576979, signature_s =365276247188)
+    let signature_data_trusted: SignatureData = SignatureData(signature_r = 2095801340941636419840360658023681398297727134762625155808558340930323500895, signature_s =2156904530046987521468289483198879799152272108249727390456251522170296440743)
 
     local commitsig_Absent_trusted : CommitSigData = CommitSigData(
     block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
