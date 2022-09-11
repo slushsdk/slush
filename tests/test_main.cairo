@@ -6,8 +6,10 @@ CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
 ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power,
 get_total_voting_power, canonicalPartSetHeaderHasher, blockIDHasher, 
 hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , recursive_hash, recursive_comparison, ChainID,
-hash_64, split_felt_64, split_hash4, hash_array)
+hash_64, split_felt_64, split_hash4, hash_array, get_split_point)
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 from starkware.cairo.common.hash import hash2
@@ -573,6 +575,22 @@ func test_hash_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
 
     return()
 
+end
+
+
+@external
+func test_get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}() -> ():
+
+    let res1: felt = get_split_point(5)
+    assert res1 =4
+
+    let res2: felt = get_split_point(2)
+    assert res2 =2
+    
+    let res2: felt = get_split_point(25)
+    assert res2 =16
+
+    return()
 end
 
 @external
