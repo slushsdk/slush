@@ -1,10 +1,13 @@
 %lang starknet
-from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
+from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem, assert_lt
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
 from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_unsigned_div_rem, uint256_lt
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.bitwise import bitwise_and
 
 
 struct TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType:
@@ -244,7 +247,74 @@ end
 # hash together the contents of the block header and produce the state root
 # as per https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintHelper.sol#L116
 
-func ourHashFunction{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res:felt):
+# returns the largest power of two that is smaller than the input
+func get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt)->( res: felt):
+
+    let gt: felt =  greater_than(input, 1)
+
+    if gt ==1:
+        let and_input: felt = bitwise_and(input, input-1)
+        if  and_input ==0:
+            return(input)
+        else:
+            let res: felt = get_split_point(input-1)
+            return(res)
+        end
+    else:
+        return(1)
+    end
+end
+
+func leaf_hash{}()->():
+
+
+
+end
+
+
+func merkleRootHash{}(validator_arrray: felt*, start: felt, total: felt)->(res_hash: felt):
+
+    let empty_hash = 0
+
+    if total ==0:
+       return(empty_hash)
+
+    else:
+        if total ==1:
+
+            local current_validator: felt = validator_array[start]
+            let res_hash: felt  = leaf_hash(current_validator)
+
+            return(res_hash)
+
+        else:
+
+            let split_point:felt = get_split_point(total)
+
+            let left: felt = merkleRootHash(validator_array, start, split_point)
+
+            let new_start: felt = start+ split_point
+            let new_total: felt = total - split_point
+
+            let right: felt = merkleRootHash(validator_array, new_start, new_total)
+
+            let inner_hash: felt = innerHash(left, right)
+
+            return inner_hash
+
+        end
+    end
+
+
+end
+
+
+func hashHeader{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
+    
+    
+    
+    
+    
     return(11)
 end
 
@@ -529,10 +599,9 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
 
     local timestamp_nanos: felt = timestamp.nanos
     let message1: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash)
-    let message: felt = hash2{hash_ptr=pedersen_ptr}(message1, message1)
     
     local commit_sig_signature: SignatureData = signature.signature
-    verifySig(val, message, commit_sig_signature)
+    verifySig(val, message1, commit_sig_signature)
     
     
     let (rest_of_voting_power: felt) = get_tallied_voting_power(
@@ -712,10 +781,6 @@ func hash_64{range_check_ptr, pedersen_ptr : HashBuiltin*}(input1: felt, input2:
     [range_check_ptr] = input1
     assert [range_check_ptr + 1] = 2 ** 64 - 1 - input1
     
-    # Check that 0 <= x < 2**64.
-    [range_check_ptr + 2] = input2
-    assert [range_check_ptr + 3] = 2 ** 64 - 1 - input2
-
     let (res_hash) = hash2{hash_ptr=pedersen_ptr}(input1, 1)
 
     return(res_hash)
