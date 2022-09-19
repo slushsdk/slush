@@ -28,7 +28,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     #     array_ptr=array_ptr, elm_size=2, n_elms=3, key=2
     # )
     let time0 = TimestampData( nanos = 0)
-    let time01 = TimestampData(nanos = 0)
+    let time01 = TimestampData(nanos = 1)
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     alloc_locals 
@@ -121,10 +121,10 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     assert time51 = 1
     
     let (time52) = time_greater_than(time5, time2)
-    assert time52 = 1
+    assert time52 = 0
     
     let (time57) = time_greater_than(time5, time7)
-    assert time57 = 0
+    assert time57 = 1 
     
     let (time59) = time_greater_than(time5, time9)
     assert time59 = 0
@@ -138,7 +138,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 
     assert expired = 1
     
-    let currentTime2 = DurationData(nanos = 10)
+    let currentTime2 = DurationData(nanos = 5)
 
     let (expired2: felt) = isExpired(trustedHeader1, trustingPeriod, currentTime2)
 
@@ -436,9 +436,9 @@ func test_hash64{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
     let num6: felt = 18446744073709551617
     
 
-    hash_64(num1, num2)
-    hash_64(num4, num5)
-    hash_64(num2, num3)
+    hash_64(num1)
+    hash_64(num4)
+    hash_64(num2)
     return()
 end
 

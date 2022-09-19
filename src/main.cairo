@@ -621,8 +621,8 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
             commit,
             signatures_len - 1,
             signatures + 6,
-            validators_len -1,
-            validators +6, 
+            validators_len - 1,
+            validators + 6, 
             chain_id=chain_id
         )
         return (rest_of_voting_power)
@@ -819,7 +819,8 @@ func hash_64{range_check_ptr, pedersen_ptr : HashBuiltin*}(input: felt)->(res_ha
     assert [range_check_ptr + 1] = 2 ** 64 - 1 - input
     
     let (res_hash) = hash2{hash_ptr=pedersen_ptr}(input, 1)
-
+    let range_check_ptr = range_check_ptr + 2 
+    
     return(res_hash)
 
 end
