@@ -286,7 +286,7 @@ func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(r
 end
 
 
-func innerHash{}(left: felt, right: felt)->(res_hash: felt):
+func innerHash{range_check_ptr, pedersen_ptr : HashBuiltin*}(left: felt, right: felt)->(res_hash: felt):
     alloc_locals
     let innerPrefix: felt = 1 # TODO, check if this is the correct type and value, maybe Uint?
 
@@ -307,8 +307,8 @@ func innerHash{}(left: felt, right: felt)->(res_hash: felt):
 
 end
 
-func merkleRootHash{}(validator_array: felt*, start: felt, total: felt)->(res_hash: felt):
-
+func merkleRootHash{pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(validator_array: felt*, start: felt, total: felt)->(res_hash: felt):
+    alloc_locals
     let empty_hash = 0
 
     if total ==0:
