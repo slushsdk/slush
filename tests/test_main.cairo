@@ -1,12 +1,9 @@
 %lang starknet
-from src.main import (verifyAdjacent, SignedHeaderData,
-DurationData, LightHeaderData, ConsensusData, TimestampData,SignatureData, PartSetHeaderData, 
-BlockIDData, CommitData, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, CommitSigData, 
-CommitSigDataArray, time_greater_than, isExpired, PublicKeyData, ValidatorData,
-ValidatorDataArray, ValidatorSetData, verifyCommitLight, get_tallied_voting_power,
-get_total_voting_power, canonicalPartSetHeaderHasher, blockIDHasher, 
-hashCanonicalVoteNoTime, voteSignBytes, CanonicalVoteData , recursive_hash, recursive_comparison, ChainID,
-hash_64, split_felt_64, split_hash4, hash_array, get_split_point)
+from src.main import (verifyNewHeaderAndVals, get_total_voting_power, voteSignBytes, verifySig, get_tallied_voting_power, verifyCommitLight, verifyAdjacent, verifyNonAdjacent)
+from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
+from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
+from src.hashing import (get_split_point, leafHash, innerHash, merkleRootHash, hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime, recursive_hash, hash_64, split_felt_64, split_hash, split_hash4, hash_array)
+
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
