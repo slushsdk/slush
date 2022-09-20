@@ -19,11 +19,16 @@ func hashHeader{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:f
     alloc_locals
     # create array
 
-    let h0 = split_hash4(untrustedHeader.header.version)
+    let (header_version_block : felt) = untrustedHeader.header.version.block
+    let (header_version_app : felt) = untrustedHeader.header.version.app
+    let (local header_version_array : felt*) = alloc()
+    assert header_version_array[0] = header_version_block
+    assert header_version_array[1] = header_version_app
+    let h0 = hash_int64_array(header_version_array)
     let h1 = hash_int64(untrustedHeader.header.chain_id)
     let h2 = hash_int64(untrustedHeader.header.height)
     let h3 = hash_int64(untrustedHeader.header.time)
-    let h4 = split_hash4(untrustedHeader.header.last_block_id)
+    let h4 = hash_felt(untrustedHeader.header.last_block_id)
     let h5 = untrustedHeader.header.last_commit_hash
     let h6 = untrustedHeader.header.data_hash
     let h7 = untrustedHeader.header.validators_hash
@@ -32,7 +37,7 @@ func hashHeader{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:f
     let h10 = untrustedHeader.header.app_hash
     let h11 = untrustedHeader.header.last_results_hash
     let h12 = untrustedHeader.header.evidence_hash
-    let h13 = split_hash4(untrustedHeader.header.proposer_address)
+    let h13 = hash_felt(untrustedHeader.header.proposer_address)
     # call merkleRootHash on the array 
     
     let (local all_array : felt*) = alloc()
@@ -102,7 +107,7 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
     local chain_id_array: felt* = chain_id.chain_id_array
     local chain_id_len: felt = chain_id.len
 
-    let (res_4: felt) = recursive_hash(res_3, chain_id_array, chain_id_len )
+    let (res_4: felt) = hash_int64_array(res_3, chain_id_array, chain_id_len )
 
     return(res_4)
 
