@@ -49,9 +49,9 @@ end
 # CommitSigData is done
 struct CommitSigData:
     member block_id_flag: TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag
-    member validators_address: felt # should be bytes
+    member validators_address: felt 
     member timestamp: TimestampData
-    member signature: SignatureData # should be bytes
+    member signature: SignatureData 
 
 end
 
@@ -116,15 +116,15 @@ struct LightHeaderData:
     member height: felt 
     member time: TimestampData
     member last_block_id: BlockIDData
-    member last_commit_hash: felt # replace with bytes
-    member data_hash: felt # replace with bytes
-    member validators_hash: felt # replace with bytes
-    member next_validators_hash: felt # replace with bytes
-    member consensus_hash: felt # replace with bytes
-    member app_hash: felt # replace with bytes
-    member last_results_hash: felt # replace with bytes
-    member evidence_hash: felt # replace with bytes
-    member proposer_address: felt # replace with bytes
+    member last_commit_hash: felt 
+    member data_hash: felt
+    member validators_hash: felt 
+    member next_validators_hash: felt  
+    member consensus_hash: felt  
+    member app_hash: felt  
+    member last_results_hash: felt  
+    member evidence_hash: felt  
+    member proposer_address: felt  
 end
 
 struct SignedHeaderData:
@@ -146,7 +146,7 @@ struct PublicKeyData:
 end
 
 struct ValidatorData:
-    member Address: felt # replace w bytes
+    member Address: felt  
     member pub_key: PublicKeyData
     member voting_power: felt 
     member proposer_priority: felt 
