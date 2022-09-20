@@ -30,6 +30,7 @@ type snapshot struct {
 // non-deterministic manner. All fields must be equal for the snapshot to be considered the same.
 func (s *snapshot) Key() snapshotKey {
 	// Hash.Write() never returns an error.
+	// Slush Todo: does this require compatibility with Cairo, so do we need hashes to be refactored?
 	hasher := ihash.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", s.Height, s.Format, s.Chunks)))
 	hasher.Write(s.Hash)

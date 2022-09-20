@@ -56,9 +56,8 @@ func (pv PrivKey) PubKey() crypto.PubKey {
 }
 
 func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
-	hasher := ihash.New()
-	hasher.Write(msg)
-	hash := hasher.Sum(nil)
+
+	hash := crypto.Checksum(msg)
 
 	pv := privKey.MakeFull()
 
@@ -157,9 +156,8 @@ func (p PubKey) MakeFull() PublicKey {
 }
 
 func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
-	hasher := ihash.New()
-	hasher.Write(msg)
-	hash := hasher.Sum(nil)
+
+	hash := crypto.Checksum(msg)
 
 	r, s, err := deserializeSig(sig)
 	if err != nil {
