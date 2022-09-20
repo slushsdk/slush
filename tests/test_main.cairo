@@ -596,7 +596,7 @@ end
 func test_merkle_hash_complete_tree() -> ():
     alloc_locals
     let (node0 : felt) = split_hash4(6)
-    let (node1 : felt = split_hash4(11)
+    let (node1 : felt) = split_hash4(11)
     let (node2 : felt) = split_hash4(40)
     let (node3 : felt) = split_hash4(69)
 
@@ -621,7 +621,7 @@ end
 func test_merkle_hash_incomplete_tree() -> ():
     alloc_locals
     let (node0 : felt) = split_hash4(6)
-    let (node1 : felt = split_hash4(11)
+    let (node1 : felt) = split_hash4(11)
     let (node2 : felt) = split_hash4(40)
     let (node3 : felt) = split_hash4(69)
 
