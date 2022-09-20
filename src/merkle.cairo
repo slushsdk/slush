@@ -12,7 +12,7 @@ from starkware.cairo.common.alloc import alloc
 
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
-from src.hashing import ( recursive_hash, hash_64, split_felt_64, split_hash, split_hash4, hash_array)
+from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 
 
 # TODO change dummy hash function to a real one
@@ -42,7 +42,7 @@ func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(r
 
     let leafPrefix: felt = 0 # TODO, check if this is the correct type and value, maybe Uint?
 
-    let hashedLeafPrefix: felt = hash_64(leafPrefix)
+    let hashedLeafPrefix: felt = hash_int64(leafPrefix)
     # create array with leafPrefix and leaf value
 
     let (local to_hash_array: felt*) = alloc()
@@ -51,7 +51,7 @@ func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(r
 
     # call the hash_array fn on this array
 
-    let res_hash: felt = hash_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 2)
+    let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 2)
 
     return(res_hash)
 end
@@ -61,7 +61,7 @@ func innerHash{range_check_ptr, pedersen_ptr : HashBuiltin*}(left: felt, right: 
     alloc_locals
     let innerPrefix: felt = 1 # TODO, check if this is the correct type and value, maybe Uint?
 
-    let hashedLeafPrefix: felt = hash_64(innerPrefix)
+    let hashedLeafPrefix: felt = hash_int64(innerPrefix)
     # create array with leafPrefix and leaf value
 
     let (local to_hash_array: felt*)= alloc()
@@ -71,7 +71,7 @@ func innerHash{range_check_ptr, pedersen_ptr : HashBuiltin*}(left: felt, right: 
 
     # call the hash_array fn on this array
 
-    let res_hash: felt = hash_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 3)
+    let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 3)
 
     return(res_hash)
 

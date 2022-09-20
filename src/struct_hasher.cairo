@@ -11,7 +11,7 @@ from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.alloc import alloc
 
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
-from src.hashing import ( recursive_hash, hash_64, split_felt_64, split_hash, split_hash4, hash_array)
+from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 
 
@@ -20,9 +20,9 @@ func hashHeader{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:f
     # create array
 
     let h0 = split_hash4(untrustedHeader.header.version)
-    let h1 = split_hash4(untrustedHeader.header.chain_id)
-    let h2 = split_hash4(untrustedHeader.header.height)
-    let h3 = split_hash4(untrustedHeader.header.time)
+    let h1 = hash_int64(untrustedHeader.header.chain_id)
+    let h2 = hash_int64(untrustedHeader.header.height)
+    let h3 = hash_int64(untrustedHeader.header.time)
     let h4 = split_hash4(untrustedHeader.header.last_block_id)
     let h5 = untrustedHeader.header.last_commit_hash
     let h6 = untrustedHeader.header.data_hash
