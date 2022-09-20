@@ -343,16 +343,44 @@ end
 
 
 func hashHeader{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
-    
+    alloc_locals
     # create array
 
-
-
+    let h0 = split_hash4(untrustedHeader.header.version)
+    let h1 = split_hash4(untrustedHeader.header.chain_id)
+    let h2 = split_hash4(untrustedHeader.header.height)
+    let h3 = split_hash4(untrustedHeader.header.time)
+    let h4 = split_hash4(untrustedHeader.header.last_block_id)
+    let h5 = untrustedHeader.header.last_commit_hash
+    let h6 = untrustedHeader.header.data_hash
+    let h7 = untrustedHeader.header.validators_hash
+    let h8 = untrustedHeader.header.next_validators_hash
+    let h9 = untrustedHeader.header.consensus_hash
+    let h10 = untrustedHeader.header.app_hash
+    let h11 = untrustedHeader.header.last_results_hash
+    let h12 = untrustedHeader.header.evidence_hash
+    let h13 = split_hash4(untrustedHeader.header.proposer_address)
     # call merkleRootHash on the array 
     
-    
-    
-    return(11)
+    let (local all_array : felt*) = alloc()
+
+    assert all_array[0] = h0
+    assert all_array[1] = h1
+    assert all_array[2] = h2
+    assert all_array[3] = h3
+    assert all_array[4] = h4
+    assert all_array[5] = h5
+    assert all_array[6] = h6
+    assert all_array[7] = h7
+    assert all_array[8] = h8
+    assert all_array[9] = h9
+    assert all_array[10] = h10
+    assert all_array[11] = h11
+    assert all_array[12] = h12
+    assert all_array[13] = h13
+
+    let (merkle_hash : felt) = merkleRootHash(all_array, 0, 14) 
+    return(merkle_hash)
 end
 
 func verifyNewHeaderAndVals{range_check_ptr}(
@@ -389,9 +417,9 @@ func verifyNewHeaderAndVals{range_check_ptr}(
 
     # check if the header hash is the one we expect
     # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L137
-    # let (untrusted_header_block_hash: felt) = ourHashFunction(untrustedHeader)
-    # tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
-    # assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
+    let (untrusted_header_block_hash: felt) = ourHashFunction(untrustedHeader)
+    tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
+    assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
 
     # check if the untrusted header height to be greater
     # than the trusted header height
