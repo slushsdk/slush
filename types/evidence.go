@@ -102,6 +102,7 @@ func (dve *DuplicateVoteEvidence) ABCI() []abci.Misbehavior {
 
 // Bytes returns the proto-encoded evidence as a byte array.
 func (dve *DuplicateVoteEvidence) Bytes() []byte {
+	//Slush Todo: we have to remove this encoding
 	pbe := dve.ToProto()
 	bz, err := pbe.Marshal()
 	if err != nil {
@@ -373,10 +374,14 @@ func (l *LightClientAttackEvidence) ConflictingHeaderIsInvalid(trustedHeader *He
 // validators and timestamp
 func (l *LightClientAttackEvidence) Hash() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
-	n := binary.PutVarint(buf, l.CommonHeight)
-	bz := make([]byte, crypto.HashSize+n)
+
+	binary.BigEndian.PutUint64(buf, uint64(l.CommonHeight))
+	commonHeightHash := crypto.Checksum(buf)
+
+	bz := make([]byte, 2*crypto.HashSize)
 	copy(bz[:crypto.HashSize-1], l.ConflictingBlock.Hash().Bytes())
-	copy(bz[crypto.HashSize:], buf)
+	copy(bz[crypto.HashSize:], commonHeightHash)
+
 	return crypto.Checksum(bz)
 }
 
