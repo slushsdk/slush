@@ -103,3 +103,49 @@ func recursive_comparison(
     return(1)
 
 end
+
+# the solidity code here is not very professional
+# I remove the total_voting_power_parameter
+# because we work with immutable variables
+func get_total_voting_power(
+    validators_len: felt,
+    validators: ValidatorData*
+) -> (res: felt):
+    if validators_len == 0:
+        return (0)
+    end
+    %{print(ids.validators_len)%}
+    let (sum: felt) = get_total_voting_power(validators_len - 1, validators + 6)
+    # TODO assert sum < MAX_TOTAL_VOTING_POWER
+    let first_vals: ValidatorData = [validators]
+    let voting_power: felt = first_vals.voting_power
+    %{print('ids.voting_power')%}
+    %{print(ids.voting_power)%}
+    return (voting_power + sum)
+end
+
+
+
+
+
+
+
+
+func verifySig{ecdsa_ptr: SignatureBuiltin*}(
+    val: ValidatorData,
+    message: felt, # bytes
+    signature: SignatureData 
+) -> (res: felt):
+    alloc_locals
+
+    # call verify_ecdsa_signature
+    # here the two parts of the signature will be passed on from Tendermint
+    local pub_key: felt = val.pub_key.ecdsa
+    
+    local sig_r = signature.signature_r
+    local sig_s = signature.signature_s
+
+    # behaves like an assert
+    verify_ecdsa_signature{ecdsa_ptr=ecdsa_ptr}(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
+    return(1)
+end

@@ -11,13 +11,40 @@ from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.alloc import alloc
 
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
-from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
+from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison, get_total_voting_power,  verifySig)
 from src.hashing import ( recursive_hash, hash_64, split_felt_64, split_hash, split_hash4, hash_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime)
 
+func voteSignBytes{pedersen_ptr: HashBuiltin*}(
+    counter: felt,
+    commit: CommitData,
+    chain_id: ChainID,
+    )->(timestamp: TimestampData ,res_hash :felt):
+    alloc_locals
 
+    # get parts of CommitData
+    # build a new CVData from this
+    
+    local height: felt = commit.height
+    local round: felt = commit.round
+    local signatures_array: CommitSigData* = commit.signatures.array
+    local this_signature: CommitSigData = signatures_array[counter]
+    local timestamp: TimestampData = this_signature.timestamp
+    local block_id: BlockIDData= commit.block_id
 
+    let CVData: CanonicalVoteData = CanonicalVoteData(
+    TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType= 1,
+    height = height, round = round, block_id = block_id,
+    timestamp= timestamp, chain_id= chain_id)
+
+    let res_hash: felt = hashCanonicalVoteNoTime(CVData = CVData )
+
+    # need to prepend time to the hash
+
+    return(timestamp, res_hash)
+
+end
 
 func verifyNewHeaderAndVals{range_check_ptr}(
     untrustedHeader: SignedHeaderData,
@@ -53,9 +80,9 @@ func verifyNewHeaderAndVals{range_check_ptr}(
 
     # check if the header hash is the one we expect
     # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L137
-    let (untrusted_header_block_hash: felt) = ourHashFunction(untrustedHeader)
-    tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
-    assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
+    # let (untrusted_header_block_hash: felt) = ourHashFunction(untrustedHeader)
+    # tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
+    # assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
 
     # check if the untrusted header height to be greater
     # than the trusted header height
@@ -88,79 +115,6 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     return(1)
 end
 
-# the solidity code here is not very professional
-# I remove the total_voting_power_parameter
-# because we work with immutable variables
-func get_total_voting_power(
-    validators_len: felt,
-    validators: ValidatorData*
-) -> (res: felt):
-    if validators_len == 0:
-        return (0)
-    end
-    %{print(ids.validators_len)%}
-    let (sum: felt) = get_total_voting_power(validators_len - 1, validators + 6)
-    # TODO assert sum < MAX_TOTAL_VOTING_POWER
-    let first_vals: ValidatorData = [validators]
-    let voting_power: felt = first_vals.voting_power
-    %{print('ids.voting_power')%}
-    %{print(ids.voting_power)%}
-    return (voting_power + sum)
-end
-
-
-
-
-
-func voteSignBytes{pedersen_ptr: HashBuiltin*}(
-    counter: felt,
-    commit: CommitData,
-    chain_id: ChainID,
-    )->(timestamp: TimestampData ,res_hash :felt):
-    alloc_locals
-
-    # get parts of CommitData
-    # build a new CVData from this
-    
-    local height: felt = commit.height
-    local round: felt = commit.round
-    local signatures_array: CommitSigData* = commit.signatures.array
-    local this_signature: CommitSigData = signatures_array[counter]
-    local timestamp: TimestampData = this_signature.timestamp
-    local block_id: BlockIDData= commit.block_id
-
-    let CVData: CanonicalVoteData = CanonicalVoteData(
-    TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType= 1,
-    height = height, round = round, block_id = block_id,
-    timestamp= timestamp, chain_id= chain_id)
-
-    let res_hash: felt = hashCanonicalVoteNoTime(CVData = CVData )
-
-    # need to prepend time to the hash
-
-    return(timestamp, res_hash)
-
-end
-
-
-func verifySig{ecdsa_ptr: SignatureBuiltin*}(
-    val: ValidatorData,
-    message: felt, # bytes
-    signature: SignatureData 
-) -> (res: felt):
-    alloc_locals
-
-    # call verify_ecdsa_signature
-    # here the two parts of the signature will be passed on from Tendermint
-    local pub_key: felt = val.pub_key.ecdsa
-    
-    local sig_r = signature.signature_r
-    local sig_s = signature.signature_s
-
-    # behaves like an assert
-    verify_ecdsa_signature{ecdsa_ptr=ecdsa_ptr}(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
-    return(1)
-end
 
 
 
