@@ -12,8 +12,9 @@ from starkware.cairo.common.alloc import alloc
 
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
-from src.hashing import (get_split_point, leafHash, innerHash, merkleRootHash, hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime, recursive_hash, hash_64, split_felt_64, split_hash, split_hash4, hash_array)
-
+from src.hashing import ( recursive_hash, hash_64, split_felt_64, split_hash, split_hash4, hash_array)
+from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
+from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime)
 
 
 
