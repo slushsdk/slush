@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	encoding_binary "encoding/binary"
 	time "time"
 
@@ -150,7 +151,9 @@ func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 
 func HashTime(timeStamp time.Time) []byte {
 
-	return crypto.Checksum([]byte(tmtime.Canonical(timeStamp).Format(TimeFormat)))
+	timeb := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeb, uint64(timeStamp.UnixNano()))
+	return crypto.Checksum(timeb)
 
 }
 
