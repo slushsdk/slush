@@ -2,7 +2,7 @@
 from src.main import (verifyNewHeaderAndVals, get_total_voting_power, voteSignBytes, verifySig, get_tallied_voting_power, verifyCommitLight, verifyAdjacent, verifyNonAdjacent)
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
-from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
+from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array, split_felt_to_64)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime)
 
@@ -245,7 +245,7 @@ func test_recursive_comparison{pedersen_ptr:HashBuiltin*}()->(res:felt):
 end
 
 @external
-func test_voteSignBytes{pedersen_ptr : HashBuiltin*}()->(res:felt):
+func test_voteSignBytes{pedersen_ptr : HashBuiltin*, range_check_ptr}()->(res:felt):
 
     alloc_locals
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
@@ -306,14 +306,14 @@ end
 
 
 @external
-func test_recursive_hash{pedersen_ptr : HashBuiltin*}()->():
+func test_recursive_hash{pedersen_ptr : HashBuiltin*, range_check_ptr}()->():
     alloc_locals
     let (local to_hash_array: felt*)= alloc()
     assert to_hash_array[0] = 1
     assert to_hash_array[1] = 2
     assert to_hash_array[2] = 3
 
-    let res_hash:felt = hash_int64_array(0, to_hash_array, 3)
+    let res_hash:felt = hash_int64_array(to_hash_array, 3)
     
     let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(0, 1)
     let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, 2)
@@ -342,9 +342,9 @@ func test_hash64{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
     let num6: felt = 18446744073709551617
     
 
-    hash_64(num1)
-    hash_64(num4)
-    hash_64(num2)
+    hash_int64(num1)
+    hash_int64(num4)
+    hash_int64(num2)
     return()
 end
 
@@ -380,7 +380,7 @@ func test_split_felt_64{range_check_ptr}()->():
 
     const input1 = pow2_251 + pow2_192 + pow2_128 + pow2_64 +1
 
-    let (high_high1:felt, high_low1:felt, low_high1:felt, low_low1:felt) =split_felt_64(input1)
+    let (high_high1:felt, high_low1:felt, low_high1:felt, low_low1:felt) = split_felt_to_64(input1)
     
     assert high_high1  =2**58+1
     assert high_low1 = 1
@@ -391,7 +391,7 @@ func test_split_felt_64{range_check_ptr}()->():
     assert input1 = reconstructed1
     
     const input3 =1 
-    let (high_high3, high_low3, low_high3, low_low3) =split_felt_64(input3)
+    let (high_high3, high_low3, low_high3, low_low3) = split_felt_to_64(input3)
     assert high_high3  =0
     assert high_low3 = 0
     assert low_high3 = 0
@@ -412,7 +412,7 @@ func test_split_hash4{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
     let high_low1:felt  = 1
     let low_high1: felt = 1
     let low_low1: felt= 1
-    let (res_hash_all1) =split_hash4(input1)
+    let (res_hash_all1) = hash_felt(input1)
      
     let (res_hash01) = hash2{hash_ptr=pedersen_ptr}(0,high_high1)
     let (res_hash02) = hash2{hash_ptr=pedersen_ptr}(res_hash01,high_low1)
@@ -423,7 +423,7 @@ func test_split_hash4{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
     assert res_hash_all1 = res_hash05
 
     const input3 =1 
-    let (res_hash_all3) =split_hash4(input3)
+    let (res_hash_all3) = hash_felt(input3)
     let high_high3:felt  =0
     let high_low3:felt = 0
     let low_high3:felt = 0
@@ -452,7 +452,7 @@ func test_hash_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
 
     # call the hash_array fn on this array
 
-    let res_hash_test: felt = hash_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0, total_len = 2)
+    let res_hash_test: felt = hash_int64_array(array_pointer=to_hash_array , array_pointer_len=2)
 
     # check that this res_hash is the same as hashing the single felt by hand
 
@@ -499,14 +499,14 @@ func test_get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}() -> ()
     return()
 end
 
-func test_merkle_hash_complete_tree() -> ():
+func test_merkle_hash_complete_tree{range_check_ptr, pedersen_ptr : HashBuiltin*, hash_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}() -> ():
     alloc_locals
-    let (node0 : felt) = split_hash4(6)
-    let (node1 : felt) = split_hash4(11)
-    let (node2 : felt) = split_hash4(40)
-    let (node3 : felt) = split_hash4(69)
+    let (node0 : felt) = hash_felt(6)
+    let (node1 : felt) = hash_felt(11)
+    let (node2 : felt) = hash_felt(40)
+    let (node3 : felt) = hash_felt(69)
 
-    let (local tree : felt) = alloc()
+    let (local tree : felt*) = alloc()
     assert tree[0] = node0
     assert tree[1] = node1
     assert tree[2] = node2
@@ -524,30 +524,30 @@ func test_merkle_hash_complete_tree() -> ():
     return ()
 end
 
-func test_merkle_hash_incomplete_tree() -> ():
-    alloc_locals
-    let (node0 : felt) = split_hash4(6)
-    let (node1 : felt) = split_hash4(11)
-    let (node2 : felt) = split_hash4(40)
-    let (node3 : felt) = split_hash4(69)
-
-    let (local tree : felt) = alloc()
-    assert tree[0] = node0
-    assert tree[1] = node1
-    assert tree[2] = node2
-    assert tree[3] = node3
-
-    # with manual hashing
-    let (node01 : felt) = hash2(node0, node1)
-    let (node23 : felt) = hash2(node2, node3)
-    let (node0123 : felt) = hash2(node01, node23)
-
-    # with merkle function call
-    let (node0123_m : felt) = merkleRootHash(tree, 0, 4)
-    assert node0123 = node0123_m
-
-    return ()
-end
+ #func test_merkle_hash_incomplete_tree() -> ():
+ #    alloc_locals
+ #    let (node0 : felt) = split_hash4(6)
+ #    let (node1 : felt) = split_hash4(11)
+ #    let (node2 : felt) = split_hash4(40)
+ #    let (node3 : felt) = split_hash4(69)
+ #
+ #    let (local tree : felt) = alloc()
+ #    assert tree[0] = node0
+ #    assert tree[1] = node1
+ #    assert tree[2] = node2
+ #    assert tree[3] = node3
+ #
+ #    # with manual hashing
+ #    let (node01 : felt) = hash2(node0, node1)
+ #    let (node23 : felt) = hash2(node2, node3)
+ #    let (node0123 : felt) = hash2(node01, node23)
+ #
+ #    # with merkle function call
+ #    let (node0123_m : felt) = merkleRootHash(tree, 0, 4)
+ #    assert node0123 = node0123_m
+ #
+ #    return ()
+ #end
 
 @external
 func test_real_data{range_check_ptr,

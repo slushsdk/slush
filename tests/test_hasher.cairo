@@ -4,7 +4,7 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
 from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
-from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime)
+from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime)
 
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
@@ -36,7 +36,7 @@ end
 
 
 @external
-func test_psh_hasher{pedersen_ptr:HashBuiltin*}()->(res:felt):
+func test_psh_hasher{pedersen_ptr:HashBuiltin*, range_check_ptr}()->(res:felt):
     let part_set_header1 = PartSetHeaderData(total = 1, hash = 2)
     let (res_psh) = canonicalPartSetHeaderHasher(part_set_header1)
 
@@ -45,17 +45,17 @@ func test_psh_hasher{pedersen_ptr:HashBuiltin*}()->(res:felt):
 end
 
 @external
-func test_blockIDHasher{pedersen_ptr:HashBuiltin*}()->(res:felt):
+func test_blockIDHasher{pedersen_ptr:HashBuiltin*, range_check_ptr}()->(res:felt):
     let part_set_header1 = PartSetHeaderData(total = 1, hash = 2)
     let blockid1 = BlockIDData(hash = 1, part_set_header = part_set_header1)
-    let (res_bidd) = blockIDHasher(block_id = blockid1)
+    let (res_bidd) = hashBlockID(block_id = blockid1)
 
     %{print(ids.res_bidd)%}
     return(res_bidd)
 end
 
 @external
-func test_hashCanonicalVoteNoTime{pedersen_ptr:HashBuiltin*}()->(res:felt):
+func test_hashCanonicalVoteNoTime{pedersen_ptr:HashBuiltin*, range_check_ptr}()->(res:felt):
     alloc_locals
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
