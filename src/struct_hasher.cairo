@@ -139,7 +139,7 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (hash_type : felt) = hash_int64(type)
     let (hash_height : felt) = hash_int64(height)
     let (hash_round : felt) = hash_int64(round)
-    let (hash_block_id : felt) = hash_int64(block_id.hash)
+    tempvar hash_block_id  = block_id.hash
     let (hash_chain_id : felt) = hash_int64_array(chain_id_array, chain_id_len)
 
     let (local all_array : felt*) = alloc()

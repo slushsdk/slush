@@ -225,25 +225,6 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 end
 
 
-
-@external
-func test_recursive_comparison{pedersen_ptr:HashBuiltin*}()->(res:felt):
-    alloc_locals
-    
-       
-    let (local chain_id_ptr_one: felt*) =alloc()   
-    assert chain_id_ptr_one[0] = 1 
-    assert chain_id_ptr_one[1] = 2
-       
-    let (local chain_id_ptr_two: felt*) =alloc()   
-    assert chain_id_ptr_two[0] = 1 
-    assert chain_id_ptr_two[1] = 2 
-
-    recursive_comparison(chain_id_ptr_one, chain_id_ptr_two, 2)
-    
-    return(1)
-end
-
 @external
 func test_voteSignBytes{pedersen_ptr : HashBuiltin*, range_check_ptr}()->(res:felt):
 
@@ -305,379 +286,125 @@ func test_voteSignBytes{pedersen_ptr : HashBuiltin*, range_check_ptr}()->(res:fe
 end
 
 
-@external
-func test_recursive_hash{pedersen_ptr : HashBuiltin*, range_check_ptr}()->():
-    alloc_locals
-    let (local to_hash_array: felt*)= alloc()
-    assert to_hash_array[0] = 101
-    assert to_hash_array[1] = 102
-    assert to_hash_array[2] = 103
 
-    let res_hash:felt = hash_int64_array(to_hash_array, 3)
-    
-    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(0, 101)
-    let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, 102)
-    let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, 103)
-    let (res_4: felt) = hash2{hash_ptr=pedersen_ptr}(res_3, 3)
-
-    assert res_4 = res_hash
-
-return()
-
-
-end
-
-@external
-func test_hash64{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
-
- 
-    let num1: felt = 10
-    let num2: felt = 10
-    let num3: felt =18446744073709551616
-    let num4: felt =18
-    let num5: felt = 10
-    let num6: felt = 18446744073709551617
-    
-
-    hash_int64(num1)
-    hash_int64(num4)
-    hash_int64(num2)
-    return()
-end
-
-
-@external
-func test_split_felt_128{range_check_ptr}()->():
-    let pow2_251: felt = 2**250
-    let pow2_192: felt = 2**192
-    let pow2_128: felt = 2**128
-    let pow2_64: felt = 2**64
-
-    const input1 = 1 * pow2_128+ 1
-
-    let (high_high1, low_low1) =split_felt(input1)
-    
-    %{print('ids.high split')%}    
-    %{print(ids.high_high1)%}    
- 
-    %{print(ids.low_low1)%}    
-    
-    assert high_high1  =1
-
-    assert low_low1= 1
-    return()
-end
-
-@external
-func test_split_felt_64{range_check_ptr}()->():
-    let pow2_251: felt = 2**250
-    let pow2_192: felt = 2**192
-    let pow2_128: felt = 2**128
-    let pow2_64: felt = 2**64
-
-    const input1 = pow2_251 + pow2_192 + pow2_128 + pow2_64 +1
-
-    let (high_high1:felt, high_low1:felt, low_high1:felt, low_low1:felt) = split_felt_to_64(input1)
-    
-    assert high_high1  =2**58+1
-    assert high_low1 = 1
-    assert low_high1 = 1
-    assert low_low1= 1
-
-    let reconstructed1 = (high_high1*pow2_64 + high_low1 )* pow2_128 + low_high1 * pow2_64 + low_low1
-    assert input1 = reconstructed1
-    
-    const input3 =1 
-    let (high_high3, high_low3, low_high3, low_low3) = split_felt_to_64(input3)
-    assert high_high3  =0
-    assert high_low3 = 0
-    assert low_high3 = 0
-    assert low_low3= 1
-
-    return()
-end
-
-@external
-func test_split_hash4{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
-    let pow2_251: felt = 2**250
-    let pow2_192: felt = 2**192
-    let pow2_128: felt = 2**128
-    let pow2_64: felt = 2**64
-    const input1 = pow2_251 + pow2_192 + pow2_128 + pow2_64 +1
-    
-    let high_high1: felt  =2**58+1
-    let high_low1:felt  = 1
-    let low_high1: felt = 1
-    let low_low1: felt= 1
-    let (res_hash_all1) = hash_felt(input1)
-     
-    let (res_hash01) = hash2{hash_ptr=pedersen_ptr}(0,high_high1)
-    let (res_hash02) = hash2{hash_ptr=pedersen_ptr}(res_hash01,high_low1)
-    let (res_hash03) = hash2{hash_ptr=pedersen_ptr}(res_hash02,low_high1)
-    let (res_hash04) = hash2{hash_ptr=pedersen_ptr}(res_hash03,low_low1)
-    let (res_hash05) = hash2{hash_ptr=pedersen_ptr}(res_hash04,4)
-
-    assert res_hash_all1 = res_hash05
-
-    const input3 =1 
-    let (res_hash_all3) = hash_felt(input3)
-    let high_high3:felt  =0
-    let high_low3:felt = 0
-    let low_high3:felt = 0
-    let low_low3:felt= 1
-
-    let (res_hash1) = hash2{hash_ptr=pedersen_ptr}(0,high_high3)
-    let (res_hash2) = hash2{hash_ptr=pedersen_ptr}(res_hash1,high_low3)
-    let (res_hash3) = hash2{hash_ptr=pedersen_ptr}(res_hash2,low_high3)
-    let (res_hash4) = hash2{hash_ptr=pedersen_ptr}(res_hash3,low_low3)
-    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(res_hash4,4)
-
-    assert res_hash_all3 = res_hash5
-    return()
-
-end
-
-@external
-func test_hash_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
-
-    # create array of felts to be split and hashed
-    alloc_locals
-    let (local to_hash_array: felt*)= alloc()
-    assert to_hash_array[0] = 1
-    assert to_hash_array[1] = 2
-
-
-    # call the hash_array fn on this array
-
-    let res_hash_test: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len=2)
-
-    # check that this res_hash is the same as hashing the single felt by hand
-
-    let high_high3:felt  =0
-    let high_low3:felt = 0
-    let low_high3:felt = 0
-    let low_low3:felt= 1
-    
-    let high_high4:felt  =0
-    let high_low4:felt = 0
-    let low_high4:felt = 0
-    let low_low4:felt= 2
-
-    let (res_hash1) = hash2{hash_ptr=pedersen_ptr}(0,high_high3)
-    let (res_hash2) = hash2{hash_ptr=pedersen_ptr}(res_hash1,high_low3)
-    let (res_hash3) = hash2{hash_ptr=pedersen_ptr}(res_hash2,low_high3)
-    let (res_hash4) = hash2{hash_ptr=pedersen_ptr}(res_hash3,low_low3)
-
-    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(res_hash4,high_high4)
-    let (res_hash6) = hash2{hash_ptr=pedersen_ptr}(res_hash5,high_low4)
-    let (res_hash7) = hash2{hash_ptr=pedersen_ptr}(res_hash6,low_high4)
-    let (res_hash8) = hash2{hash_ptr=pedersen_ptr}(res_hash7,low_low4)
-
-    let (res_hash_manual) = hash2{hash_ptr=pedersen_ptr}(res_hash8,8)
-
-    assert res_hash_manual = res_hash_test
-
-    return()
-
-end
-
-
-@external
-func test_get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}() -> ():
-
-    let res1: felt = get_split_point(5)
-    assert res1 =4
-
-    let res2: felt = get_split_point(2)
-    assert res2 =2
-    
-    let res2: felt = get_split_point(25)
-    assert res2 =16
-
-    return()
-end
-
-func test_merkle_hash_complete_tree{range_check_ptr, pedersen_ptr : HashBuiltin*, hash_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}() -> ():
-    alloc_locals
-    let (node0 : felt) = hash_felt(6)
-    let (node1 : felt) = hash_felt(11)
-    let (node2 : felt) = hash_felt(40)
-    let (node3 : felt) = hash_felt(69)
-
-    let (local tree : felt*) = alloc()
-    assert tree[0] = node0
-    assert tree[1] = node1
-    assert tree[2] = node2
-    assert tree[3] = node3
-
-    # with manual hashing
-    let (node01 : felt) = hash2(node0, node1)
-    let (node23 : felt) = hash2(node2, node3)
-    let (node0123 : felt) = hash2(node01, node23)
-
-    # with merkle function call
-    let (node0123_m : felt) = merkleRootHash(tree, 0, 4)
-    assert node0123 = node0123_m
-
-    return ()
-end
-
- #func test_merkle_hash_incomplete_tree() -> ():
- #    alloc_locals
- #    let (node0 : felt) = split_hash4(6)
- #    let (node1 : felt) = split_hash4(11)
- #    let (node2 : felt) = split_hash4(40)
- #    let (node3 : felt) = split_hash4(69)
- #
- #    let (local tree : felt) = alloc()
- #    assert tree[0] = node0
- #    assert tree[1] = node1
- #    assert tree[2] = node2
- #    assert tree[3] = node3
- #
- #    # with manual hashing
- #    let (node01 : felt) = hash2(node0, node1)
- #    let (node23 : felt) = hash2(node2, node3)
- #    let (node0123 : felt) = hash2(node01, node23)
- #
- #    # with merkle function call
- #    let (node0123_m : felt) = merkleRootHash(tree, 0, 4)
- #    assert node0123 = node0123_m
- #
- #    return ()
- #end
 
 @external
 func test_real_data{range_check_ptr,
 pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
     alloc_locals
 
-    let (local chain_id_ptr: felt*) =alloc()   
-   
-    assert chain_id_ptr[0] = 8387236823862306913 
+    let (local chain_id_ptr: felt*) =alloc()
 
-    assert chain_id_ptr[1] = 7597059414893672244
-    assert chain_id_ptr[2] =6413125869375586304 
+    assert chain_id_ptr[ 0 ]= 8387236823862306913
+    assert chain_id_ptr[ 1 ]= 7597059414893672244
+    assert chain_id_ptr[ 2 ]= 89
+    let chain_id1= ChainID(chain_id_array =chain_id_ptr , len =  3 )
 
-    let chain_id1= ChainID(chain_id_array =chain_id_ptr , len = 2)
-    # create the header
-    # let header1_trusted: LightHeaderData = LightHeaderData(
-    # version = ConsensusData(block = 11, app= 1),
-    # chain_id = chain_id1, # this is stand in value
-    # height = 1,
-    # time = TimestampData(nanos = 1661775573134 ), # these are in fact mili seconds
-    # last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 0, hash = 0)),
-    # last_commit_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    # data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    # validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
-    # next_validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
-    # consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
-    # app_hash = 0,
-    # last_results_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    # evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
-    # proposer_address =  2106537075444065953880442667644615794908289081863782843215853903740729500594
-    # )
-let header1_trusted: LightHeaderData = LightHeaderData(
+                # create the header
+                let header1_trusted: LightHeaderData = LightHeaderData(
                 version = ConsensusData(block = 11, app= 1),
                 chain_id = chain_id1, #this is a placeholder value
-                height = 3,
-                time = TimestampData(nanos =1662043945911823338),  
-                last_block_id = BlockIDData(hash = 1350581887305670976219093551514712393476890349005115090105451481932891709769, 
-                    part_set_header = PartSetHeaderData(total = 1,
-                    hash = 34351677666749332546175138575145207723100782902257477037128735467314946355968
-                    )
-                ),
-                last_commit_hash = 2047209812686578342061870540649056015269274731338538727853891749634521176952,
+                height = 2,
+                time = TimestampData(nanos =1663769358946378446),  
+                last_block_id = BlockIDData(hash = 2110599985734858295412863406490629377965336117934340562320021174965435898498, 
+                part_set_header = PartSetHeaderData(total = 1,
+                 hash = 274183666224902687105195258436859570474413582506721790135412155908192862668)),
+                last_commit_hash = 3087612259957745442819872992476248881132717952534770507246464028227020013101,
                 data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-                validators_hash = 1444267967370953617069503466938625532441190924391147000892864135511216879794,
-                next_validators_hash = 1444267967370953617069503466938625532441190924391147000892864135511216879794,
+                validators_hash = 3477642834395576490588349693842740072960104400590180929396721897116064206596,
+                next_validators_hash = 3477642834395576490588349693842740072960104400590180929396721897116064206596,
                 consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
                 app_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
                 last_results_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
                 evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
-                proposer_address =  2707867986766388890175803523717950431936316144166963265239064944701646763119)
+                proposer_address =  3021902612929258215355125670977965371075894765947221985579468460507503167350
+                )
 
-    # create commit
+        # create commit
     let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
 
-    let signature_data_trusted: SignatureData = SignatureData(signature_r = 2095801340941636419840360658023681398297727134762625155808558340930323500895, signature_s =2156904530046987521468289483198879799152272108249727390456251522170296440743)
+    let signature_data_trusted: SignatureData = SignatureData(signature_r = 2701582553640073722287479510572320765479135014632156452308783267890534836421 , signature_s = 744030903242230059270114227596345849109476197842572198017374830407599095395 )
 
     local commitsig_Absent_trusted : CommitSigData = CommitSigData(
-    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
-    timestamp = TimestampData(nanos= 1661775578517), signature= signature_data_trusted)
+    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  3021902612929258215355125670977965371075894765947221985579468460507503167350 ,
+    timestamp = TimestampData(nanos=  1663769358946378446 ), signature= signature_data_trusted)
 
     let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
     assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
     let commitsig1_array_trusted = CommitSigDataArray(array = commitsig1_pointer_trusted, len = 1)
 
-    let commit1_trusted: CommitData = CommitData(height = 1, 
-    round = 0, 
+    let commit1_trusted: CommitData = CommitData(height =  2 , 
+    round =  0 , 
     block_id= BlockIDData(
-            hash= 917023189488941218194787075389384798279597946141998621209104598914929927209,
-            part_set_header = PartSetHeaderData(total = 1, hash=2049127694060112449178420607861863570400312281348272756673744827068373319666)),
+            hash=  2587414859112737857242498905805936477805272479267567800644582199090428730146 ,
+            part_set_header = PartSetHeaderData(total =  1 , hash= 483337217071686124247211359286321187262744876919163915226459371830079188443 )),
     signatures = commitsig1_array_trusted
     )
     
     # create the header from these two
     let trusted_header: SignedHeaderData = SignedHeaderData(header = header1_trusted, commit = commit1_trusted)
 
-    # create the header
-    let header1_untrusted: LightHeaderData = LightHeaderData(
-    version = ConsensusData(block = 11, app= 1),
-    chain_id = chain_id1, # this is stand in value
-    height = 2,
-    time = TimestampData(nanos = 1661775582928 ), # these are in fact mili seconds
-    last_block_id = BlockIDData(hash = 0, part_set_header = PartSetHeaderData(total = 1, hash = 2049127694060112449178420607861863570400312281348272756673744827068373319666)),
-    last_commit_hash = 3206510756383374436900628853280269837377965041174915829009643860453850809276,
-    data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    validators_hash =1657485403597653774201701838487158114962187584356757705905323730218210757700 ,
-    next_validators_hash = 1657485403597653774201701838487158114962187584356757705905323730218210757700,
-    consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
-    app_hash = 0,
-    last_results_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284,
-    evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
-    proposer_address =  2106537075444065953880442667644615794908289081863782843215853903740729500594
-    )
 
-    # create commit
+                # create the header
+                let header1_trusted: LightHeaderData = LightHeaderData(
+                version = ConsensusData(block = 11, app= 1),
+                chain_id = chain_id1, #this is a placeholder value
+                height = 3,
+                time = TimestampData(nanos =1663769368168134405),  
+                last_block_id = BlockIDData(hash = 2587414859112737857242498905805936477805272479267567800644582199090428730146, 
+                part_set_header = PartSetHeaderData(total = 1,
+                 hash = 483337217071686124247211359286321187262744876919163915226459371830079188443)),
+                last_commit_hash = 2710555977775143422122063820768287627870563185030394851407308389084360455847,
+                data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                validators_hash = 3477642834395576490588349693842740072960104400590180929396721897116064206596,
+                next_validators_hash = 3477642834395576490588349693842740072960104400590180929396721897116064206596,
+                consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+                app_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
+                last_results_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
+                proposer_address =  3021902612929258215355125670977965371075894765947221985579468460507503167350
+                )
 
-    let signature_data_untrusted: SignatureData = SignatureData(signature_r = 302570576979, signature_s =365276247188)
+                # create commit
+                let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
 
-    local commitsig_Absent_untrusted : CommitSigData = CommitSigData(
-    block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
-    timestamp = TimestampData(nanos= 1661775586591), signature= signature_data_untrusted)
+                let signature_data_trusted: SignatureData = SignatureData(signature_r = 2926184493796786795700519421321559283329151668826672540115160138593665913288 , signature_s = 1058102136767600787954386781913870113442835793839264290550721720752037160014 )
 
-    let (local commitsig1_pointer_untrusted: CommitSigData*) =alloc()   
-    assert commitsig1_pointer_untrusted[0] = commitsig_Absent_untrusted
-    let commitsig1_array_untrusted = CommitSigDataArray(array = commitsig1_pointer_untrusted, len = 1)
+                local commitsig_Absent_trusted : CommitSigData = CommitSigData(
+                block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  3021902612929258215355125670977965371075894765947221985579468460507503167350 ,
+                timestamp = TimestampData(nanos=  1663769368168134405 ), signature= signature_data_trusted)
 
-    let commit1_untrusted: CommitData = CommitData(height = 2, 
-    round = 0, 
-    block_id= BlockIDData(
-            hash= 65543580197910598078846360355791800832815991148552255474111224726005073269504,
-            part_set_header = PartSetHeaderData(total = 1, hash=1375208434809757366091983320647191940997877109629879522000479096080610380267)),
-    signatures = commitsig1_array_untrusted    
-    )
+                let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
+                assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
+                let commitsig1_array_trusted = CommitSigDataArray(array = commitsig1_pointer_trusted, len = 1)
+
+                let commit1_trusted: CommitData = CommitData(height =  3 , 
+                round =  0 , 
+                block_id= BlockIDData(
+                                hash=  1091936886505770701056409474826068197015190797293123129644710538068575693029 ,
+                                part_set_header = PartSetHeaderData(total =  1 , hash= 2779914650167735288037857740361050728982473670768951782468769603507651739692 )),
+                signatures = commitsig1_array_trusted
+                )
+
+                # create the header from these two
+                let untrusted_header: SignedHeaderData = SignedHeaderData(header = header1_trusted, commit = commit1_trusted)
+
     
-    # create the header from these two
-    let untrusted_header: SignedHeaderData = SignedHeaderData(header = header1_untrusted, commit = commit1_untrusted)
-
     # create validator array
     let (local ValidatorData_pointer0: ValidatorData*) =alloc()
-    let public_key0: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa = 186354605339507257990914121517420953533283196103464706074217121236949050624)
-    let validator_data0: ValidatorData =  ValidatorData(Address = 2106537075444065953880442667644615794908289081863782843215853903740729500594,
-    pub_key = public_key0, voting_power= 10, proposer_priority = 0)
+    let public_key0: PublicKeyData  = PublicKeyData(ed25519= 0, secp256k1 = 1, sr25519 = 2, ecdsa =  2025234578498408058890108666190145032783195536560943200602811548792083685806 )
+    let validator_data0: ValidatorData =  ValidatorData(Address =  3021902612929258215355125670977965371075894765947221985579468460507503167350 ,
+    pub_key = public_key0, voting_power=  10 , proposer_priority =  0 )
     assert ValidatorData_pointer0[0] = validator_data0
                                                         
     let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 1)
-    let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =1 )
-    let currentTime2 = DurationData(nanos = 1661865949749)
+    let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =10 )
+    let currentTime2 = DurationData(nanos =  1663769368168135405 )
     let maxClockDrift= DurationData(nanos = 10)
     let trustingPeriod = DurationData(nanos = 99999999999999999999)
- 
-    verifyAdjacent(trustedHeader= trusted_header, untrustedHeader= untrusted_header, untrustedVals=validator_set0,
-    trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
 
-return()
+    verifyAdjacent(trustedHeader= trusted_header, untrustedHeader= untrusted_header, untrustedVals=validator_set0,
+                trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
+    return()
 
 end
