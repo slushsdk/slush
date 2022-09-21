@@ -426,7 +426,7 @@ func TestHeaderHash(t *testing.T) {
 						byteSlices = append(byteSlices, bz)
 					case BlockID:
 						fProto := CanonicalizeBlockID(f.ToProto())
-						bz := BlockIDHasher(*(fProto))
+						bz := HashBlockID(*(fProto))
 
 						byteSlices = append(byteSlices, bz)
 					default:

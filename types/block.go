@@ -457,7 +457,7 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	if h.LastBlockID.IsNil() {
 		bzbi = make([]byte, 8)
 	} else {
-		bzbi = BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
+		bzbi = HashBlockID(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 	}
 
 	chainIDB := []byte(h.ChainID)
