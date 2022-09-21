@@ -484,8 +484,8 @@ func (pv *FilePV) saveSigned(height int64, round int32, step int8, signBytes []b
 // and vote extension signatures).
 func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.Time, bool, error) {
 
-	lastTime := lastSignBytes[:8]
+	lastTime := lastSignBytes[24:32]
 	lastTimeUnix := time.Unix(0, int64(binary.BigEndian.Uint64(lastTime))).UTC()
 
-	return lastTimeUnix, bytes.Equal(lastSignBytes[8:], newSignBytes[8:]), nil
+	return lastTimeUnix, bytes.Equal(lastSignBytes[32:], newSignBytes[32:]), nil
 }
