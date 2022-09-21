@@ -6,7 +6,6 @@ from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_arr
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime)
 
-
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
