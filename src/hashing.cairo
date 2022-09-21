@@ -40,7 +40,7 @@ func hash_int64_array{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     return (last_hash)
 end
 
-func hash_int64_array_recursive{pedersen_ptr : HashBuiltin*}(
+func hash_int64_array_recursive{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     array_ptr: felt*, 
     array_ptr_len: felt,
     previous_hash: felt)->(res_hash:felt):
@@ -126,7 +126,7 @@ func hash_felt_array_recursive{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     previous_hash: felt)->
     (res_hash: felt):
 
-    if arrray_pointer_len ==0 :
+    if array_pointer_len ==0 :
         return (previous_hash)
     end
 
