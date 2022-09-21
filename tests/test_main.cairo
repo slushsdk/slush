@@ -4,7 +4,7 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
 from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
-from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime)
+from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime)
 
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin

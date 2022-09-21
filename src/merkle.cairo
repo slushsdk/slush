@@ -51,7 +51,8 @@ func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(r
 
     # call the hash_array fn on this array
 
-    let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 2)
+    # let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 2)
+    let res_hash: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len = 2)
 
     return(res_hash)
 end
@@ -71,7 +72,8 @@ func innerHash{range_check_ptr, pedersen_ptr : HashBuiltin*}(left: felt, right: 
 
     # call the hash_array fn on this array
 
-    let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 3)
+    # let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 3)
+    let res_hash: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len = 3)
 
     return(res_hash)
 

@@ -14,41 +14,43 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 
-func hashConsensus{range_check_ptr, pedersen_ptr}(consensus : ConsensusData) -> (res_hash: felt):
-    let (consensus_block : felt) = consensus.block
-    let (consensus_app : felt) = consensus.app
+func hashConsensus{range_check_ptr, pedersen_ptr : HashBuiltin*}(consensus : ConsensusData) -> (res_hash: felt):
+    alloc_locals
+    tempvar consensus_block = consensus.block
+    tempvar consensus_app = consensus.app
 
     let (local consensus_array : felt*) = alloc()
 
     assert consensus_array[0] = consensus_block
     assert consensus_array[1] = consensus_app
 
-    let res: felt = hash_int64_array(consensus_array, 2)
+    let (res: felt) = hash_int64_array(consensus_array, 2)
+    return (res)
 end
 
 
 
 
 
-func hashHeader{range_check_ptr, pedersen_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
+func hashHeader{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
     alloc_locals
     # create array
 
     
-    let h0  = hashConsensus(untrustedHeader.header.version)
-    let h1  = hash_int64_array(untrustedHeader.header.chain_id.chain_id_array, untrustedHeader.header.chain_id.len)
-    let h2  = hash_int64(untrustedHeader.header.height)
-    let h3  = hashTime(untrustedHeader.header.time)
-    let h4  = hashBlockID(untrustedHeader.header.last_block_id)
-    let h5  = untrustedHeader.header.last_commit_hash
-    let h6  = untrustedHeader.header.data_hash
-    let h7  = untrustedHeader.header.validators_hash
-    let h8  = untrustedHeader.header.next_validators_hash
-    let h9  = untrustedHeader.header.consensus_hash
-    let h10 = untrustedHeader.header.app_hash
-    let h11 = untrustedHeader.header.last_results_hash
-    let h12 = untrustedHeader.header.evidence_hash
-    let h13 = untrustedHeader.header.proposer_address
+    let (h0 : felt)  = hashConsensus(untrustedHeader.header.version)
+    let (h1 : felt)  = hash_int64_array(untrustedHeader.header.chain_id.chain_id_array, untrustedHeader.header.chain_id.len)
+    let (h2 : felt)  = hash_int64(untrustedHeader.header.height)
+    let (h3 : felt)  = hashTime(untrustedHeader.header.time)
+    let (h4 : felt)  = hashBlockID(untrustedHeader.header.last_block_id)
+    tempvar h5       = untrustedHeader.header.last_commit_hash
+    tempvar h6       = untrustedHeader.header.data_hash
+    tempvar h7       = untrustedHeader.header.validators_hash
+    tempvar h8 = untrustedHeader.header.next_validators_hash
+    tempvar h9 = untrustedHeader.header.consensus_hash
+    tempvar h10 = untrustedHeader.header.app_hash
+    tempvar h11 = untrustedHeader.header.last_results_hash
+    tempvar h12 = untrustedHeader.header.evidence_hash
+    tempvar h13 = untrustedHeader.header.proposer_address
     # call merkleRootHash on the array 
     
     let (local all_array : felt*) = alloc()
@@ -73,30 +75,31 @@ func hashHeader{range_check_ptr, pedersen_ptr}(untrustedHeader: SignedHeaderData
 end
 
 func canonicalPartSetHeaderHasher{
-    pedersen_ptr : HashBuiltin*}(
+    pedersen_ptr : HashBuiltin*, range_check_ptr}(
     part_set_header: PartSetHeaderData)
     ->(res_hash:felt):
     alloc_locals
 
     let total: felt = part_set_header.total
     let hash: felt = part_set_header.hash
+    let total_hash : felt = hash_int64(total)
 
     let (local all_array : felt*) = alloc()
 
-    assert all_array[0] = bid_hash
-    assert all_array[1] = psh_hash
+    assert all_array[0] = total_hash
+    assert all_array[1] = hash
 
-    let (res_hash) = hash_felt_array(all_array)
+    let (res_hash) = hash_felt_array(all_array, 2)
 
     return(res_hash)
 end
 
-func hashTime{range_check_ptr, pedersen_ptr}(time: TimestampData)-> (res_hash:felt):
+func hashTime{range_check_ptr, pedersen_ptr : HashBuiltin*}(time: TimestampData)-> (res_hash:felt):
     let res: felt = hash_int64(time.nanos)
-    return res
+    return (res)
 end
 
-func hashBlockID{pedersen_ptr : HashBuiltin*}(block_id: BlockIDData)->(res_hash: felt):
+func hashBlockID{pedersen_ptr : HashBuiltin*, range_check_ptr}(block_id: BlockIDData)->(res_hash: felt):
     alloc_locals
 
     local bid_hash: felt = block_id.hash
@@ -109,12 +112,12 @@ func hashBlockID{pedersen_ptr : HashBuiltin*}(block_id: BlockIDData)->(res_hash:
     assert all_array[0] = bid_hash
     assert all_array[1] = psh_hash
 
-    let (res_hash) = hash_felt_array(all_array)
+    let (res_hash) = hash_felt_array(all_array, 2)
 
     return(res_hash)
 end
 
-func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
+func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     CVData: CanonicalVoteData)->(res:felt):
     alloc_locals
     
@@ -124,7 +127,7 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
     local chain_id: ChainID= CVData.chain_id
     local block_id: BlockIDData= CVData.block_id
 
-    let (res_bidd) = blockIDHasher(block_id = block_id) 
+    let (res_bidd) = hashBlockID(block_id = block_id) 
     
     let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(type, height)
     let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, round)
@@ -133,8 +136,21 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*}(
     local chain_id_array: felt* = chain_id.chain_id_array
     local chain_id_len: felt = chain_id.len
 
-    let (res_4: felt) = hash_int64_array(res_3, chain_id_array, chain_id_len )
+    let (hash_type : felt) = hash_int64(type)
+    let (hash_height : felt) = hash_int64(height)
+    let (hash_round : felt) = hash_int64(round)
+    let (hash_block_id : felt) = hash_int64(block_id.hash)
+    let (hash_chain_id : felt) = hash_int64_array(chain_id_array, chain_id_len)
 
-    return(res_4)
+    let (local all_array : felt*) = alloc()
+    assert all_array[0] = hash_type
+    assert all_array[1] = hash_height
+    assert all_array[2] = hash_round
+    assert all_array[3] = hash_block_id
+    assert all_array[4] = hash_chain_id
+
+    let (hash_res : felt) = hash_int64_array(all_array, 5)
+
+    return(hash_res)
 
 end
