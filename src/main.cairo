@@ -162,7 +162,7 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     let (timestamp: TimestampData,res_hash: felt) = voteSignBytes(counter, commit, chain_id)
 
     local timestamp_nanos: felt = timestamp.nanos
-    let message1: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash)
+    let message1: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash) # todo this is wrong. 
     
     local commit_sig_signature: SignatureData = signature.signature
     verifySig(val, message1, commit_sig_signature)

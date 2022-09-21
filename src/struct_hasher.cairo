@@ -14,30 +14,41 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 
+func hashConsensus{range_check_ptr, pedersen_ptr}(consensus : ConsensusData) -> (res_hash: felt):
+    let (consensus_block : felt) = consensus.block
+    let (consensus_app : felt) = consensus.app
 
-func hashHeader{range_check_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
+    let (local consensus_array : felt*) = alloc()
+
+    assert consensus_array[0] = consensus_block
+    assert consensus_array[1] = consensus_app
+
+    let res: felt = hash_int64_array(consensus_array, 2)
+end
+
+
+
+
+
+func hashHeader{range_check_ptr, pedersen_ptr}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
     alloc_locals
     # create array
 
-    let (header_version_block : felt) = untrustedHeader.header.version.block
-    let (header_version_app : felt) = untrustedHeader.header.version.app
-    let (local header_version_array : felt*) = alloc()
-    assert header_version_array[0] = header_version_block
-    assert header_version_array[1] = header_version_app
-    let h0 = hash_int64_array(header_version_array)
-    let h1 = hash_int64(untrustedHeader.header.chain_id)
-    let h2 = hash_int64(untrustedHeader.header.height)
-    let h3 = hash_int64(untrustedHeader.header.time)
-    let h4 = hash_felt(untrustedHeader.header.last_block_id)
-    let h5 = untrustedHeader.header.last_commit_hash
-    let h6 = untrustedHeader.header.data_hash
-    let h7 = untrustedHeader.header.validators_hash
-    let h8 = untrustedHeader.header.next_validators_hash
-    let h9 = untrustedHeader.header.consensus_hash
+    
+    let h0  = hashConsensus(untrustedHeader.header.version)
+    let h1  = hash_int64_array(untrustedHeader.header.chain_id.chain_id_array, untrustedHeader.header.chain_id.len)
+    let h2  = hash_int64(untrustedHeader.header.height)
+    let h3  = hashTime(untrustedHeader.header.time)
+    let h4  = hashBlockID(untrustedHeader.header.last_block_id)
+    let h5  = untrustedHeader.header.last_commit_hash
+    let h6  = untrustedHeader.header.data_hash
+    let h7  = untrustedHeader.header.validators_hash
+    let h8  = untrustedHeader.header.next_validators_hash
+    let h9  = untrustedHeader.header.consensus_hash
     let h10 = untrustedHeader.header.app_hash
     let h11 = untrustedHeader.header.last_results_hash
     let h12 = untrustedHeader.header.evidence_hash
-    let h13 = hash_felt(untrustedHeader.header.proposer_address)
+    let h13 = untrustedHeader.header.proposer_address
     # call merkleRootHash on the array 
     
     let (local all_array : felt*) = alloc()
@@ -65,25 +76,40 @@ func canonicalPartSetHeaderHasher{
     pedersen_ptr : HashBuiltin*}(
     part_set_header: PartSetHeaderData)
     ->(res_hash:felt):
-
     alloc_locals
-    local total: felt = part_set_header.total
-    local hash: felt = part_set_header.hash
-    let (res_hash) = hash2{hash_ptr=pedersen_ptr}(total, hash)
+
+    let total: felt = part_set_header.total
+    let hash: felt = part_set_header.hash
+
+    let (local all_array : felt*) = alloc()
+
+    assert all_array[0] = bid_hash
+    assert all_array[1] = psh_hash
+
+    let (res_hash) = hash_felt_array(all_array)
 
     return(res_hash)
-
 end
 
+func hashTime{range_check_ptr, pedersen_ptr}(time: TimestampData)-> (res_hash:felt):
+    let res: felt = hash_int64(time.nanos)
+    return res
+end
 
-func blockIDHasher{pedersen_ptr : HashBuiltin*}(block_id: BlockIDData)->(res_hash: felt):
+func hashBlockID{pedersen_ptr : HashBuiltin*}(block_id: BlockIDData)->(res_hash: felt):
     alloc_locals
 
-    local bidd_hash: felt = block_id.hash
+    local bid_hash: felt = block_id.hash
     local part_set_header: PartSetHeaderData = block_id.part_set_header
 
     let (psh_hash) = canonicalPartSetHeaderHasher(part_set_header)
-    let (res_hash) = hash2{hash_ptr=pedersen_ptr}(bidd_hash, psh_hash)
+
+    let (local all_array : felt*) = alloc()
+
+    assert all_array[0] = bid_hash
+    assert all_array[1] = psh_hash
+
+    let (res_hash) = hash_felt_array(all_array)
 
     return(res_hash)
 end
