@@ -309,21 +309,18 @@ end
 func test_recursive_hash{pedersen_ptr : HashBuiltin*, range_check_ptr}()->():
     alloc_locals
     let (local to_hash_array: felt*)= alloc()
-    assert to_hash_array[0] = 1
-    assert to_hash_array[1] = 2
-    assert to_hash_array[2] = 3
+    assert to_hash_array[0] = 101
+    assert to_hash_array[1] = 102
+    assert to_hash_array[2] = 103
 
     let res_hash:felt = hash_int64_array(to_hash_array, 3)
     
-    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(0, 1)
-    let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, 2)
-    let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, 3)
+    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(0, 101)
+    let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, 102)
+    let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, 103)
+    let (res_4: felt) = hash2{hash_ptr=pedersen_ptr}(res_3, 3)
 
-    %{print(ids.res_hash)%}
-    %{print(ids.res_1)%}
-    %{print(ids.res_2)%}
-    %{print(ids.res_3)%}
-    assert res_3 = res_hash
+    assert res_4 = res_hash
 
 return()
 
@@ -452,7 +449,7 @@ func test_hash_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
 
     # call the hash_array fn on this array
 
-    let res_hash_test: felt = hash_int64_array(array_pointer=to_hash_array , array_pointer_len=2)
+    let res_hash_test: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len=2)
 
     # check that this res_hash is the same as hashing the single felt by hand
 
@@ -475,6 +472,7 @@ func test_hash_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
     let (res_hash6) = hash2{hash_ptr=pedersen_ptr}(res_hash5,high_low4)
     let (res_hash7) = hash2{hash_ptr=pedersen_ptr}(res_hash6,low_high4)
     let (res_hash8) = hash2{hash_ptr=pedersen_ptr}(res_hash7,low_low4)
+
     let (res_hash_manual) = hash2{hash_ptr=pedersen_ptr}(res_hash8,8)
 
     assert res_hash_manual = res_hash_test
