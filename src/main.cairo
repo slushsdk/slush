@@ -14,9 +14,9 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison, get_total_voting_power,  verifySig)
 from src.hashing import (hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
-from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, blockIDHasher, hashCanonicalVoteNoTime)
+from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime)
 
-func voteSignBytes{pedersen_ptr: HashBuiltin*}(
+func voteSignBytes{pedersen_ptr: HashBuiltin*, range_check_ptr}(
     counter: felt,
     commit: CommitData,
     chain_id: ChainID,
@@ -120,7 +120,7 @@ end
 
 
 func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
-    ecdsa_ptr: SignatureBuiltin*}( 
+    ecdsa_ptr: SignatureBuiltin*, range_check_ptr}( 
     counter: felt,
     commit: CommitData,
     signatures_len: felt,
