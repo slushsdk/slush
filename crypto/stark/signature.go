@@ -412,7 +412,9 @@ func SignECDSA(priv *PrivateKey, hash []byte, alg func() hash.Hash) (r, s *big.I
 			return false
 		}
 
-		e := hashToInt(hash, c)
+		// e := hashToInt(hash, c)
+		e := new(big.Int).SetBytes(hash)
+
 		s = new(big.Int).Mul(priv.D, r)
 		s.Add(s, e)
 		s.Mul(s, inv)
@@ -461,7 +463,9 @@ func sign(
 			}
 		}
 
-		e := hashToInt(hash, c)
+		// e := hashToInt(hash, c)
+		e := new(big.Int).SetBytes(hash)
+
 		s = new(big.Int).Mul(pvt.D, r)
 		s.Add(s, e)
 		s.Mul(s, kInv)
@@ -504,7 +508,9 @@ func verify(
 	pub *PublicKey, c weierstrass.Curve, hash []byte, r, s *big.Int,
 ) bool {
 	// SEC 1, Version 2.0, Section 4.1.4
-	e := hashToInt(hash, c)
+	// e := hashToInt(hash, c)
+	e := new(big.Int).SetBytes(hash)
+
 	var w *big.Int
 	N := c.Params().N
 	if in, ok := c.(invertible); ok {
