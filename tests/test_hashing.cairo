@@ -14,7 +14,6 @@ from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 
-
 @external
 func test_hash_int64_array{pedersen_ptr : HashBuiltin*, range_check_ptr}()->():
     alloc_locals
@@ -29,10 +28,15 @@ func test_hash_int64_array{pedersen_ptr : HashBuiltin*, range_check_ptr}()->():
     let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, 102)
     let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, 103)
     let (res_4: felt) = hash2{hash_ptr=pedersen_ptr}(res_3, 3)
+    
+    #This output is fed into tendermint tests. 
+    %{print(ids.res_hash)%}
 
     assert res_4 = res_hash
     return()
 end
+
+
 
  #@external
  #func test_hash_int64{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
@@ -117,24 +121,27 @@ func test_hash_felt_array{pedersen_ptr: HashBuiltin*, range_check_ptr}()->():
     # create array of felts to be split and hashed
     alloc_locals
     let (local to_hash_array: felt*)= alloc()
-    assert to_hash_array[0] = 1
-    assert to_hash_array[1] = 2
+    assert to_hash_array[0] = 104
+    assert to_hash_array[1] = 105
 
     # call the hash_array fn on this array
 
     let res_hash_test: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len=2)
+
+    #To be fed into tendermint tests
+    %{print(ids.res_hash_test)%}
 
     # check that this res_hash is the same as hashing the single felt by hand
 
     let high_high3:felt  =0
     let high_low3:felt = 0
     let low_high3:felt = 0
-    let low_low3:felt= 1
+    let low_low3:felt= 104
     
     let high_high4:felt  =0
     let high_low4:felt = 0
     let low_high4:felt = 0
-    let low_low4:felt= 2
+    let low_low4:felt= 105
 
     let (res_hash1) = hash2{hash_ptr=pedersen_ptr}(0,high_high3)
     let (res_hash2) = hash2{hash_ptr=pedersen_ptr}(res_hash1,high_low3)

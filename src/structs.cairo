@@ -28,7 +28,7 @@ const BLOCK_ID_FLAG_ABSENT = 1
 const BLOCK_ID_FLAG_COMMIT = 2
 const BLOCK_ID_FLAG_NIL = 3
 
-const MAX_TOTAL_VOTING_POWER = 4611686018427387904 # == 1 << (63 - 1)
+const MAX_TOTAL_VOTING_POWER = 2**59
 
 # TimestampData is done
 struct TimestampData:
@@ -139,9 +139,9 @@ struct ValidatorDataArray:
 end
 
 struct PublicKeyData:
-    member ed25519: felt # replace w bytes
-    member secp256k1: felt # replace w bytes
-    member sr25519: felt # replace w bytes
+    #member ed25519: felt # replace w bytes
+    #member secp256k1: felt # replace w bytes
+    #member sr25519: felt # replace w bytes
     member ecdsa: felt 
 end
 

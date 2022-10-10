@@ -104,23 +104,27 @@ func recursive_comparison(
 
 end
 
-# the solidity code here is not very professional
-# I remove the total_voting_power_parameter
+# removed the total_voting_power_parameter
 # because we work with immutable variables
-func get_total_voting_power(
+func get_total_voting_power{range_check_ptr}(
     validators_len: felt,
-    validators: ValidatorData*
+    validators: ValidatorData*, 
 ) -> (res: felt):
+    alloc_locals
+
     if validators_len == 0:
         return (0)
+    
     end
-    %{print(ids.validators_len)%}
-    let (sum: felt) = get_total_voting_power(validators_len - 1, validators + 6)
-    # TODO assert sum < MAX_TOTAL_VOTING_POWER
-    let first_vals: ValidatorData = [validators]
+    
+    let ( local sum: felt) = get_total_voting_power(validators_len - 1, validators + 4)
+    
+    let (bool:felt) = is_le(sum +1,  MAX_TOTAL_VOTING_POWER)
+    assert bool =1
+
+    let first_vals: ValidatorData = validators[0]
     let voting_power: felt = first_vals.voting_power
-    %{print('ids.voting_power')%}
-    %{print(ids.voting_power)%}
+    
     return (voting_power + sum)
 end
 
