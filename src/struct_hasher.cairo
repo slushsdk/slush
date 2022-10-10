@@ -121,26 +121,23 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     CVData: CanonicalVoteData)->(res:felt):
     alloc_locals
     
-    local type: felt = 1 # TODO stand in value for Type https://github.com/kelemeno/tendermint-stark/blob/main/types/canonical.go#L95
+    local type: felt = 2 
     local height: felt = CVData.height
     local round: felt = CVData.round
     local chain_id: ChainID= CVData.chain_id
     local block_id: BlockIDData= CVData.block_id
 
-    let (res_bidd) = hashBlockID(block_id = block_id) 
-    
-    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(type, height)
-    let (res_2: felt) = hash2{hash_ptr=pedersen_ptr}(res_1, round)
-    let (res_3: felt) = hash2{hash_ptr=pedersen_ptr}(res_2, res_bidd)
-
     local chain_id_array: felt* = chain_id.chain_id_array
     local chain_id_len: felt = chain_id.len
+
 
     let (hash_type : felt) = hash_int64(type)
     let (hash_height : felt) = hash_int64(height)
     let (hash_round : felt) = hash_int64(round)
-    tempvar hash_block_id  = block_id.hash
+    let (hash_block_id :felt)  = hashBlockID(block_id = block_id)
     let (hash_chain_id : felt) = hash_int64_array(chain_id_array, chain_id_len)
+
+    %{print("chainId_len:", ids.chain_id_len, memory[ids.chain_id_array])%}
 
     let (local all_array : felt*) = alloc()
     assert all_array[0] = hash_type
@@ -149,6 +146,8 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     assert all_array[3] = hash_block_id
     assert all_array[4] = hash_chain_id
 
+    %{print("")%}
+    %{print("in hashCan.NoTime")%}
     %{print(ids.hash_type)%}
     %{print(ids.hash_height)%}
     %{print(ids.hash_round)%}
