@@ -16,17 +16,12 @@ from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 
 
-# func test_verifyAdjacent{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*}():
 @external
 func test_verifyAdjacent{range_check_ptr,
 pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 
 
-    # create instances of the headers
-
-    # let (smallest_ptr : MyStruct*) = search_sorted_lower(
-    #     array_ptr=array_ptr, elm_size=2, n_elms=3, key=2
-    # )
+   
     let time0 = TimestampData( nanos = 0)
     let time01 = TimestampData(nanos = 1)
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 1)
@@ -93,6 +88,72 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
     let trustedHeader1 = SignedHeaderData(header= header1, commit = comit1)
     let untrustedHeader1 = SignedHeaderData(header= header2, commit = comit2)
 
+     let (local ValidatorData_pointer0: ValidatorData*) =alloc()
+    let(fp_validators0,_) = get_fp_and_pc()
+    let public_key0: PublicKeyData  = PublicKeyData(ecdsa = 3)
+    let validator_data0: ValidatorData =  ValidatorData(Address = 1, pub_key = public_key0, voting_power= 2, proposer_priority = 3)
+    assert ValidatorData_pointer0[0] = validator_data0
+    assert ValidatorData_pointer0[1] = validator_data0
+    assert ValidatorData_pointer0[2] = validator_data0
+    assert ValidatorData_pointer0[3] = validator_data0
+                                                        
+    let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 4)
+    let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =3 )
+    # verifyAdjacent{ecdsa_ptr: ecdsa_ptr}(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1, untrustedVals=validator_set0,
+    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1, untrustedVals=validator_set0,
+    trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
+
+
+    # TODO write test for verifyNewHeaderAndVals
+    
+
+    # test verifyCommitLight
+    # create inputs for verifyCommitLight function
+    # PrivateKeyData
+    let public_key1: PublicKeyData  = PublicKeyData( ecdsa=3)
+    let validator_data1: ValidatorData =  ValidatorData(Address = 1, pub_key = public_key1, voting_power= 2, proposer_priority = 3)
+
+    let (local ValidatorData_pointer: ValidatorData*) =alloc()
+    let validator_fp = cast(fp_validators, ValidatorData*)
+    assert ValidatorData_pointer[0] = validator_data1
+    assert ValidatorData_pointer[1] = validator_data1
+    assert ValidatorData_pointer[2] = validator_data1
+    assert ValidatorData_pointer[3] = validator_data1
+    
+    
+    let validator_array: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer, len = 4)
+    
+    let validator_set: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power =3 )
+
+    # verifyCommitLight(vals = validator_set, chainID= 1, blockID = blockid1, height= 11100111, commit = comit1)
+
+    # test get_tallied_voting_power recurive function for adding up voting power
+
+    # use
+        # commit comit1
+        # 
+    let (all_votes:felt)= get_tallied_voting_power(counter =0, commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer, chain_id=chain_id1)
+    let (total_voting_power:felt)= get_total_voting_power( validators_len = 4, validators = ValidatorData_pointer)
+    %{print("ids.all_votes")%}
+    %{print(ids.commitsig1_pointer)%}
+    %{print(ids.all_votes)%}
+    assert all_votes = 6
+    assert total_voting_power= 8
+
+    # call verifyCommitLight
+    let blockid2 = BlockIDData(hash = 1, part_set_header = part_set_header1)
+
+    let valsInstance: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power = total_voting_power)
+    verifyCommitLight(vals = valsInstance , chain_id= chain_id1, blockID = blockid2, height = 11100111, commit = comit1)
+
+    return()
+end
+
+
+@external
+func test_vtime_comparision{range_check_ptr,
+pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
+
     # test whether the time comparison works
 
     let time1 = TimestampData( nanos = 9)
@@ -144,84 +205,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 
     assert expired2 = 0
 
-    let (local ValidatorData_pointer0: ValidatorData*) =alloc()
-    let(fp_validators0,_) = get_fp_and_pc()
-    let public_key0: PublicKeyData  = PublicKeyData(ecdsa = 3)
-    let validator_data0: ValidatorData =  ValidatorData(Address = 1, pub_key = public_key0, voting_power= 2, proposer_priority = 3)
-    let validator_fp0 = cast(fp_validators0, ValidatorData*)
-    assert ValidatorData_pointer0[0] = validator_data0
-    let(fp_commitsig13) = get_ap()
-    assert ValidatorData_pointer0[1] = validator_data0
-    let(fp_commitsig14) = get_ap()
-    assert ValidatorData_pointer0[2] = validator_data0
-    let(fp_commitsig15) = get_ap()
-    assert ValidatorData_pointer0[3] = validator_data0
-    let(fp_commitsig16) = get_ap()
-    %{print(ids.fp_commitsig13)%}
-    %{print(ids.fp_commitsig14)%}
-    %{print(ids.fp_commitsig15)%}
-    %{print(ids.fp_commitsig16)%}
-                                                        
-    let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 4)
-    let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =3 )
-    # verifyAdjacent{ecdsa_ptr: ecdsa_ptr}(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1, untrustedVals=validator_set0,
-    verifyAdjacent(trustedHeader= trustedHeader1, untrustedHeader= untrustedHeader1, untrustedVals=validator_set0,
-    trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
-
-
-    # TODO write test for verifyNewHeaderAndVals
-    
-
-    # test verifyCommitLight
-    # create inputs for verifyCommitLight function
-    # PrivateKeyData
-    let public_key1: PublicKeyData  = PublicKeyData( ecdsa=3)
-    let validator_data1: ValidatorData =  ValidatorData(Address = 1, pub_key = public_key1, voting_power= 2, proposer_priority = 3)
-
-    let (local ValidatorData_pointer: ValidatorData*) =alloc()
-    let(fp_validators,_) = get_fp_and_pc()
-    let validator_fp = cast(fp_validators, ValidatorData*)
-    assert ValidatorData_pointer[0] = validator_data1
-    let(fp_commitsig3) = get_ap()
-    assert ValidatorData_pointer[1] = validator_data1
-    let(fp_commitsig4) = get_ap()
-
-    assert ValidatorData_pointer[2] = validator_data1
-    let(fp_commitsig5) = get_ap()
-    assert ValidatorData_pointer[3] = validator_data1
-    let(fp_commitsig6) = get_ap()
-    %{print(ids.fp_commitsig3)%}
-    %{print(ids.fp_commitsig4)%}
-    %{print(ids.fp_commitsig5)%}
-    %{print(ids.fp_commitsig6)%}
-    
-    let validator_array: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer, len = 4)
-    
-    let validator_set: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power =3 )
-
-    # verifyCommitLight(vals = validator_set, chainID= 1, blockID = blockid1, height= 11100111, commit = comit1)
-
-    # test get_tallied_voting_power recurive function for adding up voting power
-
-    # use
-        # commit comit1
-        # 
-    let (all_votes:felt)= get_tallied_voting_power(counter =0, commit = comit1, signatures_len =4, signatures = commitsig1_pointer, validators_len = 4, validators = ValidatorData_pointer, chain_id=chain_id1)
-    let (total_voting_power:felt)= get_total_voting_power( validators_len = 4, validators = ValidatorData_pointer)
-    %{print("ids.all_votes")%}
-    %{print(ids.commitsig1_pointer)%}
-    %{print(ids.all_votes)%}
-    assert all_votes = 6
-    assert total_voting_power= 8
-
-    # call verifyCommitLight
-    let blockid2 = BlockIDData(hash = 1, part_set_header = part_set_header1)
-
-    let valsInstance: ValidatorSetData = ValidatorSetData(validators = validator_array, proposer = validator_data1, total_voting_power = total_voting_power)
-    verifyCommitLight(vals = valsInstance , chain_id= chain_id1, blockID = blockid2, height = 11100111, commit = comit1)
-
-
-    return ()
+   return()
 end
 
 
@@ -294,9 +278,9 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
     alloc_locals
 
     let (local chain_id_ptr: felt*) =alloc()
-    assert chain_id_ptr[ 0 ]= 8387236823862306913
-    assert chain_id_ptr[ 1 ]= 7597059414893672244
-    assert chain_id_ptr[ 2 ]= 89
+    assert chain_id_ptr[ 0 ]= 116
+    assert chain_id_ptr[ 1 ]= 7310314358442582377
+    assert chain_id_ptr[ 2 ]= 7939082473277174873
     let chain_id1= ChainID(chain_id_array =chain_id_ptr , len =  3 )
 
                 # create the header
@@ -345,7 +329,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
 
 
                 # create the header
-                let header2_untrusted: LightHeaderData = LightHeaderData(
+                let header1_trusted: LightHeaderData = LightHeaderData(
                 version = ConsensusData(block = 11, app= 1),
                 chain_id = chain_id1, #this is a placeholder value
                 height = 3,
@@ -367,26 +351,26 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
                 # create commit
                 let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
 
-                let signature_data_untrusted: SignatureData = SignatureData(signature_r = 1574721190176926169105209787622837978716177559848193672133231451039095203935 , signature_s = 862824085651123954590113231158027915942328566730529267229623323501715744334 )
+                let signature_data_trusted: SignatureData = SignatureData(signature_r = 1574721190176926169105209787622837978716177559848193672133231451039095203935 , signature_s = 862824085651123954590113231158027915942328566730529267229623323501715744334 )
 
-                local commitsig_Absent_untrusted : CommitSigData = CommitSigData(
+                local commitsig_Absent_trusted : CommitSigData = CommitSigData(
                 block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  959049038717653807685574738020370930163330319766788613812220440751532913821 ,
-                timestamp = TimestampData(nanos=  1665151948776730580 ), signature= signature_data_untrusted)
+                timestamp = TimestampData(nanos=  1665151948776730580 ), signature= signature_data_trusted)
 
-                let (local commitsig1_pointer_untrusted: CommitSigData*) =alloc()   
-                assert commitsig1_pointer_untrusted[0] = commitsig_Absent_untrusted
-                let commitsig1_array_untrusted = CommitSigDataArray(array = commitsig1_pointer_untrusted, len = 1)
+                let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
+                assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
+                let commitsig1_array_trusted = CommitSigDataArray(array = commitsig1_pointer_trusted, len = 1)
 
-                let commit2_untrusted: CommitData = CommitData(height =  3 , 
+                let commit1_trusted: CommitData = CommitData(height =  3 , 
                 round =  0 , 
                 block_id= BlockIDData(
                                 hash=  2305738582548230784621410770943766237088090405825828319143275642261022540889 ,
                                 part_set_header = PartSetHeaderData(total =  1 , hash= 1398175902064534593451892233790074365091196483301868474567578764902236394164 )),
-                signatures = commitsig1_array_untrusted
+                signatures = commitsig1_array_trusted
                 )
 
                 # create the header from these two
-                let untrusted_header: SignedHeaderData = SignedHeaderData(header = header2_untrusted, commit = commit2_untrusted)
+                let untrusted_header: SignedHeaderData = SignedHeaderData(header = header1_trusted, commit = commit1_trusted)
 
 
                 # create validator array
@@ -406,4 +390,4 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }()->():
                         trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
 
                 return()
-end
+        end
