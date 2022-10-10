@@ -40,7 +40,7 @@ end
 func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(res_hash: felt):
     alloc_locals
 
-    let leafPrefix: felt = 0 # TODO, check if this is the correct type and value, maybe Uint?
+    let leafPrefix: felt = 0 
 
     let hashedLeafPrefix: felt = hash_int64(leafPrefix)
     # create array with leafPrefix and leaf value
@@ -50,8 +50,6 @@ func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(r
     assert to_hash_array[1] = leaf_value
 
     # call the hash_array fn on this array
-
-    # let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 2)
     let res_hash: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len = 2)
 
     return(res_hash)
@@ -60,19 +58,16 @@ end
 
 func innerHash{range_check_ptr, pedersen_ptr : HashBuiltin*}(left: felt, right: felt)->(res_hash: felt):
     alloc_locals
-    let innerPrefix: felt = 1 # TODO, check if this is the correct type and value, maybe Uint?
+    let innerPrefix: felt = 1 
 
-    let hashedLeafPrefix: felt = hash_int64(innerPrefix)
     # create array with leafPrefix and leaf value
 
     let (local to_hash_array: felt*)= alloc()
-    assert to_hash_array[0] = hashedLeafPrefix 
+    assert to_hash_array[0] = innerPrefix
     assert to_hash_array[1] = left
     assert to_hash_array[2] = right 
 
     # call the hash_array fn on this array
-
-    # let res_hash: felt = hash_felt_array(array_pointer =to_hash_array , counter = 0, previous_hash = 0 , total_len = 3)
     let res_hash: felt = hash_felt_array(array_pointer=to_hash_array , array_pointer_len = 3)
 
     return(res_hash)
@@ -103,7 +98,6 @@ func merkleRootHash{pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: B
 
             let new_start: felt = start + split_point
             let new_total: felt = total - split_point
-
             let right: felt = merkleRootHash(validator_array, new_start, new_total)
 
             let inner_hash: felt = innerHash(left, right)

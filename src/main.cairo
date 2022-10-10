@@ -107,7 +107,7 @@ func verifyNewHeaderAndVals{range_check_ptr}(
     let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
     assert untrusted_time_greater_current = 1
 
-    # check if the header validators hash is the onne supplied
+    # check if the header validators hash is the one supplied
     # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L161
     # which is based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintHelper.sol#L143
 
@@ -136,8 +136,8 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
         return (0)
     end
 
-    local signature: CommitSigData = [signatures]
-    local val: ValidatorData = [validators]
+    local signature: CommitSigData = signatures[0]
+    local val: ValidatorData = validators[0]
 
     tempvar BlockIDFlag = signature.block_id_flag.BlockIDFlag
     tempvar valsize = ValidatorData.SIZE
@@ -147,9 +147,9 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
             counter +1,
             commit,
             signatures_len - 1,
-            signatures + 6,
+            signatures + 5,
             validators_len - 1,
-            validators + 6, 
+            validators + 4, 
             chain_id=chain_id
         )
         return (rest_of_voting_power)
@@ -161,20 +161,21 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
 
     let (timestamp: TimestampData,res_hash: felt) = voteSignBytes(counter, commit, chain_id)
 
+    %{print(ids.timestamp.nanos, ids.res_hash)%}
+    
     local timestamp_nanos: felt = timestamp.nanos
     let message1: felt = hash2{hash_ptr=pedersen_ptr}(timestamp_nanos, res_hash) # todo this is wrong. 
     
     local commit_sig_signature: SignatureData = signature.signature
     verifySig(val, message1, commit_sig_signature)
     
-    
     let (rest_of_voting_power: felt) = get_tallied_voting_power(
         counter+1,
         commit, 
         signatures_len - 1,
-        signatures + 6,
+        signatures + 5,
         validators_len -1 ,
-        validators +6,
+        validators + 4,
         chain_id=chain_id
     )
     return (val.voting_power + rest_of_voting_power)

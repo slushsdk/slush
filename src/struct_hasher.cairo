@@ -149,6 +149,14 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     assert all_array[3] = hash_block_id
     assert all_array[4] = hash_chain_id
 
+    %{print(ids.hash_type)%}
+    %{print(ids.hash_height)%}
+    %{print(ids.hash_round)%}
+    %{print(ids.hash_block_id)%}
+    %{print(ids.hash_chain_id)%}
+
+
+
     let (hash_res : felt) = hash_felt_array(all_array, 5)
 
     return(hash_res)
