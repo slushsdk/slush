@@ -14,7 +14,8 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 
 
 func hash_int64{range_check_ptr, pedersen_ptr : HashBuiltin*}(input: felt)->(res_hash: felt):
-
+    alloc_locals
+    
     # Check that 0 <= x < 2**64.
     [range_check_ptr] = input
     assert [range_check_ptr + 1] = 2 ** 64 - 1 - input
@@ -33,7 +34,8 @@ func hash_int64_array{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     array_pointer: felt*,
     array_pointer_len : felt )->
     (res_hash: felt):
-     
+    alloc_locals
+
     let current_hash :felt = hash_int64_array_recursive(array_pointer, array_pointer_len, 0)
     let (last_hash: felt) = hash2{hash_ptr=pedersen_ptr}(current_hash, array_pointer_len)
     
@@ -70,6 +72,7 @@ func split_felt_to_64{range_check_ptr}(input1: felt)->(
     high_low:felt, 
     low_high:felt, 
     low_low:felt):
+    alloc_locals
 
     # split the felt into two 128 bit parts
     
@@ -87,7 +90,8 @@ end
 
 func split_and_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     previous_hash: felt, input1: felt)->(res_hash: felt):
-    
+    alloc_locals
+
     let (high_high, high_low, low_high, low_low) =split_felt_to_64(input1)
 
     # now that splitting is done, hash these together
@@ -101,7 +105,8 @@ func split_and_hash{range_check_ptr, pedersen_ptr : HashBuiltin*}(
 end
 
 func hash_felt{range_check_ptr, pedersen_ptr : HashBuiltin*}(input1: felt)->(res_hash: felt):
-    
+    alloc_locals
+
     let (res_hash4) = split_and_hash(previous_hash = 0, input1 = input1)
     let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(res_hash4,4)
 
@@ -112,10 +117,27 @@ func hash_felt_array{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     array_pointer: felt*,
     array_pointer_len : felt)->
     (res_hash: felt):
+    alloc_locals
 
     let previous_hash: felt = hash_felt_array_recursive(array_pointer, array_pointer_len, 0)
 
     let res_hash: felt = hash2{hash_ptr=pedersen_ptr}(previous_hash, 4 * array_pointer_len)
+    
+    return(res_hash)
+end
+
+func hash_felt_array_with_prefix{range_check_ptr, pedersen_ptr : HashBuiltin*}(
+    array_pointer: felt*,
+    array_pointer_len : felt, 
+    prefix: felt)->
+    (res_hash: felt):
+    alloc_locals
+
+    let prefix_hash : felt = split_and_hash(0, prefix)
+
+    let previous_hash: felt = hash_felt_array_recursive(array_pointer, array_pointer_len, prefix_hash)
+
+    let res_hash: felt = hash2{hash_ptr=pedersen_ptr}(previous_hash, 4 * array_pointer_len + 4)
     
     return(res_hash)
 end
@@ -125,6 +147,7 @@ func hash_felt_array_recursive{range_check_ptr, pedersen_ptr : HashBuiltin*}(
     array_pointer_len : felt,
     previous_hash: felt)->
     (res_hash: felt):
+    alloc_locals
 
     if array_pointer_len ==0 :
         return (previous_hash)

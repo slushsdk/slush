@@ -27,8 +27,6 @@ func test_verifySig{syscall_ptr: felt*,ecdsa_ptr: SignatureBuiltin*,  pedersen_p
 
     # let pubkey2 = private_to_stark_key(priv)
 
-    #%{print(id.pubkey)%}
-
     let val = ValidatorData(Address = 0, pub_key = pubkey, voting_power= 0, proposer_priority= 0 )
     
     # let message = 8329030095893906201465693050266201662364576831283196587123454753936159886

@@ -14,6 +14,7 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 
+
 func hashConsensus{range_check_ptr, pedersen_ptr : HashBuiltin*}(consensus : ConsensusData) -> (res_hash: felt):
     alloc_locals
     tempvar consensus_block = consensus.block
@@ -28,15 +29,19 @@ func hashConsensus{range_check_ptr, pedersen_ptr : HashBuiltin*}(consensus : Con
     return (res)
 end
 
+func hashValidatorSet{range_check_ptr, pedersen_ptr : HashBuiltin*}(val_set : ValidatorSetData) -> (res_hash: felt):
+    alloc_locals
+    
+    #Todo
+    #let (res : felt) = merkleRootHash(val_set.validators, 0, val_set.validators.length) 
 
-
-
+    return (0) #(res)
+end
 
 func hashHeader{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
     alloc_locals
-    # create array
 
-    
+    # create array
     let (h0 : felt)  = hashConsensus(untrustedHeader.header.version)
     let (h1 : felt)  = hash_int64_array(untrustedHeader.header.chain_id.chain_id_array, untrustedHeader.header.chain_id.len)
     let (h2 : felt)  = hash_int64(untrustedHeader.header.height)
@@ -45,14 +50,14 @@ func hashHeader{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: Bitwi
     tempvar h5       = untrustedHeader.header.last_commit_hash
     tempvar h6       = untrustedHeader.header.data_hash
     tempvar h7       = untrustedHeader.header.validators_hash
-    tempvar h8 = untrustedHeader.header.next_validators_hash
-    tempvar h9 = untrustedHeader.header.consensus_hash
+    tempvar h8  = untrustedHeader.header.next_validators_hash
+    tempvar h9  = untrustedHeader.header.consensus_hash
     tempvar h10 = untrustedHeader.header.app_hash
     tempvar h11 = untrustedHeader.header.last_results_hash
     tempvar h12 = untrustedHeader.header.evidence_hash
     tempvar h13 = untrustedHeader.header.proposer_address
-    # call merkleRootHash on the array 
     
+    # call merkleRootHash on the array 
     let (local all_array : felt*) = alloc()
 
     assert all_array[0] = h0
@@ -69,6 +74,25 @@ func hashHeader{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: Bitwi
     assert all_array[11] = h11
     assert all_array[12] = h12
     assert all_array[13] = h13
+
+    %{print(ids.h0)%}
+    %{print(ids.h1)%}
+    %{print(ids.h2)%}
+    %{print(ids.h3)%}
+    %{print(ids.h4)%}
+    %{print(ids.h5)%}
+    %{print(ids.h6)%}
+    %{print(ids.h7)%}
+    %{print(ids.h8)%}
+    %{print(ids.h9)%}
+    %{print(ids.h10)%}
+    %{print(ids.h11)%}
+    %{print(ids.h12)%}
+    %{print(ids.h13)%}
+
+
+
+
 
     let (merkle_hash : felt) = merkleRootHash(all_array, 0, 14) 
     return(merkle_hash)
@@ -95,6 +119,7 @@ func canonicalPartSetHeaderHasher{
 end
 
 func hashTime{range_check_ptr, pedersen_ptr : HashBuiltin*}(time: TimestampData)-> (res_hash:felt):
+    alloc_locals
     let res: felt = hash_int64(time.nanos)
     return (res)
 end
@@ -137,24 +162,12 @@ func hashCanonicalVoteNoTime{pedersen_ptr : HashBuiltin*, range_check_ptr}(
     let (hash_block_id :felt)  = hashBlockID(block_id = block_id)
     let (hash_chain_id : felt) = hash_int64_array(chain_id_array, chain_id_len)
 
-    %{print("chainId_len:", ids.chain_id_len, memory[ids.chain_id_array])%}
-
     let (local all_array : felt*) = alloc()
     assert all_array[0] = hash_type
     assert all_array[1] = hash_height
     assert all_array[2] = hash_round
     assert all_array[3] = hash_block_id
     assert all_array[4] = hash_chain_id
-
-    %{print("")%}
-    %{print("in hashCan.NoTime")%}
-    %{print(ids.hash_type)%}
-    %{print(ids.hash_height)%}
-    %{print(ids.hash_round)%}
-    %{print(ids.hash_block_id)%}
-    %{print(ids.hash_chain_id)%}
-
-
 
     let (hash_res : felt) = hash_felt_array(all_array, 5)
 

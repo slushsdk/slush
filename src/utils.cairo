@@ -47,6 +47,7 @@ func isExpired{range_check_ptr}(
     trustingPeriod: DurationData,
     currentTime: DurationData
     )->(res:felt):
+    alloc_locals
 
     # add the trusting period to the current time
     # create new DurationData struct
@@ -67,6 +68,8 @@ func greater_than{range_check_ptr}(
     a: felt,
     b: felt
     )->(res:felt):
+    alloc_locals
+
     let (is_le_val: felt) = is_le(b, a)
     if is_le_val == 1:
         # check if they are equal

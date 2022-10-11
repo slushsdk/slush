@@ -12,28 +12,39 @@ from starkware.cairo.common.alloc import alloc
 
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison)
-from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array)
+from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_array, hash_felt_array_with_prefix)
 
 
-# TODO change dummy hash function to a real one
-# hash together the contents of the block header and produce the state root
-# as per https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintHelper.sol#L116
 
 # returns the largest power of two that is smaller than the input
 func get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt)->( res: felt):
+    alloc_locals
 
-    let gt: felt =  greater_than(input, 1)
+    let (le: felt) =  is_le(1, input)
+    #%{print(ids.input)%}
+    #[range_check_ptr] = input
+   # let range_check_ptr = range_check_ptr + 1
 
-    if gt ==1:
-        let and_input: felt = bitwise_and(input, input-1)
-        if  and_input ==0:
-            return(input)
-        else:
-            let res: felt = get_split_point(input-1)
-            return(res)
-        end
+    if le ==1:
+
+        let res : felt = get_split_point_rec(input, 1)
+        return (res)
     else:
-        return(1)
+        assert 0=1
+        return (0)
+    end
+end
+
+func get_split_point_rec{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt, lower_bound: felt)->( res: felt):
+    alloc_locals
+
+    let le: felt =  is_le( 2 * lower_bound, input)
+
+    if le == 1:
+        let (res : felt) = get_split_point_rec(input, 2 * lower_bound)
+        return (res)
+    else:
+        return(lower_bound)
     end
 end
 
@@ -42,11 +53,10 @@ func leafHash{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf_value: felt)->(r
 
     let leafPrefix: felt = 0 
 
-    let hashedLeafPrefix: felt = hash_int64(leafPrefix)
     # create array with leafPrefix and leaf value
 
     let (local to_hash_array: felt*) = alloc()
-    assert to_hash_array[0] = hashedLeafPrefix 
+    assert to_hash_array[0] = leafPrefix
     assert to_hash_array[1] = leaf_value
 
     # call the hash_array fn on this array
@@ -76,6 +86,39 @@ func innerHash{range_check_ptr, pedersen_ptr : HashBuiltin*}(left: felt, right: 
 end
 
 func merkleRootHash{pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(validator_array: felt*, start: felt, total: felt)->(res_hash: felt):
+    alloc_locals
+    let empty_hash = 0
+
+    if total ==0:
+       return(empty_hash)
+
+    else:
+        if total ==1:
+
+            local current_validator: felt = validator_array[start]
+            let res_hash: felt  = leafHash(current_validator)
+
+            return(res_hash)
+
+        else:
+
+            let split_point:felt = get_split_point(total)
+
+            let left: felt = merkleRootHash(validator_array, start, split_point)
+
+            let new_start: felt = start + split_point
+            let new_total: felt = total - split_point
+            let right: felt = merkleRootHash(validator_array, new_start, new_total)
+
+            let inner_hash: felt = innerHash(left, right)
+
+            return(inner_hash)
+
+        end
+    end
+end
+
+func merkleRootHashVals{pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(validator_array: felt*, start: felt, total: felt)->(res_hash: felt):
     alloc_locals
     let empty_hash = 0
 
