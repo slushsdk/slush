@@ -528,24 +528,40 @@ func verify(
 	u2.Mod(u2, N)
 
 	// Check if implements S1*g + S2*p
-	var x, y *big.Int
+	var xplus, yplus, xminus, yminus *big.Int
 	if opt, ok := c.(combinedMult); ok {
 		// XXX: The following should be removed if more curves are added
 		// that support a combined multiplication operation.
 		// notest
-		x, y = opt.CombinedMult(pub.X, pub.Y, u1.Bytes(), u2.Bytes())
+		xplus, yplus = opt.CombinedMult(pub.X, pub.Y, u1.Bytes(), u2.Bytes())
+		xminus, yminus = opt.CombinedMult(pub.X, big.NewInt(0).Mul(pub.Y, big.NewInt(-1)), u1.Bytes(), u2.Bytes())
 	} else {
 		x1, y1 := c.ScalarBaseMult(u1.Bytes())
 		x2, y2 := c.ScalarMult(pub.X, pub.Y, u2.Bytes())
-		x, y = c.Add(x1, y1, x2, y2)
+		xplus, yplus = c.Add(x1, y1, x2, y2)
+		xminus, yminus = c.Add(x1, y1, x2, big.NewInt(0).Mul(big.NewInt(-1), y2))
 	}
 
-	if x.Sign() == 0 && y.Sign() == 0 {
+	if xplus.Sign() == 0 && yplus.Sign() == 0 {
 		// notest
-		return false
+		if xminus.Sign() == 0 && yminus.Sign() == 0 {
+			return false
+		}
+		xminus.Mod(xminus, N)
+
+		return (xminus.Cmp(r) == 0)
 	}
-	x.Mod(x, N)
-	return x.Cmp(r) == 0
+
+	if xminus.Sign() == 0 && yminus.Sign() == 0 {
+		xplus.Mod(xplus, N)
+
+		return (xplus.Cmp(r) == 0)
+	}
+
+	xplus.Mod(xplus, N)
+	xminus.Mod(xminus, N)
+
+	return (xplus.Cmp(r) == 0) || (xminus.Cmp(r) == 0)
 }
 
 // VerifyASN1 verifies the ASN.1 encoded signature, sig, of hash using
