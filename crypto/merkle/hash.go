@@ -3,16 +3,14 @@ package merkle
 import (
 	"hash"
 
-	"github.com/tendermint/tendermint/crypto/abstractions"
-
 	"github.com/tendermint/tendermint/crypto"
 )
 
 // TODO: make these have a large predefined capacity
-//we need Byterounder so that when splitting up into felts, it splits cleanly along variable lines.
+//we need 32 byte long "felts", it this is how we simulate felts here.
 var (
-	leafPrefix  = abstractions.ByteRounder([]byte{0})
-	innerPrefix = abstractions.ByteRounder([]byte{1})
+	leafPrefix  = append(make([]byte, 31), []byte{0}...)
+	innerPrefix = append(make([]byte, 31), []byte{1}...)
 )
 
 // returns tmhash(<empty>)
@@ -20,12 +18,12 @@ func emptyHash() []byte {
 	return crypto.Checksum([]byte{})
 }
 
-// returns tmhash(ByteRounder(0x00) || leaf)
+// returns tmhash(felt(0x00) || leaf)
 func leafHash(leaf []byte) []byte {
 	return crypto.Checksum(append(leafPrefix, leaf...))
 }
 
-// returns tmhash(0x00 || leaf)
+// returns tmhash(felt(0x00) || leaf)
 func leafHashOpt(s hash.Hash, leaf []byte) []byte {
 	s.Reset()
 	s.Write(leafPrefix)
