@@ -14,7 +14,7 @@ from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDER
 from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison, get_total_voting_power,  verifySig)
 from src.hashing import (hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
-from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime)
+from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime, hashValidatorSet)
 
 func voteSignBytes{pedersen_ptr: HashBuiltin*, range_check_ptr}(
     counter: felt,
@@ -46,78 +46,6 @@ func voteSignBytes{pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
 end
 
-func verifyNewHeaderAndVals{range_check_ptr}(
-    untrustedHeader: SignedHeaderData,
-    # TODO below line
-    # untrustedVals: ValidatorSetData, 
-    trustedHeader: SignedHeaderData,
-    currentTime: DurationData,
-    maxClockDrift: DurationData
-    )->(res:felt):
-    alloc_locals
-    # set of simple checks to see if the header is valid
-
-    # check if the chain id is the same
-
-    tempvar untrusted_chain_id: ChainID= untrustedHeader.header.chain_id
-    tempvar trusted_chain_id: ChainID= trustedHeader.header.chain_id
-
-    # check if the lengths of the two chain_ids are the same
-    assert untrusted_chain_id.len = trusted_chain_id.len
-
-    local chain_id_len = untrusted_chain_id.len
-
-    #check if the content of the two chain_ids is the same
-    tempvar untrusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
-    tempvar trusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
-
-    recursive_comparison(untrusted_chain_id_array_ptr, trusted_chain_id_array_ptr, chain_id_len)
-
-    # check if commit hights are the same
-    tempvar untrusted_commit_height: felt = untrustedHeader.commit.height
-    tempvar untrusted_header_height: felt = untrustedHeader.header.height
-    assert untrusted_commit_height = untrusted_header_height
-
-    # check if the header hash is the one we expect
-    # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L137
-    # let (untrusted_header_block_hash: felt) = ourHashFunction(untrustedHeader)
-    # tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
-    # assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
-
-    # check if the untrusted header height to be greater
-    # than the trusted header height
-    tempvar untrusted_height: felt = untrustedHeader.header.height
-    tempvar trusted_height: felt = trustedHeader.header.height
-
-    let (untrusted_greater: felt) = greater_than(untrusted_height, trusted_height)
-    assert untrusted_greater = 1
-
-    # check if the untrusted header time is greater than the trusted header time
-    tempvar untrusted_time: TimestampData = untrustedHeader.header.time
-    tempvar trusted_time: TimestampData = trustedHeader.header.time
-    let (untrusted_time_greater: felt) = time_greater_than(untrusted_time, trusted_time)
-    assert untrusted_time_greater = 1
-
-    # check if the untrusted header time is greater than the current time
-    tempvar untrusted_time: TimestampData= untrustedHeader.header.time
-
-    let driftTime: TimestampData = TimestampData(
-        nanos= currentTime.nanos + maxClockDrift.nanos
-    )
-    let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
-    assert untrusted_time_greater_current = 1
-
-    # check if the header validators hash is the one supplied
-    # TODO based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/utils/Tendermint.sol#L161
-    # which is based on https://github.com/ChorusOne/tendermint-sol/blob/main/contracts/proto/TendermintHelper.sol#L143
-
-
-    return(1)
-end
-
-
-
-
 
 func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     ecdsa_ptr: SignatureBuiltin*, range_check_ptr}( 
@@ -127,9 +55,7 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     signatures: CommitSigData*,
     validators_len: felt,
     validators: ValidatorData*,
-    chain_id : ChainID,
-
-)->(res: felt):
+    chain_id : ChainID)->(res: felt):
     alloc_locals
 
     if signatures_len == 0:
@@ -161,9 +87,6 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
 
     let (timestamp: TimestampData,res_hash: felt) = voteSignBytes(counter, commit, chain_id)
 
-    %{print("")%}
-    %{print("timestamp and remaining hash")%}
-    %{print(ids.timestamp.nanos, ids.res_hash)%}
     
     local timestamp_nanos: felt = timestamp.nanos
 
@@ -172,11 +95,6 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     assert voteSB_array[1] = res_hash
 
     let message1: felt = hash_felt_array(voteSB_array, 2) 
-    
-    %{print("")%}
-    %{print("sig, and votesignbytes")%}
-    %{print(ids.signature.signature.signature_r)%}
-    %{print(ids.message1)%}
 
     local commit_sig_signature: SignatureData = signature.signature
     verifySig(val, message1, commit_sig_signature)
@@ -193,7 +111,78 @@ func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
     return (val.voting_power + rest_of_voting_power)
 end
 
-# return 0 (false) or 1 (true)
+func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
+    untrustedHeader: SignedHeaderData,
+    # TODO below line
+    #untrustedVals: ValidatorSetData, 
+    trustedHeader: SignedHeaderData,
+    currentTime: DurationData,
+    maxClockDrift: DurationData
+    )->(res:felt):
+    alloc_locals
+
+    # set of simple checks to see if the header is valid
+
+    # check if the chain id is the same
+
+    tempvar untrusted_chain_id: ChainID= untrustedHeader.header.chain_id
+    tempvar trusted_chain_id: ChainID= trustedHeader.header.chain_id
+
+    # check if the lengths of the two chain_ids are the same
+    assert untrusted_chain_id.len = trusted_chain_id.len
+
+    local chain_id_len = untrusted_chain_id.len
+
+    #check if the content of the two chain_ids is the same
+    tempvar untrusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
+    tempvar trusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
+
+    recursive_comparison(untrusted_chain_id_array_ptr, trusted_chain_id_array_ptr, chain_id_len)
+
+    # check if commit hights are the same
+    tempvar untrusted_commit_height: felt = untrustedHeader.commit.height
+    tempvar untrusted_header_height: felt = untrustedHeader.header.height
+    assert untrusted_commit_height = untrusted_header_height
+
+    # check if the header hash is the one we expect
+    let (untrusted_header_block_hash: felt) = hashHeader(untrustedHeader)
+    tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
+    # Todo
+    assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
+
+    # check if the untrusted header height to be greater
+    # than the trusted header height
+    tempvar untrusted_height: felt = untrustedHeader.header.height
+    tempvar trusted_height: felt = trustedHeader.header.height
+
+    let (untrusted_greater: felt) = greater_than(untrusted_height, trusted_height)
+    assert untrusted_greater = 1
+
+    # check if the untrusted header time is greater than the trusted header time
+    tempvar untrusted_time: TimestampData = untrustedHeader.header.time
+    tempvar trusted_time: TimestampData = trustedHeader.header.time
+    let (untrusted_time_greater: felt) = time_greater_than(untrusted_time, trusted_time)
+    assert untrusted_time_greater = 1
+
+    # check if the untrusted header time is greater than the current time
+    tempvar untrusted_time: TimestampData= untrustedHeader.header.time
+
+    let driftTime: TimestampData = TimestampData(
+        nanos= currentTime.nanos + maxClockDrift.nanos
+    )
+    let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
+    assert untrusted_time_greater_current = 1
+
+    # check if the header validators hash is the one supplied
+
+    tempvar untrusted_valhash : felt = untrustedHeader.header.validators_hash
+    #Todo
+    #let (trusted_valhash : felt) = hashValidatorSet(untrustedVals)
+    #assert untrusted_valhash = trusted_valhash
+
+    return(1)
+end
+
 func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     ecdsa_ptr: SignatureBuiltin*}(
     vals: ValidatorSetData,
@@ -203,6 +192,7 @@ func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     commit: CommitData,
 )->(res: felt):
     alloc_locals
+
     local vals_validators_length: felt = vals.validators.len
     tempvar commit_signatures_length: felt = commit.signatures.len
     assert vals_validators_length = commit_signatures_length
@@ -262,8 +252,7 @@ func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     return(0)
 end
 
-# @external
-func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
+func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, 
     ecdsa_ptr: SignatureBuiltin*} (
     trustedHeader: SignedHeaderData,
 
@@ -275,6 +264,7 @@ func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
 
     # the following res returns a 0 or 1 (boolean)
 ) -> (res: felt) :
+    alloc_locals
     
     # check if the headers come from adjacent blocks
     assert untrustedHeader.header.height = trustedHeader.header.height + 1
@@ -303,7 +293,7 @@ func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
     return (1)
 end 
 
-func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
+func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*,
     ecdsa_ptr: SignatureBuiltin*} (
     trustedHeader: SignedHeaderData,
     trustedVals: ValidatorSetData,
@@ -314,6 +304,8 @@ func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*,
     maxClockDrift: DurationData,
     trustLevel: FractionData
 ) -> (res: felt):
+    alloc_locals
+
     tempvar untrusted_header_height = untrustedHeader.header.height
     tempvar trusted_header_height = trustedHeader.header.height
     if untrusted_header_height == trusted_header_height + 1:
