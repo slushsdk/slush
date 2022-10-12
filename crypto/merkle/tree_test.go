@@ -2,7 +2,6 @@ package merkle
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/abstractions"
 	ctest "github.com/tendermint/tendermint/internal/libs/test"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
@@ -20,7 +20,7 @@ func (tI testItem) Hash() []byte {
 	return []byte(tI)
 }
 
-func TestCompareCairo(t *testing.T) {
+func TestCompareCairo1(t *testing.T) {
 
 	a0 := append(make([]byte, 31), []byte{05}...)
 	a1 := append(make([]byte, 31), []byte{10}...)
@@ -29,7 +29,45 @@ func TestCompareCairo(t *testing.T) {
 
 	a := [][]byte{a0, a1, a2, a3}
 	b := big.NewInt(0).SetBytes(HashFromByteSlices(a))
-	fmt.Println(b)
+	c, _ := big.NewInt(0).SetString("2779518642621826798972775933867662102652800500348126166305803146935473332153", 10)
+	require.Equal(t, c.Cmp(b), 0)
+}
+
+func TestCompareCairo2(t *testing.T) {
+
+	a0, _ := big.NewInt(0).SetString("3454952438923234006568527143781167235276775604066827568425481679972150643448", 10)
+	b0 := abstractions.ByteRounder(a0.Bytes())
+	a1, _ := big.NewInt(0).SetString("2494110571235400288533148571502202163537425285881062150149675116686078062864", 10)
+	b1 := abstractions.ByteRounder(a1.Bytes())
+	a2, _ := big.NewInt(0).SetString("2908682032041418908903105681227249033483541201006723240850136728317167492227", 10)
+	b2 := abstractions.ByteRounder(a2.Bytes())
+	a3, _ := big.NewInt(0).SetString("2599929233293119982501280579193581206158611315304505534385243879518502888628", 10)
+	b3 := abstractions.ByteRounder(a3.Bytes())
+	a4, _ := big.NewInt(0).SetString("2206723481920075052107131543171542739217923834753038471674523378436884433248", 10)
+	b4 := abstractions.ByteRounder(a4.Bytes())
+	a5, _ := big.NewInt(0).SetString("3196042820007611016667731428007167809703393661030333042255511753651389202253", 10)
+	b5 := abstractions.ByteRounder(a5.Bytes())
+	a6, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
+	b6 := abstractions.ByteRounder(a6.Bytes())
+	a7, _ := big.NewInt(0).SetString("3081086906630340236863811480373298036427706612523827020334484978388108542248", 10)
+	b7 := abstractions.ByteRounder(a7.Bytes())
+	a8, _ := big.NewInt(0).SetString("3081086906630340236863811480373298036427706612523827020334484978388108542248", 10)
+	b8 := abstractions.ByteRounder(a8.Bytes())
+	a9, _ := big.NewInt(0).SetString("2132461975834504200398180281070409533541683498016798668455504133351250391630", 10)
+	b9 := abstractions.ByteRounder(a9.Bytes())
+	// a10, _ := big.NewInt(0).SetString("0", 10)
+	b10 := make([]byte, 32)
+	a11, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
+	b11 := abstractions.ByteRounder(a11.Bytes())
+	a12, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
+	b12 := abstractions.ByteRounder(a12.Bytes())
+	a13, _ := big.NewInt(0).SetString("2096651760584687198361717080648350102473644945561758734773364314748439283675", 10)
+	b13 := abstractions.ByteRounder(a13.Bytes())
+
+	c := [][]byte{b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13}
+	d := big.NewInt(0).SetBytes(HashFromByteSlices(c))
+	e, _ := big.NewInt(0).SetString("1345656598126778139667930542869059695895369896637861708619396204191377800257", 10)
+	require.Equal(t, e.Cmp(d), 0)
 }
 
 func TestHashFromByteSlices(t *testing.T) {

@@ -15,6 +15,7 @@ import (
 
 	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/libs/log"
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
@@ -197,8 +198,8 @@ func (app *Application) FinalizeBlock(_ context.Context, req *types.RequestFinal
 	}
 
 	// Using a memdb - just return the big endian size of the db
-	appHash := make([]byte, 8)
-	binary.PutVarint(appHash, app.state.Size)
+	appHash := make([]byte, crypto.HashSize)
+	binary.PutVarint(appHash[crypto.HashSize-8:], app.state.Size)
 	app.state.AppHash = appHash
 	app.state.Height++
 
