@@ -20,10 +20,10 @@ from src.hashing import ( hash_int64, hash_int64_array, hash_felt, hash_felt_arr
 func get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt)->( res: felt):
     alloc_locals
 
-    let (le: felt) =  is_le(1, input)
+    let (le: felt) =  is_le(1+1, input)
     #%{print(ids.input)%}
     #[range_check_ptr] = input
-   # let range_check_ptr = range_check_ptr + 1
+    #let range_check_ptr = range_check_ptr + 1
 
     if le ==1:
 
@@ -38,7 +38,7 @@ end
 func get_split_point_rec{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt, lower_bound: felt)->( res: felt):
     alloc_locals
 
-    let le: felt =  is_le( 2 * lower_bound, input)
+    let le: felt =  is_le( 2 * lower_bound+1, input)
 
     if le == 1:
         let (res : felt) = get_split_point_rec(input, 2 * lower_bound)
