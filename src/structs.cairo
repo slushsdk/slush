@@ -79,28 +79,20 @@ struct CommitSigDataArray:
     member len: felt
 end
 
-# TODO: implement signatures as an array of unknown length
 struct CommitData:
     member height: felt 
     member round: felt
     member block_id: BlockIDData 
-    # the following line should be a list of CommitSigData
     member signatures: CommitSigDataArray 
-    # the above line is invalid because is a pointer
 end
 
-# TODO: implement signatures as an array of unknown length
 struct CanonicalVoteData:
     member TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType: felt 
     member height: felt 
     member round: felt 
     member block_id: BlockIDData 
     member timestamp: TimestampData
-    member chain_id: ChainID 
-
-    # the following line should be a list of CommitSigData
-    # member signature: SignatureData 
-    # the above line is invalid because is a pointer
+    member chain_id: ChainID  
 end
 
 # ConsensusData is done

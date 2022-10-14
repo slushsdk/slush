@@ -50,6 +50,7 @@ func test_merkle_hash_complete_tree{range_check_ptr, pedersen_ptr : HashBuiltin*
 
     # with merkle function call
     let (node0123_m : felt) = merkleRootHash(tree, 0, 4)
+    #Fed into TM
     %{print(ids.node0123_m)%}
     return ()
 end
@@ -76,6 +77,7 @@ func test_merkle_hash_noncomplete_tree{range_check_ptr, pedersen_ptr : HashBuilt
 
     # with merkle function call
     let (node0123_m : felt) = merkleRootHash(tree, 0, 14)
+    #Fed into TM
     %{print(ids.node0123_m)%}
     return ()
 end

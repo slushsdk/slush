@@ -16,7 +16,7 @@ from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 
 
-@external
+#@external
 func test_verifyAdjacent{range_check_ptr,
 pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureBuiltin* }() -> () :
 
@@ -143,7 +143,7 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
 end
 
 
-@external
+#@external
 func test_vtime_comparision{range_check_ptr,
 pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 
@@ -203,7 +203,7 @@ pedersen_ptr : HashBuiltin*,ecdsa_ptr: SignatureBuiltin* }() -> () :
 end
 
 
-@external
+#@external
 func test_voteSignBytes{pedersen_ptr : HashBuiltin*, range_check_ptr}()->(res:felt):
 
     alloc_locals
@@ -281,29 +281,29 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
                 version = ConsensusData(block = 11, app= 1),
                 chain_id = chain_id1, #this is a placeholder value
                 height = 2,
-                time = TimestampData(nanos =1665572915768622043),  
-                last_block_id = BlockIDData(hash = 802354899710047626200405718956160396130867610063959091531436742077445817366, 
+                time = TimestampData(nanos =1665753871520445159),  
+                last_block_id = BlockIDData(hash = 2606409042684652237028761825612341298588373841266340846590208831812555967679, 
                 part_set_header = PartSetHeaderData(total = 1,
-                 hash = 1527833925293652154989646868105505299735527641756876759569112844142208592809)),
-                last_commit_hash = 3168215630295098318445313351081644006525267804783903546730012797498879085405,
+                 hash = 3000838125350084652609540693524514269948277526780094801048010237669338709953)),
+                last_commit_hash = 1931616577660260768497627594988710925560949687119466413940080031015097594698,
                 data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-                validators_hash = 1686017376115783240519278492660656760715007352667796605929485058613483516452,
-                next_validators_hash = 1686017376115783240519278492660656760715007352667796605929485058613483516452,
+                validators_hash = 2831012649517925635638083284349758092553206116379646415063645608642406529898,
+                next_validators_hash = 2831012649517925635638083284349758092553206116379646415063645608642406529898,
                 consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
                 app_hash = 0,
                 last_results_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
                 evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
-                proposer_address =  264252860545733069320818478580647590751828145334987402312584213338057060815
+                proposer_address =  335674479734934146889037038263903380498452542860978104900782795296756624142
                 )
 
                 # create commit
                 let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
 
-                let signature_data_trusted: SignatureData = SignatureData(signature_r = 3297765332887559448539722822118198439479507720330432080884781009271808568647 , signature_s = 146382708494202500731188718280595879271781524302993836648193242309426986374 )
+                let signature_data_trusted: SignatureData = SignatureData(signature_r = 1834131662309943167060654729634590738983734585222746799362362058903754262332 , signature_s = 1745065597501682152537867859965459308365142243262023073853228716084356784546 )
 
                 local commitsig_Absent_trusted : CommitSigData = CommitSigData(
-                block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  264252860545733069320818478580647590751828145334987402312584213338057060815 ,
-                timestamp = TimestampData(nanos=  1665572925210794311 ), signature= signature_data_trusted)
+                block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  335674479734934146889037038263903380498452542860978104900782795296756624142 ,
+                timestamp = TimestampData(nanos=  1665753877127453388 ), signature= signature_data_trusted)
 
                 let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
                 assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
@@ -312,8 +312,8 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
                 let commit1_trusted: CommitData = CommitData(height =  2 , 
                 round =  0 , 
                 block_id= BlockIDData(
-                                hash=  772900125185803594873268978494303233959867249098014599595739440383960143556 ,
-                                part_set_header = PartSetHeaderData(total =  1 , hash= 965212745412467228906363313071309954754523644713247842671961085278701216677 )),
+                                hash=  2059766791315474971233242291515003944317013849850428055013818287621749261948 ,
+                                part_set_header = PartSetHeaderData(total =  1 , hash= 1308036548029847327855861229891709942163426033933946107172305588954015556391 )),
                 signatures = commitsig1_array_trusted
                 )
 
@@ -326,29 +326,29 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
                 version = ConsensusData(block = 11, app= 1),
                 chain_id = chain_id1, #this is a placeholder value
                 height = 3,
-                time = TimestampData(nanos =1665572939550124101),  
-                last_block_id = BlockIDData(hash = 772900125185803594873268978494303233959867249098014599595739440383960143556, 
+                time = TimestampData(nanos =1665753884507525850),  
+                last_block_id = BlockIDData(hash = 2059766791315474971233242291515003944317013849850428055013818287621749261948, 
                 part_set_header = PartSetHeaderData(total = 1,
-                 hash = 965212745412467228906363313071309954754523644713247842671961085278701216677)),
-                last_commit_hash = 2539199968486169191256159988030806337894326090224735455758375931301886640028,
+                 hash = 1308036548029847327855861229891709942163426033933946107172305588954015556391)),
+                last_commit_hash = 465267704775716075860689654059997816995530962997902813659991924419196233437,
                 data_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
-                validators_hash = 1686017376115783240519278492660656760715007352667796605929485058613483516452,
-                next_validators_hash = 1686017376115783240519278492660656760715007352667796605929485058613483516452,
+                validators_hash = 2831012649517925635638083284349758092553206116379646415063645608642406529898,
+                next_validators_hash = 2831012649517925635638083284349758092553206116379646415063645608642406529898,
                 consensus_hash = 2132461975834504200398180281070409533541683498016798668455504133351250391630,
                 app_hash = 0,
                 last_results_hash = 2089986280348253421170679821480865132823066470938446095505822317253594081284,
                 evidence_hash =2089986280348253421170679821480865132823066470938446095505822317253594081284, 
-                proposer_address =  264252860545733069320818478580647590751828145334987402312584213338057060815
+                proposer_address =  335674479734934146889037038263903380498452542860978104900782795296756624142
                 )
 
                 # create commit
                 let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
 
-                let signature_data_trusted: SignatureData = SignatureData(signature_r = 890254347825801170584849057875813781480681647427438071389186968802527819495 , signature_s = 2697142345831019967363068270400491475406788761811584513017464250843368416798 )
+                let signature_data_trusted: SignatureData = SignatureData(signature_r = 3605504498823257379762570133327870210455706278164450482388963404778814325454 , signature_s = 3133371732092557530256163168714261110099475276750495027673839161202089731597 )
 
                 local commitsig_Absent_trusted : CommitSigData = CommitSigData(
-                block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  264252860545733069320818478580647590751828145334987402312584213338057060815 ,
-                timestamp = TimestampData(nanos=  1665572948457650238 ), signature= signature_data_trusted)
+                block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address =  335674479734934146889037038263903380498452542860978104900782795296756624142 ,
+                timestamp = TimestampData(nanos=  1665753889554053779 ), signature= signature_data_trusted)
 
                 let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
                 assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
@@ -357,8 +357,8 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
                 let commit1_trusted: CommitData = CommitData(height =  3 , 
                 round =  0 , 
                 block_id= BlockIDData(
-                                hash=  1219302439914249935160876258202451295523795636143419756436099636955423083761 ,
-                                part_set_header = PartSetHeaderData(total =  1 , hash= 3209981564313327813268592835758652160146097015762469096098207511602066824690 )),
+                                hash=  490484232464039218793463646794795012959740951355156173400258415888395419419 ,
+                                part_set_header = PartSetHeaderData(total =  1 , hash= 1680373902317584836581677072736116216148431538470704822243182371928708897588 )),
                 signatures = commitsig1_array_trusted
                 )
 
@@ -368,14 +368,14 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
 
                 # create validator array
                 let (local ValidatorData_pointer0: ValidatorData*) =alloc()
-                let public_key0: PublicKeyData  = PublicKeyData( ecdsa =  1743094469776912457829107129536982927032705094354466195129678348998908136708 )
-                let validator_data0: ValidatorData =  ValidatorData(Address =  264252860545733069320818478580647590751828145334987402312584213338057060815 ,
+                let public_key0: PublicKeyData  = PublicKeyData( ecdsa =  3334500756028199475433036722527134417926233723147766471089429384364098171865 )
+                let validator_data0: ValidatorData =  ValidatorData(Address =  335674479734934146889037038263903380498452542860978104900782795296756624142 ,
                 pub_key = public_key0, voting_power=  10 , proposer_priority =  0 )
                 assert ValidatorData_pointer0[0] = validator_data0
 
                 let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 1)
                 let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =10 )
-                let currentTime2 = DurationData(nanos =  1665572939550125101 )
+                let currentTime2 = DurationData(nanos =  1665753884507526850 )
                 let maxClockDrift= DurationData(nanos = 10)
                 let trustingPeriod = DurationData(nanos = 99999999999999999999)
 
@@ -384,3 +384,4 @@ pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, ecdsa_ptr: SignatureB
 
                 return()
         end
+

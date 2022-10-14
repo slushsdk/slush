@@ -11,7 +11,7 @@ from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.alloc import alloc
 
 from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
-from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison, get_total_voting_power,  verifySig)
+from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison, get_total_voting_power,  verifySig, blockIDEqual)
 from src.hashing import (hash_int64, hash_int64_array, hash_felt, hash_felt_array)
 from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
 from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime, hashValidatorSet)
@@ -113,9 +113,8 @@ end
 
 func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
     untrustedHeader: SignedHeaderData,
-    # TODO below line
-    #untrustedVals: ValidatorSetData, 
     trustedHeader: SignedHeaderData,
+    untrustedVals: ValidatorSetData,
     currentTime: DurationData,
     maxClockDrift: DurationData
     )->(res:felt):
@@ -135,7 +134,7 @@ func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwi
 
     #check if the content of the two chain_ids is the same
     tempvar untrusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
-    tempvar trusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
+    tempvar trusted_chain_id_array_ptr: felt* = trusted_chain_id.chain_id_array
 
     recursive_comparison(untrusted_chain_id_array_ptr, trusted_chain_id_array_ptr, chain_id_len)
 
@@ -147,7 +146,6 @@ func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwi
     # check if the header hash is the one we expect
     let (untrusted_header_block_hash: felt) = hashHeader(untrustedHeader)
     tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
-    # Todo
     assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
 
     # check if the untrusted header height to be greater
@@ -155,7 +153,7 @@ func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwi
     tempvar untrusted_height: felt = untrustedHeader.header.height
     tempvar trusted_height: felt = trustedHeader.header.height
 
-    let (untrusted_greater: felt) = greater_than(untrusted_height, trusted_height)
+    let (untrusted_greater: felt) = is_le(trusted_height+1, untrusted_height)
     assert untrusted_greater = 1
 
     # check if the untrusted header time is greater than the trusted header time
@@ -176,9 +174,8 @@ func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwi
     # check if the header validators hash is the one supplied
 
     tempvar untrusted_valhash : felt = untrustedHeader.header.validators_hash
-    #Todo
-    #let (trusted_valhash : felt) = hashValidatorSet(untrustedVals)
-    #assert untrusted_valhash = trusted_valhash
+    let (trusted_valhash : felt) = hashValidatorSet(untrustedVals)
+    assert untrusted_valhash = trusted_valhash
 
     return(1)
 end
@@ -200,22 +197,12 @@ func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
     tempvar commit_height = commit.height
     assert height = commit_height
 
-    # This is the only way to compare two structs (BlockID)
-    # following checks are equivalent to: require(commit.block_id.isEqual(blockID), "invalid commit -- wrong block ID");
-    # need to check all parts of the struct
+    
+    # following check is equivalent to: require(commit.block_id.isEqual(blockID), "invalid commit -- wrong block ID");
+   
 
-    tempvar blockid_hash = blockID.hash
-    tempvar blockid_part_set_header_total = blockID.part_set_header.total
-    tempvar blockid_part_set_header_hash = blockID.part_set_header.hash
-
-    tempvar commit_blockid_hash = commit.block_id.hash
-    tempvar commit_blockid_part_set_header_total = commit.block_id.part_set_header.total
-    tempvar commit_blockid_part_set_header_hash = commit.block_id.part_set_header.hash
-
-    assert blockid_hash = commit_blockid_hash
-    assert blockid_part_set_header_total = commit_blockid_part_set_header_total
-    assert blockid_part_set_header_hash = commit_blockid_part_set_header_hash
-
+    blockIDEqual(blockID, commit.block_id)
+    
     # get the commit_signatures pointer
     # get the validatordata pointer
 
@@ -255,7 +242,6 @@ end
 func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, 
     ecdsa_ptr: SignatureBuiltin*} (
     trustedHeader: SignedHeaderData,
-
     untrustedHeader: SignedHeaderData,
     untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
@@ -279,7 +265,7 @@ func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: B
     # make sure the header is not expired
     assert expired = 0
 
-    verifyNewHeaderAndVals(untrustedHeader, trustedHeader,
+    verifyNewHeaderAndVals(untrustedHeader, trustedHeader, untrustedVals,
     currentTime, maxClockDrift)
 
     verifyCommitLight(
@@ -330,7 +316,7 @@ func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr
     # make sure the header is not expired
     assert expired = 0
 
-    verifyNewHeaderAndVals(untrustedHeader, trustedHeader,
+    verifyNewHeaderAndVals(untrustedHeader, trustedHeader, untrustedVals,
     currentTime, maxClockDrift)
 
     verifyCommitLight{ecdsa_ptr=ecdsa_ptr}(
