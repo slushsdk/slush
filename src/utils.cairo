@@ -21,23 +21,9 @@ func time_greater_than{range_check_ptr}(
     )->(res:felt):
     alloc_locals
 
-    let (is_le_val: felt) = is_le(t2.nanos, t1.nanos)
+    let (is_le_val: felt) = is_le(t2.nanos+1, t1.nanos)
 
-    if is_le_val == 1:
-        # check if t1 is equal to t2
-        tempvar t1_nanos: felt = t1.nanos
-        tempvar t2_nanos: felt = t2.nanos
-        tempvar time_diff: felt = t1_nanos - t2_nanos
-        let (not_equal: felt) = is_not_zero(time_diff) 
-        
-        if not_equal == 1:
-            return(1)
-        else:
-            return(0)
-        end
-    else:
-        return(0)  
-    end
+    return (is_le_val)
 
 end
 
@@ -70,19 +56,8 @@ func greater_than{range_check_ptr}(
     )->(res:felt):
     alloc_locals
 
-    let (is_le_val: felt) = is_le(b, a)
-    if is_le_val == 1:
-        # check if they are equal
-        tempvar ab_diff: felt = a - b
-        let (not_equal: felt) = is_not_zero(ab_diff) 
-        if not_equal == 1:
-            return(1)
-        else:
-            return(0)
-        end 
-    else:
-        return(0)
-    end
+    let (is_le_val: felt) = is_le(b+1, a)
+    return (is_le_val)
 
 end
 
@@ -155,4 +130,23 @@ func verifySig{ecdsa_ptr: SignatureBuiltin*}(
     # behaves like an assert
     verify_ecdsa_signature{ecdsa_ptr=ecdsa_ptr}(message=message, public_key=pub_key,signature_r = sig_r , signature_s=sig_s )
     return(1)
+end
+
+# This is the only way to compare two structs (BlockID)
+# need to check all parts of the struct
+func blockIDEqual{}(bID1 :BlockIDData, bID2 :BlockIDData) :
+    alloc_locals
+
+    tempvar blockid_hash = bID1.hash
+    tempvar blockid_part_set_header_total = bID1.part_set_header.total
+    tempvar blockid_part_set_header_hash = bID1.part_set_header.hash
+
+    tempvar commit_blockid_hash = bID2.hash
+    tempvar commit_blockid_part_set_header_total = bID2.part_set_header.total
+    tempvar commit_blockid_part_set_header_hash = bID2.part_set_header.hash
+
+    assert blockid_hash = commit_blockid_hash
+    assert blockid_part_set_header_total = commit_blockid_part_set_header_total
+    assert blockid_part_set_header_hash = commit_blockid_part_set_header_hash
+    return()
 end

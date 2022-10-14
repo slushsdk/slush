@@ -29,13 +29,59 @@ func hashConsensus{range_check_ptr, pedersen_ptr : HashBuiltin*}(consensus : Con
     return (res)
 end
 
-func hashValidatorSet{range_check_ptr, pedersen_ptr : HashBuiltin*}(val_set : ValidatorSetData) -> (res_hash: felt):
+func hashValidatorSet{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(val_set : ValidatorSetData) -> (res_hash: felt):
     alloc_locals
     
-    #Todo
-    #let (res : felt) = merkleRootHash(val_set.validators, 0, val_set.validators.length) 
+    let (res : felt) = merkleRootHashVals(val_set.validators, 0, val_set.validators.len) 
 
-    return (0) #(res)
+    return (res)
+end
+
+func merkleRootHashVals{pedersen_ptr : HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(validator_array: ValidatorDataArray, start: felt, total: felt)->(res_hash: felt):
+    alloc_locals
+    let empty_hash = 0
+
+    if total ==0:
+        return(empty_hash)
+    else:
+        if total ==1:
+
+            let current_validator: ValidatorData = validator_array.array[start]
+            
+            let to_hash:felt = hashValidator(current_validator)
+            let res_hash: felt  = leafHash(to_hash)
+
+            return(res_hash)
+
+        else:
+
+            let split_point:felt = get_split_point(total)
+            let left: felt = merkleRootHashVals(validator_array, start, split_point)
+
+            let new_start: felt = start + split_point
+            let new_total: felt = total - split_point
+            let right: felt = merkleRootHashVals(validator_array, new_start, new_total)
+
+            let inner_hash: felt = innerHash(left, right)
+
+            return(inner_hash)
+
+        end
+    end
+end
+
+
+func hashValidator{range_check_ptr, pedersen_ptr : HashBuiltin*}(val: ValidatorData) -> (res_hash: felt):
+    alloc_locals
+    
+    let vPHash:felt = hash_int64(val.voting_power)
+
+    let (local to_hash_array: felt*)= alloc()
+    assert to_hash_array[0] = val.pub_key.ecdsa
+    assert to_hash_array[1] = vPHash
+    let res : felt = hash_felt_array(to_hash_array, 2)
+
+    return (res)
 end
 
 func hashHeader{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(untrustedHeader: SignedHeaderData)->(res_hash:felt):
@@ -74,25 +120,6 @@ func hashHeader{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: Bitwi
     assert all_array[11] = h11
     assert all_array[12] = h12
     assert all_array[13] = h13
-
-    %{print(ids.h0)%}
-    %{print(ids.h1)%}
-    %{print(ids.h2)%}
-    %{print(ids.h3)%}
-    %{print(ids.h4)%}
-    %{print(ids.h5)%}
-    %{print(ids.h6)%}
-    %{print(ids.h7)%}
-    %{print(ids.h8)%}
-    %{print(ids.h9)%}
-    %{print(ids.h10)%}
-    %{print(ids.h11)%}
-    %{print(ids.h12)%}
-    %{print(ids.h13)%}
-
-
-
-
 
     let (merkle_hash : felt) = merkleRootHash(all_array, 0, 14) 
     return(merkle_hash)
