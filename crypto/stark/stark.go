@@ -205,16 +205,16 @@ func deserializeSig(sig []byte) (r *big.Int, s *big.Int, err error) {
 	return r, s, nil
 }
 
-//We modify MarshalCompressed so that we fit into 32 bytes, we can do this with 252 bits.
+//We modify MarshalCompressed so that we fit into 2*32 bytes.
 func (p PublicKey) MarshalCompressedStark() PubKey {
 	if p.IsNil() {
 		panic("can't marshall nil key")
 	}
 	curve := p.Curve
 	x := *p.X
-	y := p.Y
+	y := *p.Y
 
-	byteLen := 2 * (curve.Params().BitSize + 7) / 8
+	byteLen := 2 * ((curve.Params().BitSize + 7) / 8)
 	compressedX := make([]byte, byteLen/2)
 	compressedY := make([]byte, byteLen/2)
 
@@ -228,7 +228,7 @@ func (p PublicKey) MarshalCompressedStark() PubKey {
 
 func UnmarshalCompressedStark(curve weierstrass.Curve, data []byte) PublicKey {
 
-	byteLen := 2 * (curve.Params().BitSize + 7) / 8
+	byteLen := 2 * ((curve.Params().BitSize + 7) / 8)
 	if len(data) != byteLen {
 		// notest
 		panic("marshalling failed, wrong byte len")
