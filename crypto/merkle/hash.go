@@ -21,7 +21,9 @@ func emptyHash() []byte {
 
 // returns tmhash(felt(0x00) || leaf)
 func leafHash(leaf []byte) []byte {
-	return crypto.Checksum(append(leafPrefix, abstractions.ByteRounder(leaf)...))
+	a := make([]byte, 32)
+	copy(a, leafPrefix)
+	return crypto.Checksum(append(a, abstractions.ByteRounder(leaf)...))
 }
 
 // returns tmhash(felt(0x00) || leaf)
