@@ -4,283 +4,338 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
 from starkware.cairo.common.math_cmp import is_le, is_not_zero
-from starkware.cairo.common.uint256 import Uint256, uint256_mul, uint256_unsigned_div_rem, uint256_lt
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_mul,
+    uint256_unsigned_div_rem,
+    uint256_lt,
+)
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.alloc import alloc
 
-from src.structs import (TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType, TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag, BLOCK_ID_FLAG_UNKNOWN, BLOCK_ID_FLAG_ABSENT, BLOCK_ID_FLAG_COMMIT, BLOCK_ID_FLAG_NIL, MAX_TOTAL_VOTING_POWER, TimestampData, SignatureData, ChainID, CommitSigData, PartSetHeaderData, BlockIDData, DurationData, CommitSigDataArray, CommitData, CanonicalVoteData, ConsensusData, LightHeaderData, SignedHeaderData, ValidatorDataArray, PublicKeyData, ValidatorData, ValidatorSetData, FractionData )
-from src.utils import (time_greater_than, isExpired, greater_than, recursive_comparison, get_total_voting_power,  verifySig, blockIDEqual)
-from src.hashing import (hash_int64, hash_int64_array, hash_felt, hash_felt_array)
-from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash)
-from src.struct_hasher import ( hashHeader, canonicalPartSetHeaderHasher, hashBlockID, hashCanonicalVoteNoTime, hashValidatorSet)
+from src.structs import (
+    TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType,
+    TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag,
+    BLOCK_ID_FLAG_UNKNOWN,
+    BLOCK_ID_FLAG_ABSENT,
+    BLOCK_ID_FLAG_COMMIT,
+    BLOCK_ID_FLAG_NIL,
+    MAX_TOTAL_VOTING_POWER,
+    TimestampData,
+    SignatureData,
+    ChainID,
+    CommitSigData,
+    PartSetHeaderData,
+    BlockIDData,
+    DurationData,
+    CommitSigDataArray,
+    CommitData,
+    CanonicalVoteData,
+    ConsensusData,
+    LightHeaderData,
+    SignedHeaderData,
+    ValidatorDataArray,
+    PublicKeyData,
+    ValidatorData,
+    ValidatorSetData,
+    FractionData,
+)
+from src.utils import (
+    time_greater_than,
+    isExpired,
+    greater_than,
+    recursive_comparison,
+    get_total_voting_power,
+    verifySig,
+    blockIDEqual,
+)
+from src.hashing import hash_int64, hash_int64_array, hash_felt, hash_felt_array
+from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
+from src.struct_hasher import (
+    hashHeader,
+    canonicalPartSetHeaderHasher,
+    hashBlockID,
+    hashCanonicalVoteNoTime,
+    hashValidatorSet,
+)
 
 func voteSignBytes{pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    counter: felt,
-    commit: CommitData,
-    chain_id: ChainID,
-    )->(timestamp: TimestampData ,res_hash :felt):
-    alloc_locals
+    counter: felt, commit: CommitData, chain_id: ChainID
+) -> (timestamp: TimestampData, res_hash: felt) {
+    alloc_locals;
 
-    # get parts of CommitData
-    # build a new CVData from this
-    
-    local height: felt = commit.height
-    local round: felt = commit.round
-    local signatures_array: CommitSigData* = commit.signatures.array
-    local this_signature: CommitSigData = signatures_array[counter]
-    local timestamp: TimestampData = this_signature.timestamp
-    local block_id: BlockIDData= commit.block_id
+    // get parts of CommitData
+    // build a new CVData from this
+
+    local height: felt = commit.height;
+    local round: felt = commit.round;
+    local signatures_array: CommitSigData* = commit.signatures.array;
+    local this_signature: CommitSigData = signatures_array[counter];
+    local timestamp: TimestampData = this_signature.timestamp;
+    local block_id: BlockIDData = commit.block_id;
 
     let CVData: CanonicalVoteData = CanonicalVoteData(
-    TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType= 1,
-    height = height, round = round, block_id = block_id,
-    timestamp= timestamp, chain_id= chain_id)
+        TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType=1,
+        height=height,
+        round=round,
+        block_id=block_id,
+        timestamp=timestamp,
+        chain_id=chain_id,
+    );
 
-    let res_hash: felt = hashCanonicalVoteNoTime(CVData = CVData )
+    let res_hash: felt = hashCanonicalVoteNoTime(CVData=CVData);
 
-    # need to prepend time to the hash
+    // need to prepend time to the hash
 
-    return(timestamp, res_hash)
+    return (timestamp, res_hash);
+}
 
-end
-
-
-func get_tallied_voting_power{pedersen_ptr : HashBuiltin*,
-    ecdsa_ptr: SignatureBuiltin*, range_check_ptr}( 
+func get_tallied_voting_power{
+    pedersen_ptr: HashBuiltin*, ecdsa_ptr: SignatureBuiltin*, range_check_ptr
+}(
     counter: felt,
     commit: CommitData,
     signatures_len: felt,
     signatures: CommitSigData*,
     validators_len: felt,
     validators: ValidatorData*,
-    chain_id : ChainID)->(res: felt):
-    alloc_locals
+    chain_id: ChainID,
+) -> (res: felt) {
+    alloc_locals;
 
-    if signatures_len == 0:
-        return (0)
-    end
+    if (signatures_len == 0) {
+        return (0,);
+    }
 
-    local signature: CommitSigData = signatures[0]
-    local val: ValidatorData = validators[0]
+    local signature: CommitSigData = signatures[0];
+    local val: ValidatorData = validators[0];
 
-    tempvar BlockIDFlag = signature.block_id_flag.BlockIDFlag
-    tempvar valsize = ValidatorData.SIZE
+    tempvar BlockIDFlag = signature.block_id_flag.BlockIDFlag;
+    tempvar valsize = ValidatorData.SIZE;
 
-    if BlockIDFlag != BLOCK_ID_FLAG_COMMIT:
+    if (BlockIDFlag != BLOCK_ID_FLAG_COMMIT) {
         let (rest_of_voting_power: felt) = get_tallied_voting_power(
-            counter +1,
+            counter + 1,
             commit,
             signatures_len - 1,
             signatures + 5,
             validators_len - 1,
-            validators + 4, 
-            chain_id=chain_id
-        )
-        return (rest_of_voting_power)
-    end
-    
+            validators + 4,
+            chain_id=chain_id,
+        );
+        return (rest_of_voting_power,);
+    }
 
-    # create a message with voteSignBytes, pass signature to this and signatures_len
-    # verify this message with verifySig
+    // create a message with voteSignBytes, pass signature to this and signatures_len
+    // verify this message with verifySig
 
-    let (timestamp: TimestampData,res_hash: felt) = voteSignBytes(counter, commit, chain_id)
+    let (timestamp: TimestampData, res_hash: felt) = voteSignBytes(counter, commit, chain_id);
 
-    
-    local timestamp_nanos: felt = timestamp.nanos
+    local timestamp_nanos: felt = timestamp.nanos;
 
-    let (local voteSB_array : felt*) = alloc()
-    assert voteSB_array[0] = timestamp_nanos
-    assert voteSB_array[1] = res_hash
+    let (local voteSB_array: felt*) = alloc();
+    assert voteSB_array[0] = timestamp_nanos;
+    assert voteSB_array[1] = res_hash;
 
-    let message1: felt = hash_felt_array(voteSB_array, 2) 
+    let message1: felt = hash_felt_array(voteSB_array, 2);
 
-    local commit_sig_signature: SignatureData = signature.signature
-    verifySig(val, message1, commit_sig_signature)
-    
+    local commit_sig_signature: SignatureData = signature.signature;
+    verifySig(val, message1, commit_sig_signature);
+
     let (rest_of_voting_power: felt) = get_tallied_voting_power(
-        counter+1,
-        commit, 
+        counter + 1,
+        commit,
         signatures_len - 1,
         signatures + 5,
-        validators_len -1 ,
+        validators_len - 1,
         validators + 4,
-        chain_id=chain_id
-    )
-    return (val.voting_power + rest_of_voting_power)
-end
+        chain_id=chain_id,
+    );
+    return (val.voting_power + rest_of_voting_power,);
+}
 
-func verifyNewHeaderAndVals{range_check_ptr,  pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*}(
+func verifyNewHeaderAndVals{
+    range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: BitwiseBuiltin*
+}(
     untrustedHeader: SignedHeaderData,
     trustedHeader: SignedHeaderData,
     untrustedVals: ValidatorSetData,
     currentTime: DurationData,
-    maxClockDrift: DurationData
-    )->(res:felt):
-    alloc_locals
+    maxClockDrift: DurationData,
+) -> (res: felt) {
+    alloc_locals;
 
-    # set of simple checks to see if the header is valid
+    // set of simple checks to see if the header is valid
 
-    # check if the chain id is the same
+    // check if the chain id is the same
 
-    tempvar untrusted_chain_id: ChainID= untrustedHeader.header.chain_id
-    tempvar trusted_chain_id: ChainID= trustedHeader.header.chain_id
+    tempvar untrusted_chain_id: ChainID = untrustedHeader.header.chain_id;
+    tempvar trusted_chain_id: ChainID = trustedHeader.header.chain_id;
 
-    # check if the lengths of the two chain_ids are the same
-    assert untrusted_chain_id.len = trusted_chain_id.len
+    // check if the lengths of the two chain_ids are the same
+    assert untrusted_chain_id.len = trusted_chain_id.len;
 
-    local chain_id_len = untrusted_chain_id.len
+    local chain_id_len = untrusted_chain_id.len;
 
-    #check if the content of the two chain_ids is the same
-    tempvar untrusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array
-    tempvar trusted_chain_id_array_ptr: felt* = trusted_chain_id.chain_id_array
+    // check if the content of the two chain_ids is the same
+    tempvar untrusted_chain_id_array_ptr: felt* = untrusted_chain_id.chain_id_array;
+    tempvar trusted_chain_id_array_ptr: felt* = trusted_chain_id.chain_id_array;
 
-    recursive_comparison(untrusted_chain_id_array_ptr, trusted_chain_id_array_ptr, chain_id_len)
+    recursive_comparison(untrusted_chain_id_array_ptr, trusted_chain_id_array_ptr, chain_id_len);
 
-    # check if commit hights are the same
-    tempvar untrusted_commit_height: felt = untrustedHeader.commit.height
-    tempvar untrusted_header_height: felt = untrustedHeader.header.height
-    assert untrusted_commit_height = untrusted_header_height
+    // check if commit hights are the same
+    tempvar untrusted_commit_height: felt = untrustedHeader.commit.height;
+    tempvar untrusted_header_height: felt = untrustedHeader.header.height;
+    assert untrusted_commit_height = untrusted_header_height;
 
-    # check if the header hash is the one we expect
-    let (untrusted_header_block_hash: felt) = hashHeader(untrustedHeader)
-    tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash
-    assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash 
+    // check if the header hash is the one we expect
+    let (untrusted_header_block_hash: felt) = hashHeader(untrustedHeader);
+    tempvar untrusted_header_commit_block_id_hash: felt = untrustedHeader.commit.block_id.hash;
+    assert untrusted_header_block_hash = untrusted_header_commit_block_id_hash;
 
-    # check if the untrusted header height to be greater
-    # than the trusted header height
-    tempvar untrusted_height: felt = untrustedHeader.header.height
-    tempvar trusted_height: felt = trustedHeader.header.height
+    // check if the untrusted header height to be greater
+    // than the trusted header height
+    tempvar untrusted_height: felt = untrustedHeader.header.height;
+    tempvar trusted_height: felt = trustedHeader.header.height;
 
-    let (untrusted_greater: felt) = is_le(trusted_height+1, untrusted_height)
-    assert untrusted_greater = 1
+    let untrusted_greater: felt = is_le(trusted_height + 1, untrusted_height);
+    assert untrusted_greater = 1;
 
-    # check if the untrusted header time is greater than the trusted header time
-    tempvar untrusted_time: TimestampData = untrustedHeader.header.time
-    tempvar trusted_time: TimestampData = trustedHeader.header.time
-    let (untrusted_time_greater: felt) = time_greater_than(untrusted_time, trusted_time)
-    assert untrusted_time_greater = 1
+    // check if the untrusted header time is greater than the trusted header time
+    tempvar untrusted_time: TimestampData = untrustedHeader.header.time;
+    tempvar trusted_time: TimestampData = trustedHeader.header.time;
+    let (untrusted_time_greater: felt) = time_greater_than(untrusted_time, trusted_time);
+    assert untrusted_time_greater = 1;
 
-    # check if the untrusted header time is greater than the current time
-    tempvar untrusted_time: TimestampData= untrustedHeader.header.time
+    // check if the untrusted header time is greater than the current time
+    tempvar untrusted_time: TimestampData = untrustedHeader.header.time;
 
-    let driftTime: TimestampData = TimestampData(
-        nanos= currentTime.nanos + maxClockDrift.nanos
-    )
-    let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time )
-    assert untrusted_time_greater_current = 1
+    let driftTime: TimestampData = TimestampData(nanos=currentTime.nanos + maxClockDrift.nanos);
+    let (untrusted_time_greater_current: felt) = time_greater_than(driftTime, untrusted_time);
+    assert untrusted_time_greater_current = 1;
 
-    # check if the header validators hash is the one supplied
+    // check if the header validators hash is the one supplied
 
-    tempvar untrusted_valhash : felt = untrustedHeader.header.validators_hash
-    let (trusted_valhash : felt) = hashValidatorSet(untrustedVals)
-    assert untrusted_valhash = trusted_valhash
+    tempvar untrusted_valhash: felt = untrustedHeader.header.validators_hash;
+    let (trusted_valhash: felt) = hashValidatorSet(untrustedVals);
+    assert untrusted_valhash = trusted_valhash;
 
-    return(1)
-end
+    return (1,);
+}
 
-func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*,
-    ecdsa_ptr: SignatureBuiltin*}(
+func verifyCommitLight{range_check_ptr, pedersen_ptr: HashBuiltin*, ecdsa_ptr: SignatureBuiltin*}(
     vals: ValidatorSetData,
     chain_id: ChainID,
     blockID: BlockIDData,
-    height: felt, 
+    height: felt,
     commit: CommitData,
-)->(res: felt):
-    alloc_locals
+) -> (res: felt) {
+    alloc_locals;
 
-    local vals_validators_length: felt = vals.validators.len
-    tempvar commit_signatures_length: felt = commit.signatures.len
-    assert vals_validators_length = commit_signatures_length
-    
-    tempvar commit_height = commit.height
-    assert height = commit_height
+    local vals_validators_length: felt = vals.validators.len;
+    tempvar commit_signatures_length: felt = commit.signatures.len;
+    assert vals_validators_length = commit_signatures_length;
 
-    
-    # following check is equivalent to: require(commit.block_id.isEqual(blockID), "invalid commit -- wrong block ID");
-   
+    tempvar commit_height = commit.height;
+    assert height = commit_height;
 
-    blockIDEqual(blockID, commit.block_id)
-    
-    # get the commit_signatures pointer
-    # get the validatordata pointer
+    // following check is equivalent to: require(commit.block_id.isEqual(blockID), "invalid commit -- wrong block ID");
 
-    tempvar vals_validators_array: ValidatorData*= vals.validators.array
-    tempvar commit_signatures_array: CommitSigData* = commit.signatures.array
+    blockIDEqual(blockID, commit.block_id);
 
-    # call get_tallied_voting_power to get the counts
-    let (tallied_voting_power: felt) = get_tallied_voting_power{ecdsa_ptr=ecdsa_ptr}(counter = 0,commit=commit,
-     signatures_len=commit_signatures_length, signatures=commit_signatures_array,
-      validators_len=vals_validators_length, validators=vals_validators_array, chain_id= chain_id)
-    
-    let (total_voting_power: felt) = get_total_voting_power(validators_len=vals_validators_length, validators=vals_validators_array)
+    // get the commit_signatures pointer
+    // get the validatordata pointer
 
-    # let tallied_voting_power_uint= Uint256(low= 1, high=0 )
-    let tallied_voting_power_uint = Uint256(low= tallied_voting_power, high=0 )
-    let total_voting_power_uint= Uint256(low= total_voting_power, high=0 )
+    tempvar vals_validators_array: ValidatorData* = vals.validators.array;
+    tempvar commit_signatures_array: CommitSigData* = commit.signatures.array;
 
-    let numerator  = Uint256(low= 2, high=0)
-    let denominator  = Uint256(low= 3, high=0)
+    // call get_tallied_voting_power to get the counts
+    let (tallied_voting_power: felt) = get_tallied_voting_power{ecdsa_ptr=ecdsa_ptr}(
+        counter=0,
+        commit=commit,
+        signatures_len=commit_signatures_length,
+        signatures=commit_signatures_array,
+        validators_len=vals_validators_length,
+        validators=vals_validators_array,
+        chain_id=chain_id,
+    );
 
-   # find 2/3 of the total voting power with multiplying by uint256_mul and dividing uint256_unsigned_div_rem
+    let (total_voting_power: felt) = get_total_voting_power(
+        validators_len=vals_validators_length, validators=vals_validators_array
+    );
 
-    let (mul_low , mul_high ) = uint256_mul(a= total_voting_power_uint,b= numerator)
+    // let tallied_voting_power_uint= Uint256(low= 1, high=0 )
+    let tallied_voting_power_uint = Uint256(low=tallied_voting_power, high=0);
+    let total_voting_power_uint = Uint256(low=total_voting_power, high=0);
 
-    let (div_quotient , div_remainder ) =  uint256_unsigned_div_rem(a= mul_low, div= denominator )
+    let numerator = Uint256(low=2, high=0);
+    let denominator = Uint256(low=3, high=0);
 
-    # compare the value resulting from the dvsion to the tallied_voting_power_uint
+    // find 2/3 of the total voting power with multiplying by uint256_mul and dividing uint256_unsigned_div_rem
 
-    let (more_tallied_votes:felt) = uint256_lt(div_quotient, tallied_voting_power_uint)
+    let (mul_low, mul_high) = uint256_mul(a=total_voting_power_uint, b=numerator);
 
-    assert more_tallied_votes=1
+    let (div_quotient, div_remainder) = uint256_unsigned_div_rem(a=mul_low, div=denominator);
 
+    // compare the value resulting from the dvsion to the tallied_voting_power_uint
 
-    return(0)
-end
+    let (more_tallied_votes: felt) = uint256_lt(div_quotient, tallied_voting_power_uint);
 
-func verifyAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*, 
-    ecdsa_ptr: SignatureBuiltin*} (
+    assert more_tallied_votes = 1;
+
+    return (0,);
+}
+
+func verifyAdjacent{
+    range_check_ptr,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+}(
     trustedHeader: SignedHeaderData,
     untrustedHeader: SignedHeaderData,
     untrustedVals: ValidatorSetData,
     trustingPeriod: DurationData,
     currentTime: DurationData,
-    maxClockDrift: DurationData
+    maxClockDrift: DurationData,
+) -> (res: felt) {
+    alloc_locals;
 
-    # the following res returns a 0 or 1 (boolean)
-) -> (res: felt) :
-    alloc_locals
-    
-    # check if the headers come from adjacent blocks
-    assert untrustedHeader.header.height = trustedHeader.header.height + 1
+    // check if the headers come from adjacent blocks
+    assert untrustedHeader.header.height = trustedHeader.header.height + 1;
 
-    # check that header is expired
-    let (expired:felt) =  isExpired(
-        header= untrustedHeader,
-        trustingPeriod= trustingPeriod,
-        currentTime= currentTime
-    ) 
+    // check that header is expired
+    let (expired: felt) = isExpired(
+        header=untrustedHeader, trustingPeriod=trustingPeriod, currentTime=currentTime
+    );
 
-    # make sure the header is not expired
-    assert expired = 0
+    // make sure the header is not expired
+    assert expired = 0;
 
-    verifyNewHeaderAndVals(untrustedHeader, trustedHeader, untrustedVals,
-    currentTime, maxClockDrift)
+    verifyNewHeaderAndVals(
+        untrustedHeader, trustedHeader, untrustedVals, currentTime, maxClockDrift
+    );
 
     verifyCommitLight(
         vals=untrustedVals,
-        chain_id=trustedHeader.header.chain_id, 
+        chain_id=trustedHeader.header.chain_id,
         blockID=untrustedHeader.commit.block_id,
-        height=untrustedHeader.header.height, 
-        commit=untrustedHeader.commit
-    )
+        height=untrustedHeader.header.height,
+        commit=untrustedHeader.commit,
+    );
 
-    return (1)
-end 
+    // the following res returns a 0 or 1 (boolean)
+    return (1,);
+}
 
-func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr: BitwiseBuiltin*,
-    ecdsa_ptr: SignatureBuiltin*} (
+func verifyNonAdjacent{
+    range_check_ptr,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+}(
     trustedHeader: SignedHeaderData,
     trustedVals: ValidatorSetData,
     untrustedHeader: SignedHeaderData,
@@ -288,45 +343,41 @@ func verifyNonAdjacent{range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr
     trustingPeriod: DurationData,
     currentTime: DurationData,
     maxClockDrift: DurationData,
-    trustLevel: FractionData
-) -> (res: felt):
-    alloc_locals
+    trustLevel: FractionData,
+) -> (res: felt) {
+    alloc_locals;
 
-    tempvar untrusted_header_height = untrustedHeader.header.height
-    tempvar trusted_header_height = trustedHeader.header.height
-    if untrusted_header_height == trusted_header_height + 1:
-        assert 1 = 2
-    end
+    tempvar untrusted_header_height = untrustedHeader.header.height;
+    tempvar trusted_header_height = trustedHeader.header.height;
+    if (untrusted_header_height == trusted_header_height + 1) {
+        assert 1 = 2;
+    }
 
-    ###############
-    # TODO Hash check
-    #    require(
-    #        trustedVals.hash() == trustedHeader.header.next_validators_hash.toBytes32(),
-    #        "LC: headers trusted validators does not hash to latest trusted validators"
-    #    );
-    ###############
+    //##############
+    // TODO Hash check
+    //    require(
+    //        trustedVals.hash() == trustedHeader.header.next_validators_hash.toBytes32(),
+    //        "LC: headers trusted validators does not hash to latest trusted validators"
+    //    );
+    //##############
 
+    let (expired: felt) = isExpired(
+        header=untrustedHeader, trustingPeriod=trustingPeriod, currentTime=currentTime
+    );
 
-    let (expired:felt) =  isExpired(
-        header= untrustedHeader,
-        trustingPeriod= trustingPeriod,
-        currentTime= currentTime
-    ) 
+    // make sure the header is not expired
+    assert expired = 0;
 
-    # make sure the header is not expired
-    assert expired = 0
-
-    verifyNewHeaderAndVals(untrustedHeader, trustedHeader, untrustedVals,
-    currentTime, maxClockDrift)
+    verifyNewHeaderAndVals(
+        untrustedHeader, trustedHeader, untrustedVals, currentTime, maxClockDrift
+    );
 
     verifyCommitLight{ecdsa_ptr=ecdsa_ptr}(
         vals=untrustedVals,
-        chain_id=trustedHeader.header.chain_id, 
+        chain_id=trustedHeader.header.chain_id,
         blockID=untrustedHeader.commit.block_id,
-        height=untrustedHeader.header.height, 
-        commit=untrustedHeader.commit
-    )
-    return (0)
-end
-
-
+        height=untrustedHeader.header.height,
+        commit=untrustedHeader.commit,
+    );
+    return (0,);
+}
