@@ -1,7 +1,9 @@
 package merkle
 
 import (
+	"fmt"
 	"hash"
+	"time"
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/abstractions"
@@ -22,8 +24,13 @@ func emptyHash() []byte {
 // returns tmhash(felt(0x00) || leaf)
 func leafHash(leaf []byte) []byte {
 	a := make([]byte, 32)
+	fmt.Println("line 25", len(leaf))
+	start := time.Now()
 	copy(a, leafPrefix)
-	return crypto.Checksum(append(a, abstractions.ByteRounder(leaf)...))
+
+	b := crypto.Checksum(append(a, abstractions.ByteRounder(leaf)...))
+	fmt.Println(time.Since(start))
+	return b
 }
 
 // returns tmhash(felt(0x00) || leaf)

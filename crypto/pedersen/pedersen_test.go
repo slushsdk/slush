@@ -64,9 +64,9 @@ func TestPedersenIntArray(t *testing.T) {
 func TestPedersenIntArray2(t *testing.T) {
 	hasher := pedersen.New()
 
-	hasher.Write(pedersen.ByteRounder(big.NewInt(8387236823862306913).Bytes()))
-	hasher.Write(pedersen.ByteRounder(big.NewInt(7597059414893672244).Bytes()))
-	hasher.Write(pedersen.ByteRounder(big.NewInt(89).Bytes()))
+	hasher.Write(pedersen.ByteRounder(big.NewInt(116).Bytes()))
+	hasher.Write(pedersen.ByteRounder(big.NewInt(7310314358442582377).Bytes()))
+	hasher.Write(pedersen.ByteRounder(big.NewInt(7939082473277174873).Bytes()))
 
 	result := hasher.Sum(nil)
 

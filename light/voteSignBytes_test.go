@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -391,4 +392,10 @@ func deserializeSig(sig []byte) (r *big.Int, s *big.Int, err error) {
 	r = new(big.Int).SetBytes(rBytes)
 	s = new(big.Int).SetBytes(sBytes)
 	return r, s, nil
+}
+
+func TestDeployTX(t *testing.T) {
+	cmd := exec.Command("starknet", "invoke", "--address", "0x0133e47cb63dc572bb8296cdc401cc08639cb712201f80eed4b6e95b0b20ba0b", "--abi", "../../tendermint-cairo/build/main_abi.json", "--function", "externalVerifyAdjacent", "--inputs", "2", "3", "5", "6")
+	stdout, err := cmd.CombinedOutput()
+	fmt.Println(string(stdout), err)
 }
