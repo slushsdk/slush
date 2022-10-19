@@ -330,6 +330,133 @@ func verifyAdjacent{
     return (1,);
 }
 
+struct HeaderArgs {
+    consensus_data: ConsensusData,
+    height: felt,
+    time: TimestampData,
+    last_block_id: BlockIDData,
+    last_commit_hash: felt,
+    data_hash: felt,
+    validators_hash: felt,
+    next_validators_hash: felt,
+    consensus_hash: felt,
+    app_hash: felt,
+    last_results_hash: felt,
+    evidence_hash: felt,
+    proposer_address: felt,
+}
+
+struct CommitArgs {
+    height: felt,
+    round: felt,
+    block_id: BlockIDData,
+}
+
+struct SignedHeaderArgs {
+    header: HeaderArgs,
+    commit: CommitArgs,
+}
+
+func createSignedHeader(
+    commit_sig_array_len: felt,
+    commit_sig_array: CommitSigData*,
+    chain_id: ChainID,
+    args: SignedHeaderArgs,
+) -> SignedHeaderData {
+    let header: LightHeaderData = LightHeaderData(
+        version=args.header.consensus_data,
+        chain_id=chain_id,
+        height=args.header.height,
+        time=args.header.time,
+        last_block_id=args.header.last_block_id,
+        last_commit_hash=args.header.last_commit_hash,
+        data_hash=args.header.data_hash,
+        validators_hash=args.header.validators_hash,
+        next_validators_hash=args.header.next_validators_hash,
+        consensus_hash=args.header.consensus_hash,
+        app_hash=args.header.app_hash,
+        last_results_hash=args.header.last_results_hash,
+        evidence_hash=args.header.evidence_hash,
+        proposer_address=args.header.proposer_address,
+    );
+
+    let signatures = CommitSigDataArray(array=commit_sig_array, len=commit_sig_array_len);
+    let commit = CommitData(
+        height=args.commit.height,
+        round=args.commit.round,
+        block_id=args.commit.block_id,
+        signatures=signatures,
+    );
+
+    let signed_header = SignedHeaderData(header=header, commit=commit);
+    return signed_header;
+}
+
+struct ValidatorSetArgs {
+    proposer: ValidatorData,
+    total_voting_power: felt,
+}
+
+struct VerificationArgs {
+    current_time: DurationData,
+    max_clock_drift: DurationData,
+    trusting_period: DurationData,
+}
+
+@external
+func externalVerifyAdjacent{
+    range_check_ptr,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+}(
+    chain_id_array_len: felt,
+    chain_id_array: felt*,
+    trusted_commit_sig_array_len: felt,
+    trusted_commit_sig_array: CommitSigData*,
+    untrusted_commit_sig_array_len: felt,
+    untrusted_commit_sig_array: CommitSigData*,
+    validator_array_len: felt,
+    validator_array: ValidatorData*,
+    trusted: SignedHeaderArgs,
+    untrusted: SignedHeaderArgs,
+    validator_set_args: ValidatorSetArgs,
+    verification_args: VerificationArgs,
+) -> (res: felt) {
+    let chain_id = ChainID(chain_id_array=chain_id_array, len=chain_id_array_len);
+
+    let trusted_signed_header = createSignedHeader(
+        commit_sig_array_len=trusted_commit_sig_array_len,
+        commit_sig_array=trusted_commit_sig_array,
+        chain_id=chain_id,
+        args=trusted,
+    );
+    let untrusted_signed_header = createSignedHeader(
+        commit_sig_array_len=untrusted_commit_sig_array_len,
+        commit_sig_array=untrusted_commit_sig_array,
+        chain_id=chain_id,
+        args=untrusted,
+    );
+
+    let validators: ValidatorDataArray = ValidatorDataArray(
+        array=validator_array, len=validator_array_len
+    );
+    let untrusted_vals = ValidatorSetData(
+        validators=validators,
+        proposer=validator_set_args.proposer,
+        total_voting_power=validator_set_args.total_voting_power,
+    );
+
+    return verifyAdjacent(
+        trustedHeader=trusted_signed_header,
+        untrustedHeader=untrusted_signed_header,
+        untrustedVals=untrusted_vals,
+        trustingPeriod=verification_args.trusting_period,
+        currentTime=verification_args.current_time,
+        maxClockDrift=verification_args.max_clock_drift,
+    );
+}
+
 func verifyNonAdjacent{
     range_check_ptr,
     pedersen_ptr: HashBuiltin*,
