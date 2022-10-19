@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"runtime/debug"
 	"sort"
 	"sync"
@@ -19,6 +20,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
 	"github.com/tendermint/tendermint/internal/eventbus"
+	"github.com/tendermint/tendermint/internal/evidence"
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/internal/libs/autofile"
 	sm "github.com/tendermint/tendermint/internal/state"
@@ -142,6 +144,11 @@ type State struct {
 	// privValidator pubkey, memoized for the duration of one block
 	// to avoid extra requests to HSM
 	privValidatorPubKey crypto.PubKey
+
+	//Added for stark. Used to communicate with
+	verifierContractAddress     crypto.PubKey
+	verifierContractAbiLocation string
+	walletPrivateKey            crypto.PrivKey
 
 	// state changes may be triggered by: msgs from peers,
 	// msgs from ourself, or by timeouts
@@ -2039,6 +2046,83 @@ func (cs *State) finalizeCommit(ctx context.Context, height int64) {
 	// * cs.Height has been increment to height+1
 	// * cs.Step is now cstypes.RoundStepNewHeight
 	// * cs.StartTime is set to when we will start round0.
+
+	// Finally, we want to send the commit to starknet (exact location TBD)
+	err = cs.FormatAndSendCommit()
+	if err != nil {
+		logger.Error("Failed to construct tx to Cairo: ", err)
+	}
+}
+
+func (cs *State) FormatAndSendCommit() error {
+	logger := cs.logger.With("height", cs.Height)
+	// trustedLightB, err := cs.getLightBlock()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// untrustedLightB, err := cs.getLightBlock()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// validators, err := cs.stateStore.LoadValidators(cs.Height)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// trustedLightBFormat := FormatLightBlock(trustedLightB)
+	// untrustedLightBFormat := FormatLightBlock(untrustedLightB)
+	// validatorsFormat := FormatVals(validators)
+	cmd := exec.Command("starknet", "invoke", "--address", "0x0133e47cb63dc572bb8296cdc401cc08639cb712201f80eed4b6e95b0b20ba0b", "--abi", "../../tendermint-cairo/build/main_abi.json", "--function", "externalVerifyAdjacent", "--inputs")
+
+	stdout, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return err
+	}
+
+	logger.Info(string(stdout))
+
+	return nil
+}
+
+func (cs *State) getLightBlock() (types.LightBlock, error) {
+	signedHeader, err := getSignedHeader(cs.blockStore, cs.Height)
+
+	if err != nil {
+		return types.LightBlock{}, err
+	}
+
+	validators, err := cs.stateStore.LoadValidators(cs.Height)
+	if err != nil {
+		return types.LightBlock{}, err
+	}
+
+	return types.LightBlock{SignedHeader: signedHeader, ValidatorSet: validators}, nil
+}
+
+func getSignedHeader(blockStore evidence.BlockStore, height int64) (*types.SignedHeader, error) {
+	blockMeta := blockStore.LoadBlockMeta(height)
+	if blockMeta == nil {
+		return nil, fmt.Errorf("don't have header at height #%d", height)
+	}
+	commit := blockStore.LoadBlockCommit(height)
+	if commit == nil {
+		return nil, fmt.Errorf("don't have commit at height #%d", height)
+	}
+	return &types.SignedHeader{
+		Header: &blockMeta.Header,
+		Commit: commit,
+	}, nil
+}
+
+func FormatLightBlock(lightB types.LightBlock) string {
+	return "a"
+}
+
+func FormatVals(lightB *types.ValidatorSet) string {
+	return "a"
 }
 
 func (cs *State) RecordMetrics(height int64, block *types.Block) {

@@ -46,6 +46,7 @@ func main() {
 		commands.NewCompletionCmd(rcmd, true),
 		commands.MakeCompactDBCommand(conf, logger),
 	)
+	//Deploy cairo contract
 
 	// NOTE:
 	// Users wishing to:
