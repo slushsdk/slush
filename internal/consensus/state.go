@@ -33,6 +33,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/tendermint/tendermint/smartcontracts"
 	"github.com/tendermint/tendermint/types"
 )
 
@@ -2056,12 +2057,12 @@ func (cs *State) finalizeCommit(ctx context.Context, height int64) {
 
 func (cs *State) FormatAndSendCommit() error {
 	logger := cs.logger.With("height", cs.Height)
-	// trustedLightB, err := cs.getLightBlock()
+	// trustedLightB, err := cs.getLightBlock(Height)
 	// if err != nil {
 	// 	return err
 	// }
 
-	// untrustedLightB, err := cs.getLightBlock()
+	// untrustedLightB, err := cs.getLightBlock(Height)
 	// if err != nil {
 	// 	return err
 	// }
@@ -2081,7 +2082,7 @@ func (cs *State) FormatAndSendCommit() error {
 	if err != nil {
 		return err
 	}
-
+	smartcontracts.Invoke()
 	logger.Info(string(stdout))
 
 	return nil
