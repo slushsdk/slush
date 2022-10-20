@@ -37,8 +37,6 @@ func ProofsFromByteSlices(items [][]byte) (rootHash []byte, proofs []*Proof) {
 	rootHash = rootSPN.Hash
 	proofs = make([]*Proof, len(items))
 	for i, trail := range trails {
-		fmt.Println("line 40", i)
-
 		proofs[i] = &Proof{
 			Total:    int64(len(items)),
 			Index:    int64(i),
@@ -227,8 +225,6 @@ func trailsFromByteSlices(items [][]byte) (trails []*ProofNode, root *ProofNode)
 		trail := &ProofNode{leafHash(items[0]), nil, nil, nil}
 		return []*ProofNode{trail}, trail
 	default:
-		fmt.Println("line 179", len(items))
-
 		k := getSplitPoint(int64(len(items)))
 		lefts, leftRoot := trailsFromByteSlices(items[:k])
 		rights, rightRoot := trailsFromByteSlices(items[k:])

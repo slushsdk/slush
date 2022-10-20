@@ -399,3 +399,31 @@ func TestDeployTX(t *testing.T) {
 	stdout, err := cmd.CombinedOutput()
 	fmt.Println(string(stdout), err)
 }
+
+func TestDeclareDeploy(t *testing.T) {
+	//Deploy cairo contract
+	cmd := exec.Command("starknet", "declare", "--contract", "../../tendermint-cairo/build/main.json")
+
+	stdout, err := cmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Println(string(stdout))
+		fmt.Println("Failed to declare Cairo contracts", err)
+		return
+	}
+
+	fmt.Println(string(stdout))
+
+	//Deploy cairo contract
+	deploycmd := exec.Command("starknet", "deploy", "--address", "0x0133e47cb63dc572bb8296cdc401cc08639cb712201f80eed4b6e95b0b20ba0b", "--abi", "../../tendermint-cairo/build/main_abi.json", "--function", "externalVerifyAdjacent", "--inputs")
+
+	deploystdout, err := deploycmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Println(string(deploystdout))
+		fmt.Println("Failed to deploy Cairo contracts", err)
+		return
+	}
+
+	fmt.Println(string(deploystdout))
+}
