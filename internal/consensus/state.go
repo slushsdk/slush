@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"runtime/debug"
 	"sort"
@@ -2054,24 +2055,18 @@ func (cs *State) finalizeCommit(ctx context.Context, height int64) {
 
 func (cs *State) FormatAndSendCommit() error {
 	logger := cs.logger.With("height", cs.Height)
-	// trustedLightB, err := cs.getLightBlock(Height)
-	// if err != nil {
-	// 	return err
-	// }
+	trustedLightB, err := cs.getLightBlock(cs.Height -1)
+	if err != nil {
+		return err
+	}
 
-	// untrustedLightB, err := cs.getLightBlock(Height)
-	// if err != nil {
-	// 	return err
-	// }
+	untrustedLightB, err := cs.getLightBlock(cs.Height)
+	if err != nil {
+		return err
+	}
 
-	// validators, err := cs.stateStore.LoadValidators(cs.Height)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// trustedLightBFormat := FormatLightBlock(trustedLightB)
-	// untrustedLightBFormat := FormatLightBlock(untrustedLightB)
-	// validatorsFormat := FormatVals(validators)
+	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
+	FormatExternal(trustedLightB, untrustedLightB, trustedLightB.ValidatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
 
 	stdout, err := smartcontracts.Invoke(cs.VerifierDetails)
 	if err != nil {
@@ -2082,14 +2077,14 @@ func (cs *State) FormatAndSendCommit() error {
 	return nil
 }
 
-func (cs *State) getLightBlock() (types.LightBlock, error) {
-	signedHeader, err := getSignedHeader(cs.blockStore, cs.Height)
+func (cs *State) getLightBlock(height int64) (types.LightBlock, error) {
+	signedHeader, err := getSignedHeader(cs.blockStore, height)
 
 	if err != nil {
 		return types.LightBlock{}, err
 	}
 
-	validators, err := cs.stateStore.LoadValidators(cs.Height)
+	validators, err := cs.stateStore.LoadValidators(height)
 	if err != nil {
 		return types.LightBlock{}, err
 	}
