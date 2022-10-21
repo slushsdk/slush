@@ -43,7 +43,7 @@ struct ChainID {
 // CommitSigData is done
 struct CommitSigData {
     block_id_flag: TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag,
-    validators_address: felt,
+    validator_address: felt,
     timestamp: TimestampData,
     signature: SignatureData,
 }
