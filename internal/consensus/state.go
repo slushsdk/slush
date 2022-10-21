@@ -146,7 +146,7 @@ type State struct {
 	privValidatorPubKey crypto.PubKey
 
 	//Added for stark. Used to communicate with
-	verifierDetails types.VerifierDetails
+	VerifierDetails types.VerifierDetails
 
 	// state changes may be triggered by: msgs from peers,
 	// msgs from ourself, or by timeouts
@@ -2073,7 +2073,7 @@ func (cs *State) FormatAndSendCommit() error {
 	// untrustedLightBFormat := FormatLightBlock(untrustedLightB)
 	// validatorsFormat := FormatVals(validators)
 
-	stdout, err := smartcontracts.Invoke(cs.verifierDetails)
+	stdout, err := smartcontracts.Invoke(cs.VerifierDetails)
 	if err != nil {
 		return err
 	}
