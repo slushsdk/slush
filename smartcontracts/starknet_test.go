@@ -1,10 +1,10 @@
 package smartcontracts_test
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/tendermint/tendermint/smartcontracts"
+	"github.com/tendermint/tendermint/types"
 )
 
 func TestDeclare(t *testing.T) {
@@ -13,6 +13,7 @@ func TestDeclare(t *testing.T) {
 }
 
 func TestInvoke(t *testing.T) {
-	smartcontracts.Invoke(*big.NewInt(0))
+	vd := types.VerifierDetails{}
+	smartcontracts.Invoke(vd)
 	return
 }
