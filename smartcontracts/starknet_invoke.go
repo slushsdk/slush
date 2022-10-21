@@ -2,14 +2,15 @@ package smartcontracts
 
 import (
 	"fmt"
-	"math/big"
 	"os/exec"
+
+	"github.com/tendermint/tendermint/types"
 )
 
-func Invoke(accountaddress big.Int) ([]byte, error) {
+func Invoke(types.VerifierDetails) ([]byte, error) {
 
 	//Declare cairo contract
-	cmd := exec.Command("protostar", "migrate", "migrations/migrate_01.cairo", "--network", "alpha-goerli", "--private-key-path", "./pkey", "--account-address", fmt.Sprint(accountaddress))
+	cmd := exec.Command("protostar", "migrate", "migrations/migration_01.cairo", "--network", "alpha-goerli", "--private-key-path", "./pkey", "--account-address", "0x07e0e42703bE10f32F8c793395C3713141C15a3A80FF18e7515Df194DaC3eea7", "--output-dir", "responses", "--no-confirm")
 	cmd.Dir = "../../tendermint-cairo"
 
 	stdout, err := cmd.CombinedOutput()
@@ -19,5 +20,6 @@ func Invoke(accountaddress big.Int) ([]byte, error) {
 		return stdout, err
 	}
 
+	fmt.Print(string(stdout))
 	return stdout, err
 }
