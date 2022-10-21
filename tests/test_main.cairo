@@ -80,16 +80,16 @@ func test_verifyAdjacent{
     let signature_data: SignatureData = SignatureData(signature_r=0, signature_s=1);
 
     local commitsig_Absent: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Absent, validators_address=1,
+        block_id_flag=Tendermint_BlockIDFLag_Absent, validator_address=1,
         timestamp=time0, signature=signature_data);
 
     local commitsig_Commit: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=1,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=1,
         timestamp=time0, signature=signature_data);
 
     let (local commitsig1_pointer: CommitSigData*) = alloc();
 
-    // tempvar commitsig1_pointer[0] = CommitSigData( block_id_flag = Tendermint_BlockIDFLag, validators_address = 1, timestamp = time0, signature = 1)
+    // tempvar commitsig1_pointer[0] = CommitSigData( block_id_flag = Tendermint_BlockIDFLag, validator_address = 1, timestamp = time0, signature = 1)
     assert commitsig1_pointer[0] = commitsig_Absent;
 
     assert commitsig1_pointer[1] = commitsig_Commit;
@@ -310,11 +310,11 @@ func test_voteSignBytes{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: 
     let signature_data: SignatureData = SignatureData(signature_r=0, signature_s=1);
 
     local commitsig_Absent: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Absent, validators_address=1,
+        block_id_flag=Tendermint_BlockIDFLag_Absent, validator_address=1,
         timestamp=time0, signature=signature_data);
 
     local commitsig_Commit: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=1,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=1,
         timestamp=time1, signature=signature_data);
 
     let (local commitsig1_pointer: CommitSigData*) = alloc();
@@ -401,7 +401,7 @@ func test_real_data{
     );
 
     local commitsig_Absent_trusted: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
         timestamp=TimestampData(nanos=1665753877127453388), signature=signature_data_trusted);
 
     let (local commitsig1_pointer_trusted: CommitSigData*) = alloc();
@@ -454,7 +454,7 @@ func test_real_data{
     );
 
     local commitsig_Absent_trusted: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
         timestamp=TimestampData(nanos=1665753889554053779), signature=signature_data_trusted);
 
     let (local commitsig1_pointer_trusted: CommitSigData*) = alloc();
@@ -538,7 +538,7 @@ func test_external{
     );
 
     local trusted_commit_sig: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
         timestamp=TimestampData(nanos=1665753877127453388), signature=trusted_signature_data);
 
     let (local trusted_commit_sig_array: CommitSigData*) = alloc();
@@ -552,7 +552,7 @@ func test_external{
     );
 
     local untrusted_commit_sig: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
         timestamp=TimestampData(nanos=1665753889554053779), signature=untrusted_signature_data);
 
     let (local untrusted_commit_sig_array: CommitSigData*) = alloc();
