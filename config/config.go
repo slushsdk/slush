@@ -349,26 +349,6 @@ func (cfg BaseConfig) LoadOrGenNodeKeyID() (types.NodeID, error) {
 	return nodeKey.ID, nil
 }
 
-// LoadOrGenNodeKey attempts to load the NodeKey from the given filePath. If
-// the file does not exist, it generates and saves a new NodeKey.
-func (cfg BaseConfig) LoadVerifierDetails() (types.NodeID, error) {
-	if tmos.FileExists(cfg.NodeKeyFile()) {
-		nodeKey, err := cfg.LoadNodeKeyID()
-		if err != nil {
-			return "", err
-		}
-		return nodeKey, nil
-	}
-
-	nodeKey := types.GenNodeKey()
-
-	if err := nodeKey.SaveAs(cfg.NodeKeyFile()); err != nil {
-		return "", err
-	}
-
-	return nodeKey.ID, nil
-}
-
 // DBDir returns the full path to the database directory
 func (cfg BaseConfig) DBDir() string {
 	return rootify(cfg.DBPath, cfg.RootDir)

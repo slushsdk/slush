@@ -36,10 +36,13 @@ func TestInvoke(t *testing.T) {
 
 	err := os.WriteFile("../../tendermint-cairo/invoke_input.json", jsonString, fs.FileMode(0644))
 
-	if(err != nil) {
+	if err != nil {
 		t.Error(err)
 	}
 
-	vd := types.VerifierDetails{}
+	a := big.NewInt(0)
+	b, _ := big.NewInt(0).SetString("07e0e42703bE10f32F8c793395C3713141C15a3A80FF18e7515Df194DaC3eea7", 16)
+
+	vd := types.NewVerifierDetails(a, "", "./pkey", b)
 	smartcontracts.Invoke(vd)
 }
