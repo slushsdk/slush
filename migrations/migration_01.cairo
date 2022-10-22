@@ -3,10 +3,11 @@
 @external
 func up() {
     %{
-        contract_address = deploy_contract("./build/main.json", config={"wait_for_acceptance": True}).contract_address
-
+        #contract_address = deploy_contract("./build/main.json", config={"wait_for_acceptance": True}).contract_address
+          #335674479734934146889037038263903380498452542860978104900782795296756624142,
+          # "0xbdfc2a72d8828a45531126520bf5f981434d95922dc2867857874fa9966b0e",
         invoke(
-            contract_address,
+            1829417211792761510102971298743435514211364236529393179603110538781091184815,
             "externalVerifyAdjacent",
             {
                 "chain_id_array": [
@@ -20,6 +21,7 @@ func up() {
                             "BlockIDFlag": 2
                         },
                         "validator_address": 335674479734934146889037038263903380498452542860978104900782795296756624142,
+
                         "timestamp": {
                             "nanos": 1665753877127453388
                         },
