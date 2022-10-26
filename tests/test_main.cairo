@@ -14,6 +14,8 @@ from src.main import (
     SignedHeaderArgs,
     ValidatorSetArgs,
     VerificationArgs,
+    initBlockData,
+    savedVerifyAdjacent,
 )
 from src.structs import (
     TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType,
@@ -574,6 +576,272 @@ func test_external{
     let validator_array_len = 1;
 
     externalVerifyAdjacent(
+        chain_id_array_len=chain_id_array_len,
+        chain_id_array=chain_id_array,
+        trusted_commit_sig_array_len=trusted_commit_sig_array_len,
+        trusted_commit_sig_array=trusted_commit_sig_array,
+        untrusted_commit_sig_array_len=untrusted_commit_sig_array_len,
+        untrusted_commit_sig_array=untrusted_commit_sig_array,
+        validator_array_len=1,
+        validator_array=validator_array,
+        trusted=SignedHeaderArgs(
+        header=HeaderArgs(
+            consensus_data=ConsensusData(block=11, app=1),
+            height=2,
+            time=TimestampData(nanos=1665753871520445159),
+            last_block_id=BlockIDData(
+                hash=2606409042684652237028761825612341298588373841266340846590208831812555967679,
+                part_set_header=PartSetHeaderData(
+                    total=1,
+                    hash=3000838125350084652609540693524514269948277526780094801048010237669338709953,
+                    ),
+                ),
+            last_commit_hash=1931616577660260768497627594988710925560949687119466413940080031015097594698,
+            data_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+            validators_hash=2831012649517925635638083284349758092553206116379646415063645608642406529898,
+            next_validators_hash=2831012649517925635638083284349758092553206116379646415063645608642406529898,
+            consensus_hash=2132461975834504200398180281070409533541683498016798668455504133351250391630,
+            app_hash=0,
+            last_results_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+            evidence_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+            proposer_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+            ),
+        commit=CommitArgs(
+            height=2,
+            round=0,
+            block_id=BlockIDData(
+                hash=2059766791315474971233242291515003944317013849850428055013818287621749261948,
+                part_set_header=PartSetHeaderData(
+                    total=1,
+                    hash=1308036548029847327855861229891709942163426033933946107172305588954015556391,
+                    ),
+                ),
+            ),
+        ),
+        untrusted=SignedHeaderArgs(
+        header=HeaderArgs(
+            consensus_data=ConsensusData(block=11, app=1),
+            height=3,
+            time=TimestampData(nanos=1665753884507525850),
+            last_block_id=BlockIDData(
+                hash=2059766791315474971233242291515003944317013849850428055013818287621749261948,
+                part_set_header=PartSetHeaderData(
+                    total=1,
+                    hash=1308036548029847327855861229891709942163426033933946107172305588954015556391,
+                    ),
+                ),
+            last_commit_hash=465267704775716075860689654059997816995530962997902813659991924419196233437,
+            data_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+            validators_hash=2831012649517925635638083284349758092553206116379646415063645608642406529898,
+            next_validators_hash=2831012649517925635638083284349758092553206116379646415063645608642406529898,
+            consensus_hash=2132461975834504200398180281070409533541683498016798668455504133351250391630,
+            app_hash=0,
+            last_results_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+            evidence_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+            proposer_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+            ),
+        commit=CommitArgs(
+            height=3,
+            round=0,
+            block_id=BlockIDData(
+                hash=490484232464039218793463646794795012959740951355156173400258415888395419419,
+                part_set_header=PartSetHeaderData(
+                    total=1,
+                    hash=1680373902317584836581677072736116216148431538470704822243182371928708897588,
+                    ),
+                ),
+            ),
+        ),
+        validator_set_args=ValidatorSetArgs(
+        proposer=ValidatorData(
+            Address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+            pub_key=PublicKeyData(
+                ecdsa=3334500756028199475433036722527134417926233723147766471089429384364098171865
+                ),
+            voting_power=10,
+            proposer_priority=0,
+            ),
+        total_voting_power=10,
+        ),
+        verification_args=VerificationArgs(
+        current_time=DurationData(nanos=1665753884507526850),
+        max_clock_drift=DurationData(nanos=10),
+        trusting_period=DurationData(nanos=99999999999999999999),
+        ),
+    );
+
+    return ();
+}
+
+
+
+@contract_interface
+namespace Contract {
+    func initBlockData(
+    chain_id_array_len: felt,
+    chain_id_array: felt*,
+    trusted_commit_sig_array_len: felt,
+    trusted_commit_sig_array: CommitSigData*,
+    validator_array_len: felt,
+    validator_array: ValidatorData*,
+    trusted: SignedHeaderArgs,
+    validator_set_args: ValidatorSetArgs) -> (res: felt){
+    }
+
+    func savedVerifyAdjacent(
+    chain_id_array_len: felt,
+    chain_id_array: felt*,
+    trusted_commit_sig_array_len: felt,
+    trusted_commit_sig_array: CommitSigData*,
+    untrusted_commit_sig_array_len: felt,
+    untrusted_commit_sig_array: CommitSigData*,
+    validator_array_len: felt,
+    validator_array: ValidatorData*,
+    trusted: SignedHeaderArgs,
+    untrusted: SignedHeaderArgs,
+    validator_set_args: ValidatorSetArgs,
+    verification_args: VerificationArgs
+) -> (res: felt){
+}
+}
+
+@external
+func test_saved{
+    range_check_ptr,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+    syscall_ptr: felt*,
+}() -> () {
+    alloc_locals;
+
+    // chain_id_array
+    let (local chain_id_array: felt*) = alloc();
+    assert chain_id_array[0] = 116;
+    assert chain_id_array[1] = 7310314358442582377;
+    assert chain_id_array[2] = 7939082473277174873;
+    let chain_id_array_len = 3;
+
+    // commit_sig_array
+    let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag(
+        BlockIDFlag=2
+    );
+
+    // trusted commit_sig_array
+    let trusted_signature_data: SignatureData = SignatureData(
+        signature_r=1834131662309943167060654729634590738983734585222746799362362058903754262332,
+        signature_s=1745065597501682152537867859965459308365142243262023073853228716084356784546,
+    );
+
+    local trusted_commit_sig: CommitSigData = CommitSigData(
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        timestamp=TimestampData(nanos=1665753877127453388), signature=trusted_signature_data);
+
+    let (local trusted_commit_sig_array: CommitSigData*) = alloc();
+    assert trusted_commit_sig_array[0] = trusted_commit_sig;
+    let trusted_commit_sig_array_len = 1;
+
+    // untrusted commit_sig_array
+    let untrusted_signature_data: SignatureData = SignatureData(
+        signature_r=3605504498823257379762570133327870210455706278164450482388963404778814325454,
+        signature_s=3133371732092557530256163168714261110099475276750495027673839161202089731597,
+    );
+
+    local untrusted_commit_sig: CommitSigData = CommitSigData(
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        timestamp=TimestampData(nanos=1665753889554053779), signature=untrusted_signature_data);
+
+    let (local untrusted_commit_sig_array: CommitSigData*) = alloc();
+    assert untrusted_commit_sig_array[0] = untrusted_commit_sig;
+    let untrusted_commit_sig_array_len = 1;
+
+    // create validator array
+    let (local validator_array: ValidatorData*) = alloc();
+    let public_key0: PublicKeyData = PublicKeyData(
+        ecdsa=3334500756028199475433036722527134417926233723147766471089429384364098171865
+    );
+    let validator: ValidatorData = ValidatorData(
+        Address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+        pub_key=public_key0,
+        voting_power=10,
+        proposer_priority=0,
+    );
+    assert validator_array[0] = validator;
+    let validator_array_len = 1;
+
+    local contract_address;
+ 
+    %{
+        declared = declare("src/main.cairo")
+        prepared = prepare(declared)
+        ids.contract_address = deploy(prepared).contract_address
+    %}
+    
+    let (res_init) = Contract.initBlockData(
+        contract_address,
+        chain_id_array_len=chain_id_array_len,
+        chain_id_array=chain_id_array,
+        trusted_commit_sig_array_len=trusted_commit_sig_array_len,
+        trusted_commit_sig_array=trusted_commit_sig_array,
+        validator_array_len=1,
+        validator_array=validator_array,
+        trusted=SignedHeaderArgs(
+            header=HeaderArgs(
+                consensus_data=ConsensusData(block=11, app=1),
+                height=2,
+                time=TimestampData(nanos=1665753871520445159),
+                last_block_id=BlockIDData(
+                    hash=2606409042684652237028761825612341298588373841266340846590208831812555967679,
+                    part_set_header=PartSetHeaderData(
+                        total=1,
+                        hash=3000838125350084652609540693524514269948277526780094801048010237669338709953,
+                        ),
+                    ),
+                last_commit_hash=1931616577660260768497627594988710925560949687119466413940080031015097594698,
+                data_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                validators_hash=2831012649517925635638083284349758092553206116379646415063645608642406529898,
+                next_validators_hash=2831012649517925635638083284349758092553206116379646415063645608642406529898,
+                consensus_hash=2132461975834504200398180281070409533541683498016798668455504133351250391630,
+                app_hash=0,
+                last_results_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                evidence_hash=2089986280348253421170679821480865132823066470938446095505822317253594081284,
+                proposer_address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+                ),
+            commit=CommitArgs(
+                height=2,
+                round=0,
+                block_id=BlockIDData(
+                    hash=2059766791315474971233242291515003944317013849850428055013818287621749261948,
+                    part_set_header=PartSetHeaderData(
+                        total=1,
+                        hash=1308036548029847327855861229891709942163426033933946107172305588954015556391,
+                        ),
+                    ),
+                ),
+            ),
+ 
+        validator_set_args=ValidatorSetArgs(
+        proposer=ValidatorData(
+            Address=335674479734934146889037038263903380498452542860978104900782795296756624142,
+            // Address=33567447973493414688903703826390338049845254286097810490078279529675662414,
+            pub_key=PublicKeyData(
+                ecdsa=3334500756028199475433036722527134417926233723147766471089429384364098171865
+                ),
+            voting_power=10,
+            proposer_priority=0,
+            ),
+        total_voting_power=10,
+        ),
+
+    );
+
+    %{
+        felt_val = load(ids.contract_address, "save_block", "felt")
+        print(felt_val)
+    %}
+
+    let (res_saved ) = Contract.savedVerifyAdjacent(
+        contract_address,
         chain_id_array_len=chain_id_array_len,
         chain_id_array=chain_id_array,
         trusted_commit_sig_array_len=trusted_commit_sig_array_len,

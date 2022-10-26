@@ -326,7 +326,7 @@ func verifyAdjacent{
         commit=untrustedHeader.commit,
     );
 
-    // the following res returns a 0 or 1 (boolean)
+    // return value if all the above code ran, ow the above fails and nothing returned
     return (1,);
 }
 
@@ -402,6 +402,144 @@ struct VerificationArgs {
     max_clock_drift: DurationData,
     trusting_period: DurationData,
 }
+
+// @storage_var
+// func save_block() -> (untrusted_signed_header: SignedHeaderData
+// ){
+// }
+
+@storage_var
+func save_block() -> (untrusted_signed_header_hash: felt
+){
+}
+
+@external
+func initBlockData{
+    range_check_ptr,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+    syscall_ptr: felt*,
+
+}(
+    chain_id_array_len: felt,
+    chain_id_array: felt*,
+    trusted_commit_sig_array_len: felt,
+    trusted_commit_sig_array: CommitSigData*,
+    validator_array_len: felt,
+    validator_array: ValidatorData*,
+    trusted: SignedHeaderArgs,
+    validator_set_args: ValidatorSetArgs,
+) -> (res: felt) {
+    let chain_id = ChainID(chain_id_array=chain_id_array, len=chain_id_array_len);
+
+
+    let trusted_signed_header: SignedHeaderData= createSignedHeader(
+        commit_sig_array_len=trusted_commit_sig_array_len,
+        commit_sig_array=trusted_commit_sig_array,
+        chain_id=chain_id,
+        args=trusted,
+    );
+
+    let validators: ValidatorDataArray = ValidatorDataArray(
+        array=validator_array, len=validator_array_len
+    );
+    let untrusted_vals = ValidatorSetData(
+        validators=validators,
+        proposer=validator_set_args.proposer,
+        total_voting_power=validator_set_args.total_voting_power,
+    );
+
+    // get the markle root of the header 
+
+    let (header_hash:felt) = hashHeader(trusted_signed_header);
+
+    save_block.write(header_hash);
+    return(1,);
+} 
+
+
+
+@external
+func savedVerifyAdjacent{
+    range_check_ptr,
+    pedersen_ptr: HashBuiltin*,
+    bitwise_ptr: BitwiseBuiltin*,
+    ecdsa_ptr: SignatureBuiltin*,
+    syscall_ptr: felt*,
+}(
+    chain_id_array_len: felt,
+    chain_id_array: felt*,
+    trusted_commit_sig_array_len: felt,
+    trusted_commit_sig_array: CommitSigData*,
+    untrusted_commit_sig_array_len: felt,
+    untrusted_commit_sig_array: CommitSigData*,
+    validator_array_len: felt,
+    validator_array: ValidatorData*,
+    trusted: SignedHeaderArgs,
+    untrusted: SignedHeaderArgs,
+    validator_set_args: ValidatorSetArgs,
+    verification_args: VerificationArgs,
+) -> (res: felt) {
+    alloc_locals;
+
+
+    let chain_id = ChainID(chain_id_array=chain_id_array, len=chain_id_array_len);
+
+    let trusted_signed_header = createSignedHeader(
+        commit_sig_array_len=trusted_commit_sig_array_len,
+        commit_sig_array=trusted_commit_sig_array,
+        chain_id=chain_id,
+        args=trusted,
+    );
+      // load the previously saved and hence trusted signed header
+    let (local trusted_signed_header_saved_hash: felt) = save_block.read();
+    
+    // verify that the current passed header hashes to the saved value
+    let (trusted_signed_header_hash:felt) = hashHeader(trusted_signed_header); 
+
+    // assert these two hashes match, this makes sure the new block is
+    // the same as the previous block
+    assert trusted_signed_header_hash = trusted_signed_header_saved_hash;
+
+    let untrusted_signed_header = createSignedHeader(
+        commit_sig_array_len=untrusted_commit_sig_array_len,
+        commit_sig_array=untrusted_commit_sig_array,
+        chain_id=chain_id,
+        args=untrusted,
+    );
+
+    let validators: ValidatorDataArray = ValidatorDataArray(
+        array=validator_array, len=validator_array_len
+    );
+    let untrusted_vals = ValidatorSetData(
+        validators=validators,
+        proposer=validator_set_args.proposer,
+        total_voting_power=validator_set_args.total_voting_power,
+    );
+
+    let (res_verify: felt) =  verifyAdjacent(
+        trustedHeader=trusted_signed_header,
+        untrustedHeader=untrusted_signed_header,
+        untrustedVals=untrusted_vals,
+        trustingPeriod=verification_args.trusting_period,
+        currentTime=verification_args.current_time,
+        maxClockDrift=verification_args.max_clock_drift,
+    );
+
+    // check if the above code ran by checking if res_verify =1 
+    // if it runs, save the new header info
+
+    assert res_verify = 1;
+    
+    let (untrusted_signed_header_hash :felt) = hashHeader(untrusted_signed_header);
+
+    save_block.write(untrusted_signed_header_hash);
+
+
+    return(1,);
+}
+
 
 @external
 func externalVerifyAdjacent{
