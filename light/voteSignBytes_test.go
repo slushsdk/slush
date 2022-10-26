@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
-	abstractions "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/light"
 
@@ -58,7 +58,7 @@ func TestFormatLightBlock(t *testing.T) {
 	binary.BigEndian.PutUint64(trustedtimeb, uint64(trustedLightB.SignedHeader.Header.Time.UnixNano()))
 	trustedtimeNano := big.NewInt(0).SetBytes(trustedtimeb)
 
-	chainIDchunks := utils.Split(abstractions.ByteRounder([]byte(trustedLightB.SignedHeader.Header.ChainID)), 8)
+	chainIDchunks := utils.Split(pedersen.ByteRounder([]byte(trustedLightB.SignedHeader.Header.ChainID)), 8)
 	chainIDlen := len(chainIDchunks)
 
 	fmt.Println(`let (local chain_id_ptr: felt*) =alloc()`)
@@ -309,9 +309,9 @@ func TestVoteSignBytes1(t *testing.T) {
 	fmt.Println("newSig_r", big.NewInt(0).SetBytes(newSig[:32]))
 	fmt.Println("newSig_s", big.NewInt(0).SetBytes(newSig[32:]))
 
-	chainIDfelt1 := big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte("test-chain-IrF74Y"))[:8])
-	chainIDfelt2 := big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte("test-chain-IrF74Y"))[8:16])
-	chainIDfelt3 := big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte("test-chain-IrF74Y"))[16:])
+	chainIDfelt1 := big.NewInt(0).SetBytes(pedersen.ByteRounder([]byte("test-chain-IrF74Y"))[:8])
+	chainIDfelt2 := big.NewInt(0).SetBytes(pedersen.ByteRounder([]byte("test-chain-IrF74Y"))[8:16])
+	chainIDfelt3 := big.NewInt(0).SetBytes(pedersen.ByteRounder([]byte("test-chain-IrF74Y"))[16:])
 
 	fmt.Println("chainIDFelts", chainIDfelt1, chainIDfelt2, chainIDfelt3)
 

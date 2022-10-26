@@ -4,49 +4,40 @@ package pedersen
 
 import (
 	_ "embed"
-	"encoding/binary"
 	"fmt"
-	"hash"
 	"math/big"
 
 	"github.com/tendermint/tendermint/crypto/utils"
 )
 
-const Size = 32
-
 type PedersenHash struct {
 	input []byte
 }
 
-func New() hash.Hash {
-	return new(PedersenHash)
-}
-
 //This appends the hash to b. Notable, we
 func (ph *PedersenHash) Sum(b []byte) []byte {
-	if b == nil {
-		return ByteRounder(pedersenHash(ph.input))
-	}
 
-	return append(b, ByteRounder(pedersenHash(ph.input))...)
+	return append(b, ByteRounder(pedersenHashInt128Array(ph.input))...)
 }
 
-//Hashes b
-func Sum256(b []byte) [32]byte {
-	ph := new(PedersenHash)
-	ph.Write(b)
-
-	var res [32]byte
-	copy(res[:], ph.Sum(nil))
-	return res
-}
-
-//We want to pass in 64 bit numbers from pedersen, so we want to round the byte array to be that long.
+//We want to pass in 128 bit numbers from pedersen, so we want to round the byte array to be that long.
+// Checking is also done inside pedersen.
 func ByteRounder(ba []byte) []byte {
 
-	rem := len(ba) % 8
-	//Taking reminder with 8 only changes rem if it was originally 0.
-	rem = (8 - rem) % 8
+	rem := len(ba) % 16
+	//Taking reminder with 16 only changes rem if it was originally 0.
+	rem = (16 - rem) % 16
+	return append(make([]byte, rem), ba...)
+
+}
+
+//We want to pass in 128 bit numbers from pedersen, so we want to round the byte array to be that long.
+// Checking is also done inside pedersen.
+func ByteRounderFelt(ba []byte) []byte {
+
+	rem := len(ba) % 32
+	//Taking reminder with 16 only changes rem if it was originally 0.
+	rem = (16 - rem) % 32
 	return append(make([]byte, rem), ba...)
 
 }
@@ -68,30 +59,59 @@ func (ph *PedersenHash) Write(p []byte) (n int, err error) {
 	return len(ph.input), nil
 }
 
-func pedersenHash(b []byte) []byte {
-	chunks := utils.Split(b, 8)
+func pedersenHashInt128(b [16]byte) []byte {
+	return Digest(big.NewInt(0).SetBytes(b[:]), big.NewInt(0)).Bytes()
+}
+
+func pedersenHashInt128Array(b []byte) []byte {
+	chunks := utils.Split(b, 16)
 
 	if len(chunks) == 0 {
-		return Digest(big.NewInt(0)).Bytes()
+		return Digest(big.NewInt(0), big.NewInt(0)).Bytes()
 	}
 	lastWordSize := len(chunks[len(chunks)-1])
-	isLastWordFull := lastWordSize == 8
+	isLastWordFull := lastWordSize == 16
 
 	if !isLastWordFull {
-		remainingBytes := 8 - lastWordSize
+		remainingBytes := 16 - lastWordSize
 		leadingBytes := make([]byte, remainingBytes)
 		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
-	}
-
-	if len(chunks) == 1 {
-		roundedb := ByteRounder(b)
-		return Digest(big.NewInt(0).SetUint64(uint64(binary.BigEndian.Uint64(roundedb))), big.NewInt(1)).Bytes()
 	}
 
 	pedersenInput := make([]*big.Int, len(chunks))
 
 	for i := 0; i < len(chunks); i++ {
-		pedersenInput[i] = big.NewInt(0).SetUint64(uint64(binary.BigEndian.Uint64(chunks[i])))
+		pedersenInput[i] = big.NewInt(0).SetBytes((chunks[i]))
+	}
+
+	pedersenOutput := ArrayDigest(pedersenInput...)
+	pedersenOutputBytes := pedersenOutput.Bytes()
+	return pedersenOutputBytes
+}
+
+func pedersenHashFelt(b [32]byte) []byte {
+	return (Digest(big.NewInt(0).SetBytes(b[:]), big.NewInt(0)).Bytes())
+}
+
+func pedersenHashFeltArray(b []byte) []byte {
+	chunks := utils.Split(b, 16)
+
+	if len(chunks) == 0 {
+		return Digest(big.NewInt(0), big.NewInt(0)).Bytes()
+	}
+	lastWordSize := len(chunks[len(chunks)-1])
+	isLastWordFull := lastWordSize == 16
+
+	if !isLastWordFull {
+		remainingBytes := 16 - lastWordSize
+		leadingBytes := make([]byte, remainingBytes)
+		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
+	}
+
+	pedersenInput := make([]*big.Int, len(chunks))
+
+	for i := 0; i < len(chunks); i++ {
+		pedersenInput[i] = big.NewInt(0).SetBytes((chunks[i]))
 	}
 
 	pedersenOutput := ArrayDigest(pedersenInput...)

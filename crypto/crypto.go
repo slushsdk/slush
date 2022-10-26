@@ -1,7 +1,9 @@
 package crypto
 
 import (
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"hash"
+
+	"github.com/tendermint/tendermint/crypto/pedersen"
 
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -9,7 +11,7 @@ import (
 
 const (
 	// HashSize is the size in bytes of an AddressHash.
-	HashSize = ihash.Size
+	HashSize = pedersen.Size
 
 	// AddressSize is the size of a pubkey address.
 	AddressSize = 32
@@ -25,7 +27,7 @@ type Address = bytes.HexBytes
 //
 // See: https://docs.tendermint.com/master/spec/core/data_structures.html#address
 func AddressHash(bz []byte) Address {
-	h := ihash.Sum256(bz)
+	h := Sum256(bz)
 	size := AddressSize
 	if size <= 32 {
 		return Address(h[:size])
@@ -34,10 +36,41 @@ func AddressHash(bz []byte) Address {
 	return Address(h[:32])
 }
 
+func New() hash.Hash {
+	return pedersen.New()
+}
+
+//Hashes b
+func Sum256(b []byte) [32]byte {
+	return pedersen.Sum256(b)
+}
+
 // Checksum returns the SHA256 of the bz.
 func Checksum(bz []byte) []byte {
-	h := ihash.Sum256(bz)
+	h := Sum256(bz)
 	return h[:]
+}
+
+// Checksum returns the SHA256 of the bz.
+func ChecksumFelt(bz []byte) []byte {
+	h := pedersen.Sum256Felt(bz)
+	return h[:]
+}
+
+func HashInt128(b [16]byte) [32]byte {
+	return pedersen.HashInt128(b)
+}
+
+func HashFelt(b [32]byte) [32]byte {
+	return pedersen.HashFelt(b)
+}
+
+func ByteRounder(b []byte) []byte {
+	return pedersen.ByteRounder(b)
+}
+
+func ByteRounderFelt(b []byte) []byte {
+	return pedersen.ByteRounderFelt(b)
 }
 
 type PubKey interface {
