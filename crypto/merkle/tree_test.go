@@ -1,9 +1,12 @@
 package merkle
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -209,4 +212,49 @@ func Test_getSplitPoint(t *testing.T) {
 		got := getSplitPoint(tt.length)
 		require.EqualValues(t, tt.want, got, "getSplitPoint(%d) = %v, want %v", tt.length, got, tt.want)
 	}
+}
+
+func TestPedersen(t *testing.T) {
+	total := 10000
+
+	items := make([]byte, total)
+
+	start := time.Now()
+
+	crypto.Checksum(items)
+
+	elapsed := time.Since(start)
+	fmt.Println("elapsed time", elapsed)
+	return
+
+}
+
+func TestSha(t *testing.T) {
+	total := 1000000000
+
+	items := make([]byte, total)
+
+	start := time.Now()
+
+	sha256.Sum256(items)
+
+	elapsed := time.Since(start)
+	fmt.Println("elapsed time", elapsed)
+	return
+
+}
+
+func TestTreePedersen(t *testing.T) {
+	total := 100
+
+	items := make([][]byte, total)
+
+	start := time.Now()
+
+	HashFromByteSlices(items)
+
+	elapsed := time.Since(start)
+	fmt.Println("elapsed time", elapsed)
+	return
+
 }
