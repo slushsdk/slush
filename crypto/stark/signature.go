@@ -35,8 +35,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/tendermint/tendermint/crypto/abstractions"
-
+	tmcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/randutil"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"golang.org/x/crypto/cryptobyte"
@@ -290,10 +289,10 @@ func Sign(
 // 	ipad := bytes.Repeat([]byte{0x36}, hashLen)
 // 	opad := bytes.Repeat([]byte{0x5C}, hashLen)
 
-// 	hasherInner := abstractions.New()
+// 	hasherInner := crypto.New()
 // 	hashInner := hasherInner.Sum(append(K^ipad, msg...))
 
-// 	hasherOuter := abstractions.New()
+// 	hasherOuter := crypto.New()
 // 	hashOuter := hasherOuter.Sum(append(K^opad, hashInner...))
 // 	return hashOuter
 // }
@@ -349,7 +348,7 @@ func bits2octets(in []byte, q *big.Int, qlen, rolen int) []byte {
 // https://tools.ietf.org/html/rfc6979#section-3.2
 func generateSecret(q, x *big.Int, alg func() hash.Hash, hash []byte, test func(*big.Int) bool) *big.Int {
 	qlen := q.BitLen()
-	holen := abstractions.Size
+	holen := tmcrypto.HashSize
 	rolen := (qlen + 7) >> 3
 	bx := append(int2octets(x, rolen), bits2octets(hash, q, qlen, rolen)...)
 

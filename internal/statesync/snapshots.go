@@ -7,12 +7,12 @@ import (
 	"strings"
 	"sync"
 
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
 )
 
 // snapshotKey is a snapshot key used for lookups.
-type snapshotKey [ihash.Size]byte
+type snapshotKey [crypto.HashSize]byte
 
 // snapshot contains data about a snapshot.
 type snapshot struct {
@@ -31,7 +31,7 @@ type snapshot struct {
 func (s *snapshot) Key() snapshotKey {
 	// Hash.Write() never returns an error.
 	// Slush Todo: does this require compatibility with Cairo, so do we need hashes to be refactored?
-	hasher := ihash.New()
+	hasher := crypto.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", s.Height, s.Format, s.Chunks)))
 	hasher.Write(s.Hash)
 	hasher.Write(s.Metadata)

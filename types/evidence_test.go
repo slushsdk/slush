@@ -99,8 +99,8 @@ func TestDuplicateVoteEvidence(t *testing.T) {
 
 func TestDuplicateVoteEvidenceValidation(t *testing.T) {
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.Checksum([]byte("blockhash")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.Checksum([]byte("blockhash2")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.Checksum(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.Checksum(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
 	const chainID = "mychain"
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -152,7 +152,7 @@ func TestLightClientAttackEvidenceBasic(t *testing.T) {
 
 	header := makeHeaderRandom()
 	header.Height = height
-	blockID := makeBlockID(crypto.Checksum([]byte("blockhash")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.Checksum(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
 	extCommit, err := makeExtCommit(ctx, blockID, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	commit := extCommit.ToCommit()
@@ -353,8 +353,8 @@ func TestEvidenceProto(t *testing.T) {
 
 	// -------- Votes --------
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.Checksum([]byte("blockhash")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.Checksum([]byte("blockhash2")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
 	const chainID = "mychain"
 	v := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
@@ -398,8 +398,8 @@ func TestEvidenceVectors(t *testing.T) {
 	// Votes for duplicateEvidence
 	val := NewMockPV()
 	val.PrivKey = stark.GenPrivKeyFromSecret([]byte("it's a secret")) // deterministic key
-	blockID := makeBlockID(crypto.Checksum([]byte("blockhash")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.Checksum([]byte("blockhash2")), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
 	const chainID = "mychain"
 	v := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)

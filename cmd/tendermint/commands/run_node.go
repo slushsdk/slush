@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	cfg "github.com/tendermint/tendermint/config"
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -138,7 +138,7 @@ func checkGenesisHash(config *cfg.Config) error {
 		return fmt.Errorf("can't open genesis file: %w", err)
 	}
 	defer f.Close()
-	h := ihash.New()
+	h := crypto.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return fmt.Errorf("error when hashing genesis file: %w", err)
 	}
