@@ -30,7 +30,7 @@ type Address = bytes.HexBytes
 //
 // See: https://docs.tendermint.com/master/spec/core/data_structures.html#address
 func AddressHash(bz []byte) Address {
-	h := Sum256(bz)
+	h := Sum256Felt(bz)
 	size := AddressSize
 	if size <= 32 {
 		return Address(h[:size])
@@ -39,18 +39,18 @@ func AddressHash(bz []byte) Address {
 	return Address(h[:32])
 }
 
-func New() hash.Hash {
+func NewInt128() hash.Hash {
 	return pedersenInt128.New()
 }
 
 //Hashes b
-func Sum256(b []byte) [32]byte {
+func Sum256Int128(b []byte) [32]byte {
 	return pedersenInt128.Sum256(b)
 }
 
 // Checksum returns the SHA256 of the bz.
-func Checksum(bz []byte) []byte {
-	h := Sum256(bz)
+func ChecksumInt128(bz []byte) []byte {
+	h := Sum256Int128(bz)
 	return h[:]
 }
 
