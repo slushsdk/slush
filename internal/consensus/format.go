@@ -1,10 +1,14 @@
 package consensus
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/internal/evidence"
+	"github.com/tendermint/tendermint/smartcontracts"
+
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/types"
@@ -267,4 +271,58 @@ func FormatExternal(trustedLightBlock types.LightBlock, untrustedLightBlock type
 		ValidatorSetArgs:        FormatValidatorSet(validatorSet),
 		VerificationArgs:        FormatVerificationArgs(currentTime, maxClockDrift, trustingPeriod),
 	}
+}
+
+func (cs *State) FormatAndSendCommit() error {
+	logger := cs.logger.With("height", cs.Height)
+	trustedLightB, err := cs.getLightBlock(cs.Height - 1)
+	if err != nil {
+		return err
+	}
+
+	untrustedLightB, err := cs.getLightBlock(cs.Height)
+	if err != nil {
+		return err
+	}
+
+	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
+	FormatExternal(trustedLightB, untrustedLightB, trustedLightB.ValidatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
+
+	stdout, err := smartcontracts.Invoke(cs.VerifierDetails)
+	if err != nil {
+		return err
+	}
+	logger.Info(string(stdout))
+
+	return nil
+}
+
+func (cs *State) getLightBlock(height int64) (types.LightBlock, error) {
+	signedHeader, err := getSignedHeader(cs.blockStore, height)
+
+	if err != nil {
+		return types.LightBlock{}, err
+	}
+
+	validators, err := cs.stateStore.LoadValidators(height)
+	if err != nil {
+		return types.LightBlock{}, err
+	}
+
+	return types.LightBlock{SignedHeader: signedHeader, ValidatorSet: validators}, nil
+}
+
+func getSignedHeader(blockStore evidence.BlockStore, height int64) (*types.SignedHeader, error) {
+	blockMeta := blockStore.LoadBlockMeta(height)
+	if blockMeta == nil {
+		return nil, fmt.Errorf("don't have header at height #%d", height)
+	}
+	commit := blockStore.LoadBlockCommit(height)
+	if commit == nil {
+		return nil, fmt.Errorf("don't have commit at height #%d", height)
+	}
+	return &types.SignedHeader{
+		Header: &blockMeta.Header,
+		Commit: commit,
+	}, nil
 }
