@@ -4,6 +4,9 @@ import (
 	"hash"
 
 	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/pedersen/pedersenInt128"
+
+	"github.com/tendermint/tendermint/crypto/pedersen/pedersenFelt"
 
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -11,7 +14,7 @@ import (
 
 const (
 	// HashSize is the size in bytes of an AddressHash.
-	HashSize = pedersen.Size
+	HashSize = pedersenInt128.Size
 
 	// AddressSize is the size of a pubkey address.
 	AddressSize = 32
@@ -37,12 +40,12 @@ func AddressHash(bz []byte) Address {
 }
 
 func New() hash.Hash {
-	return pedersen.New()
+	return pedersenInt128.New()
 }
 
 //Hashes b
 func Sum256(b []byte) [32]byte {
-	return pedersen.Sum256(b)
+	return pedersenInt128.Sum256(b)
 }
 
 // Checksum returns the SHA256 of the bz.
@@ -51,18 +54,27 @@ func Checksum(bz []byte) []byte {
 	return h[:]
 }
 
+func NewFelt() hash.Hash {
+	return pedersenFelt.New()
+}
+
+//Hashes b
+func Sum256Felt(b []byte) [32]byte {
+	return pedersenFelt.Sum256(b)
+}
+
 // Checksum returns the SHA256 of the bz.
 func ChecksumFelt(bz []byte) []byte {
-	h := pedersen.Sum256Felt(bz)
+	h := pedersenFelt.Sum256(bz)
 	return h[:]
 }
 
 func HashInt128(b [16]byte) [32]byte {
-	return pedersen.HashInt128(b)
+	return pedersenInt128.HashInt128(b)
 }
 
 func HashFelt(b [32]byte) [32]byte {
-	return pedersen.HashFelt(b)
+	return pedersenFelt.HashFelt(b)
 }
 
 func ByteRounder(b []byte) []byte {

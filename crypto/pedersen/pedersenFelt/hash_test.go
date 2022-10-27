@@ -7,14 +7,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/pedersen/pedersenFelt"
 )
 
-type snapshotKey [pedersen.Size]byte
+type snapshotKey [pedersenFelt.Size]byte
 
 // the purpose of this test is primarily to ensure that the randomness
 // generation won't error.
 func TestHasher(t *testing.T) {
-	hasher := pedersen.New()
+	hasher := pedersenFelt.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 10, 10)))
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 50, 10)))
 
