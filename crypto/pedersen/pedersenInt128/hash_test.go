@@ -1,4 +1,4 @@
-package pedersen_test
+package pedersenInt128_test
 
 import (
 	"fmt"
@@ -6,15 +6,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/pedersen/pedersenInt128"
 )
 
-type snapshotKey [pedersen.Size]byte
+type snapshotKey [pedersenInt128.Size]byte
 
 // the purpose of this test is primarily to ensure that the randomness
 // generation won't error.
 func TestHasher(t *testing.T) {
-	hasher := pedersen.New()
+	hasher := pedersenInt128.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 10, 10)))
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 50, 10)))
 
@@ -29,7 +29,7 @@ func TestHasher(t *testing.T) {
 func TestByteRounder(t *testing.T) {
 	ba := []byte("asdv")
 	n := big.NewInt(0).SetBytes(ba)
-	m := big.NewInt(0).SetBytes(pedersen.ByteRounder(ba))
+	m := big.NewInt(0).SetBytes(pedersenInt128.ByteRounder(ba))
 
 	require.Equal(t, n.Cmp(m), 0)
 }

@@ -10,7 +10,9 @@ import (
 // TODO: make these have a large predefined capacity
 //we need 32 byte long "felts", it this is how we simulate felts here.
 var (
-	leafPrefix  = append(make([]byte, 31), []byte{0}...)
+	leafPrefix     = append(make([]byte, 15), []byte{0}...)
+	leafPrefixFelt = append(make([]byte, 31), []byte{0}...)
+
 	innerPrefix = append(make([]byte, 31), []byte{1}...)
 )
 
@@ -21,8 +23,16 @@ func emptyHash() []byte {
 
 // returns tmhash(felt(0x00) || leaf)
 func leafHash(leaf []byte) []byte {
-	a := make([]byte, 32)
+	a := make([]byte, 16)
 	copy(a, leafPrefix)
+	b := crypto.Checksum(append(a, pedersen.ByteRounder(leaf)...))
+	return b
+}
+
+// returns tmhash(felt(0x00) || leaf)
+func leafHashFelt(leaf []byte) []byte {
+	a := make([]byte, 32)
+	copy(a, leafPrefixFelt)
 	b := crypto.ChecksumFelt(append(a, pedersen.ByteRounder(leaf)...))
 	return b
 }
@@ -31,6 +41,13 @@ func leafHash(leaf []byte) []byte {
 func leafHashOpt(s hash.Hash, leaf []byte) []byte {
 	s.Reset()
 	s.Write(leafPrefix)
+	s.Write(pedersen.ByteRounder(leaf))
+	return s.Sum(nil)
+}
+
+func leafHashOptFelt(s hash.Hash, leaf []byte) []byte {
+	s.Reset()
+	s.Write(leafPrefixFelt)
 	s.Write(pedersen.ByteRounder(leaf))
 	return s.Sum(nil)
 }
