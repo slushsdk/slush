@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/pedersen"
+
 	"github.com/tendermint/tendermint/crypto/pedersen/pedersenInt128"
 )
 
@@ -29,7 +31,7 @@ func TestHasher(t *testing.T) {
 func TestByteRounder(t *testing.T) {
 	ba := []byte("asdv")
 	n := big.NewInt(0).SetBytes(ba)
-	m := big.NewInt(0).SetBytes(pedersenInt128.ByteRounder(ba))
+	m := big.NewInt(0).SetBytes(pedersen.ByteRounder(ba))
 
 	require.Equal(t, n.Cmp(m), 0)
 }
