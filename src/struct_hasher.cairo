@@ -42,7 +42,7 @@ from src.structs import (
     ValidatorSetData,
     FractionData,
 )
-from src.hashing import hash_int64, hash_int64_array, hash_felt, hash_felt_array
+from src.hashing import hash_int128, hash_int128_array,  hash_felt_array
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 
 func hashConsensus{range_check_ptr, pedersen_ptr: HashBuiltin*}(consensus: ConsensusData) -> (
@@ -57,7 +57,7 @@ func hashConsensus{range_check_ptr, pedersen_ptr: HashBuiltin*}(consensus: Conse
     assert consensus_array[0] = consensus_block;
     assert consensus_array[1] = consensus_app;
 
-    let (res: felt) = hash_int64_array(consensus_array, 2);
+    let (res: felt) = hash_int128_array(consensus_array, 2);
     return (res,);
 }
 
@@ -107,7 +107,7 @@ func hashValidator{range_check_ptr, pedersen_ptr: HashBuiltin*}(val: ValidatorDa
 ) {
     alloc_locals;
 
-    let vPHash: felt = hash_int64(val.voting_power);
+    let vPHash: felt = hash_int128(val.voting_power);
 
     let (local to_hash_array: felt*) = alloc();
     assert to_hash_array[0] = val.pub_key.ecdsa;
@@ -124,10 +124,10 @@ func hashHeader{range_check_ptr, pedersen_ptr: HashBuiltin*, bitwise_ptr: Bitwis
 
     // create array
     let (h0: felt) = hashConsensus(untrustedHeader.header.version);
-    let (h1: felt) = hash_int64_array(
+    let (h1: felt) = hash_int128_array(
         untrustedHeader.header.chain_id.chain_id_array, untrustedHeader.header.chain_id.len
     );
-    let (h2: felt) = hash_int64(untrustedHeader.header.height);
+    let (h2: felt) = hash_int128(untrustedHeader.header.height);
     let (h3: felt) = hashTime(untrustedHeader.header.time);
     let (h4: felt) = hashBlockID(untrustedHeader.header.last_block_id);
     tempvar h5 = untrustedHeader.header.last_commit_hash;
@@ -169,7 +169,7 @@ func canonicalPartSetHeaderHasher{pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     let total: felt = part_set_header.total;
     let hash: felt = part_set_header.hash;
-    let total_hash: felt = hash_int64(total);
+    let total_hash: felt = hash_int128(total);
 
     let (local all_array: felt*) = alloc();
 
@@ -185,7 +185,7 @@ func hashTime{range_check_ptr, pedersen_ptr: HashBuiltin*}(time: TimestampData) 
     res_hash: felt
 ) {
     alloc_locals;
-    let res: felt = hash_int64(time.nanos);
+    let res: felt = hash_int128(time.nanos);
     return (res,);
 }
 
@@ -223,11 +223,11 @@ func hashCanonicalVoteNoTime{pedersen_ptr: HashBuiltin*, range_check_ptr}(
     local chain_id_array: felt* = chain_id.chain_id_array;
     local chain_id_len: felt = chain_id.len;
 
-    let (hash_type: felt) = hash_int64(type);
-    let (hash_height: felt) = hash_int64(height);
-    let (hash_round: felt) = hash_int64(round);
+    let (hash_type: felt) = hash_int128(type);
+    let (hash_height: felt) = hash_int128(height);
+    let (hash_round: felt) = hash_int128(round);
     let (hash_block_id: felt) = hashBlockID(block_id=block_id);
-    let (hash_chain_id: felt) = hash_int64_array(chain_id_array, chain_id_len);
+    let (hash_chain_id: felt) = hash_int128_array(chain_id_array, chain_id_len);
 
     let (local all_array: felt*) = alloc();
     assert all_array[0] = hash_type;
