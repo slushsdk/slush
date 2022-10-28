@@ -10,7 +10,7 @@ import (
 // HashFromByteSlices computes a Merkle tree where the leaves are the byte slice,
 // in the provided order. It follows RFC-6962.
 func HashFromByteSlices(items [][]byte) []byte {
-	return hashFromByteSlices(crypto.New(), items)
+	return hashFromByteSlices(crypto.NewInt128(), items)
 }
 
 func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
@@ -54,10 +54,10 @@ func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
 //
 // These preliminary results suggest:
 //
-// 1. The performance of the HashFromByteSlice is pretty good
-// 2. Go has low overhead for recursive functions
-// 3. The performance of the HashFromByteSlice routine is dominated
-//    by the actual hashing of data
+//  1. The performance of the HashFromByteSlice is pretty good
+//  2. Go has low overhead for recursive functions
+//  3. The performance of the HashFromByteSlice routine is dominated
+//     by the actual hashing of data
 //
 // Although this work is in no way exhaustive, point #3 suggests that
 // optimization of this routine would need to take an alternative
@@ -68,7 +68,7 @@ func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
 // implementation for so little benefit.
 func HashFromByteSlicesIterative(input [][]byte) []byte {
 	items := make([][]byte, len(input))
-	sha := crypto.New()
+	sha := crypto.NewInt128()
 	for i, leaf := range input {
 		items[i] = leafHash(leaf)
 	}

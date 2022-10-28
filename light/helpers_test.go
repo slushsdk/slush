@@ -226,5 +226,5 @@ func mockNodeFromHeadersAndVals(headers map[int64]*types.SignedHeader,
 }
 
 func hash(s string) []byte {
-	return crypto.Checksum([]byte(s))
+	return crypto.ChecksumInt128([]byte(s))
 }

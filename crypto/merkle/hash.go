@@ -8,7 +8,7 @@ import (
 )
 
 // TODO: make these have a large predefined capacity
-//we need 32 byte long "felts", it this is how we simulate felts here.
+// we need 32 byte long "felts", it this is how we simulate felts here.
 var (
 	leafPrefix     = append(make([]byte, 15), []byte{0}...)
 	leafPrefixFelt = append(make([]byte, 31), []byte{0}...)
@@ -25,7 +25,7 @@ func emptyHash() []byte {
 func leafHash(leaf []byte) []byte {
 	a := make([]byte, 16)
 	copy(a, leafPrefix)
-	b := crypto.Checksum(append(a, pedersen.ByteRounder(leaf)...))
+	b := crypto.ChecksumInt128(append(a, pedersen.ByteRounder(leaf)...))
 	return b
 }
 

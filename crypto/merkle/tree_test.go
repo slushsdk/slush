@@ -221,7 +221,7 @@ func TestPedersen(t *testing.T) {
 
 	start := time.Now()
 
-	crypto.Checksum(items)
+	crypto.ChecksumInt128(items)
 
 	elapsed := time.Since(start)
 	fmt.Println("elapsed time", elapsed)

@@ -396,7 +396,7 @@ func (params ConsensusParams) HashConsensusParams() []byte {
 		panic(err)
 	}
 
-	sum := crypto.Sum256(bz)
+	sum := crypto.Sum256Int128(bz)
 
 	return sum[:]
 }

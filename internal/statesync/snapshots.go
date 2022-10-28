@@ -31,7 +31,7 @@ type snapshot struct {
 func (s *snapshot) Key() snapshotKey {
 	// Hash.Write() never returns an error.
 	// Slush Todo: does this require compatibility with Cairo, so do we need hashes to be refactored?
-	hasher := crypto.New()
+	hasher := crypto.NewInt128()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", s.Height, s.Format, s.Chunks)))
 	hasher.Write(s.Hash)
 	hasher.Write(s.Metadata)

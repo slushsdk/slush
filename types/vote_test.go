@@ -56,10 +56,10 @@ func exampleVote(tb testing.TB, t byte) *Vote {
 		Round:     2,
 		Timestamp: stamp,
 		BlockID: BlockID{
-			Hash: crypto.Checksum([]byte("blockID_hash")),
+			Hash: crypto.ChecksumInt128([]byte("blockID_hash")),
 			PartSetHeader: PartSetHeader{
 				Total: 1000000,
-				Hash:  crypto.Checksum([]byte("blockID_part_set_header_hash")),
+				Hash:  crypto.ChecksumInt128([]byte("blockID_part_set_header_hash")),
 			},
 		},
 		ValidatorAddress: crypto.AddressHash([]byte("validator_address")),

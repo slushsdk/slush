@@ -113,7 +113,7 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 	chainIDByte := pedersen.ByteRounder([]byte(canVote.ChainID))
 
 	var voteArray []byte
-	voteArray = bytes.Join([][]byte{crypto.Checksum(typeByte), crypto.Checksum(heightByte), crypto.Checksum(roundByte), blockIDHash, crypto.Checksum(chainIDByte)}, make([]byte, 0))
+	voteArray = bytes.Join([][]byte{crypto.ChecksumInt128(typeByte), crypto.ChecksumInt128(heightByte), crypto.ChecksumInt128(roundByte), blockIDHash, crypto.ChecksumInt128(chainIDByte)}, make([]byte, 0))
 
 	r := crypto.ChecksumFelt(voteArray)
 
@@ -123,26 +123,26 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 
 	extensionByte := pedersen.ByteRounder(canVote.Extension)
-	hasherForExtension := crypto.New()
+	hasherForExtension := crypto.NewInt128()
 	hasherForExtension.Write(extensionByte)
 
 	heightByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
-	hasherForHeight := crypto.New()
+	hasherForHeight := crypto.NewInt128()
 	hasherForHeight.Write(heightByte)
 
 	roundByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
-	hasherForRound := crypto.New()
+	hasherForRound := crypto.NewInt128()
 	hasherForRound.Write(roundByte)
 
 	chainIDByte := pedersen.ByteRounder([]byte(canVote.ChainId))
-	hasherForChainID := crypto.New()
+	hasherForChainID := crypto.NewInt128()
 	hasherForChainID.Write(chainIDByte)
 
 	var voteArray []byte
 	voteArray = bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
-	hasher := crypto.New()
+	hasher := crypto.NewInt128()
 	hasher.Write(voteArray)
 	r := hasher.Sum(nil)
 
@@ -153,7 +153,7 @@ func HashTime(timeStamp time.Time) []byte {
 
 	timeb := make([]byte, 8)
 	binary.BigEndian.PutUint64(timeb, uint64(timeStamp.UnixNano()))
-	return crypto.Checksum(timeb)
+	return crypto.ChecksumInt128(timeb)
 
 }
 
@@ -172,7 +172,7 @@ func HashCPSetHeader(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
 	totalb := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(totalb, uint64(canPartSetHeader.Total))
 
-	hashArray := append(crypto.Checksum(totalb), canPartSetHeader.Hash...)
+	hashArray := append(crypto.ChecksumInt128(totalb), canPartSetHeader.Hash...)
 
 	return crypto.ChecksumFelt(hashArray)
 }
