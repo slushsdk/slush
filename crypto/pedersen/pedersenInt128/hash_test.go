@@ -17,15 +17,23 @@ type snapshotKey [pedersenInt128.Size]byte
 // generation won't error.
 func TestHasher(t *testing.T) {
 	hasher := pedersenInt128.New()
-	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 10, 10)))
-	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 50, 10)))
+	num1, _ := big.NewInt(0).SetString("101", 10)
+	num2, _ := big.NewInt(0).SetString("102", 10)
+	num3, _ := big.NewInt(0).SetString("103", 10)
+	hasher.Write(pedersen.ByteRounder(num1.Bytes()))
+	hasher.Write(pedersen.ByteRounder(num2.Bytes()))
+	hasher.Write(pedersen.ByteRounder(num3.Bytes()))
 
 	var key snapshotKey
 	copy(key[:], hasher.Sum(nil))
 
-	fmt.Println(hasher.Sum(nil))
+	// fmt.Println(hasher)
+	// fmt.Println(hasher.Sum(nil))
+	// fmt.Println(hasher)
+	// fmt.Println([]byte(fmt.Sprintf("%v:%v:%v", 10, 50, 10)))
 
-	fmt.Println(key)
+	fmt.Println(big.NewInt(0).SetBytes(key[:]))
+	// require.Equal(t, n.Cmp(m), 0)
 }
 
 func TestByteRounder(t *testing.T) {
