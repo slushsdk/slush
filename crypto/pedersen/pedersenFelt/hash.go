@@ -1,4 +1,4 @@
-//This is the general hash function abstraction layer, we also add hashing for felt arrays, and single numbers (int128 and felts)
+// This is the general hash function abstraction layer, we also add hashing for felt arrays, and single numbers (int128 and felts)
 package pedersenFelt
 
 import (
@@ -9,20 +9,48 @@ import (
 
 const Size = 32
 
-func New() hash.Hash {
-	return new(pedersen.PedersenHash)
+type PedersenHashFelt struct {
+	Input []byte
 }
 
-//expects felts packed to 256 bits in b
+func New() hash.Hash {
+	return new(PedersenHashFelt)
+}
+
+// expects felts packed to 256 bits in b
 func Sum256(b []byte) [32]byte {
 
 	var res [32]byte
-	copy(res[:], pedersen.ByteRounder(pedersen.PedersenHashFeltArray(b)))
+	x := pedersen.PedersenHashFeltArray(b)
+	copy(res[:], x[:])
 	return res
 }
 
 func HashFelt(b [32]byte) [32]byte {
 	var res [32]byte
-	copy(res[:], pedersen.ByteRounder(pedersen.PedersenHashFelt(b)))
+	x := pedersen.PedersenHashFelt(b)
+	copy(res[:], x[:])
 	return res
+}
+
+func (ph *PedersenHashFelt) Sum(b []byte) []byte {
+	bs := pedersen.PedersenHashFeltArray(ph.Input)
+	return append(b, pedersen.ByteRounder(bs[:])...)
+}
+
+func (ph *PedersenHashFelt) BlockSize() int {
+	return Size
+}
+
+func (ph *PedersenHashFelt) Size() int {
+	return len(ph.Input)
+}
+
+func (ph *PedersenHashFelt) Reset() {
+	ph.Input = []byte{}
+}
+
+func (ph *PedersenHashFelt) Write(p []byte) (n int, err error) {
+	ph.Input = append(ph.Input, p...)
+	return len(ph.Input), nil
 }

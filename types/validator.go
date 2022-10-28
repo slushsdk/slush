@@ -177,9 +177,9 @@ func (v *Validator) Hash() []byte {
 
 	toHash := make([]byte, 32)
 	copy(toHash[:32], v.PubKey.Bytes()[:32])
-	toApp := crypto.Checksum(vPowerB)
+	toApp := crypto.ChecksumInt128(vPowerB)
 	toHash = append(toHash, toApp...)
-	bz := crypto.ChecksumFelt(toHash)
+	bz := crypto.ChecksumInt128(toHash)
 
 	return bz
 }

@@ -1,4 +1,4 @@
-//nolint: gosec
+// nolint: gosec
 package app
 
 import (
@@ -187,7 +187,7 @@ func hashItems(items map[string]string, height uint64) []byte {
 	}
 	sort.Strings(keys)
 
-	hasher := crypto.New()
+	hasher := crypto.NewInt128()
 	var b [8]byte
 	binary.BigEndian.PutUint64(b[:], height)
 	_, _ = hasher.Write(b[:])

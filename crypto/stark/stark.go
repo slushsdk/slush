@@ -56,11 +56,11 @@ func (pv PrivKey) PubKey() crypto.PubKey {
 
 func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
 
-	hash := crypto.Checksum(msg)
+	hash := crypto.ChecksumInt128(msg)
 
 	pv := privKey.MakeFull()
 
-	r, s, err := SignECDSA(&pv, hash, crypto.New)
+	r, s, err := SignECDSA(&pv, hash, crypto.NewFelt)
 	if err != nil {
 		panic(err)
 	}
@@ -156,7 +156,7 @@ func (p PubKey) MakeFull() PublicKey {
 
 func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
 
-	hash := crypto.Checksum(msg)
+	hash := crypto.ChecksumInt128(msg)
 
 	r, s, err := deserializeSig(sig)
 	if err != nil {
@@ -204,7 +204,7 @@ func deserializeSig(sig []byte) (r *big.Int, s *big.Int, err error) {
 	return r, s, nil
 }
 
-//We modify MarshalCompressed so that we fit into 2*32 bytes.
+// We modify MarshalCompressed so that we fit into 2*32 bytes.
 func (p PublicKey) MarshalCompressedStark() PubKey {
 	if p.IsNil() {
 		panic("can't marshall nil key")
