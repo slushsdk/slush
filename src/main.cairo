@@ -51,7 +51,7 @@ from src.utils import (
     verifySig,
     blockIDEqual,
 )
-from src.hashing import hash_int64, hash_int64_array, hash_felt, hash_felt_array
+from src.hashing import  hash_felt_array
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 from src.struct_hasher import (
     hashHeader,

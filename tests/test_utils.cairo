@@ -37,7 +37,7 @@ from src.structs import (
     FractionData,
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
-from src.hashing import hash_int64, hash_int64_array, hash_felt, hash_felt_array
+from src.hashing import hash_felt, hash_felt_array
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 from src.struct_hasher import (
     hashHeader,

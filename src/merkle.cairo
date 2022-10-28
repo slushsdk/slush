@@ -44,9 +44,9 @@ from src.structs import (
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
 from src.hashing import (
-    hash_int64,
-    hash_int64_array,
-    hash_felt,
+    // hash_int64,
+    hash_int128_array,
+    // hash_felt,
     hash_felt_array,
     hash_felt_array_with_prefix,
 )
