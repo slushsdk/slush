@@ -43,7 +43,7 @@ func NewInt128() hash.Hash {
 	return pedersenInt128.New()
 }
 
-//Hashes b
+// Hashes b
 func Sum256Int128(b []byte) [32]byte {
 	return pedersenInt128.Sum256(b)
 }
@@ -58,7 +58,7 @@ func NewFelt() hash.Hash {
 	return pedersenFelt.New()
 }
 
-//Hashes b
+// Hashes b
 func Sum256Felt(b []byte) [32]byte {
 	return pedersenFelt.Sum256(b)
 }
