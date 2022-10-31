@@ -161,7 +161,7 @@ func HashBlockID(m tmproto.CanonicalBlockID) []byte {
 	mHashCopy := make([]byte, 32)
 	copy(mHashCopy, m.GetHash())
 	toHash := append(mHashCopy, HashCPSetHeader(m.GetPartSetHeader())...)
-	return crypto.ChecksumFelt(toHash)
+	return crypto.ChecksumInt128(toHash)
 
 }
 
@@ -174,5 +174,5 @@ func HashCPSetHeader(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
 
 	hashArray := append(crypto.ChecksumInt128(totalb), canPartSetHeader.Hash...)
 
-	return crypto.ChecksumFelt(hashArray)
+	return crypto.ChecksumInt128(hashArray)
 }

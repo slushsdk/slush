@@ -60,7 +60,7 @@ func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
 
 	pv := privKey.MakeFull()
 
-	r, s, err := SignECDSA(&pv, hash, crypto.NewFelt)
+	r, s, err := SignECDSA(&pv, hash, crypto.NewInt128)
 	if err != nil {
 		panic(err)
 	}
