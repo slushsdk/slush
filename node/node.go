@@ -96,11 +96,10 @@ func newDefaultNode(
 		)
 	}
 
-	// verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
-	// }
-	verifierDetails := types.VerifierDetails{}
+	verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
+	}
 
 	pval, err := makeDefaultPrivval(cfg)
 	if err != nil {
