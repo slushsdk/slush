@@ -70,7 +70,7 @@ func TestValidateBlockHeader(t *testing.T) {
 	var lastExtCommit *types.ExtendedCommit
 
 	// some bad values
-	wrongHash := crypto.Checksum([]byte("this hash is wrong"))
+	wrongHash := crypto.ChecksumInt128([]byte("this hash is wrong"))
 	wrongVersion1 := state.Version.Consensus
 	wrongVersion1.Block += 2
 	wrongVersion2 := state.Version.Consensus

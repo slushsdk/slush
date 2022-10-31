@@ -12,8 +12,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/crypto"
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/libs/bits"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmmath "github.com/tendermint/tendermint/libs/math"
@@ -453,32 +453,33 @@ func (h *Header) Hash() tmbytes.HexBytes {
 
 	pbt := HashTime(h.Time)
 
-	bzbi := make([]byte, 8)
+	bzbi := make([]byte, crypto.HashSize)
 	if h.LastBlockID.IsNil() {
-		bzbi = make([]byte, 8)
+		bzbi = make([]byte, crypto.HashSize)
 	} else {
-		bzbi = BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
+		bzbi = HashBlockID(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 	}
 
+	chainIDB := pedersen.ByteRounder([]byte(h.ChainID))
+
 	heightB := make([]byte, 8)
-	chainIDB := []byte(h.ChainID)
 	encoding_binary.BigEndian.PutUint64(heightB, uint64(h.Height))
 
 	return merkle.HashFromByteSlices([][]byte{
-		ihash.ByteRounder(hbz),
-		ihash.ByteRounder(chainIDB),
-		heightB,
-		ihash.ByteRounder(pbt),
-		ihash.ByteRounder(bzbi),
-		ihash.ByteRounder([]byte(h.LastCommitHash)),
-		ihash.ByteRounder(h.DataHash),
-		ihash.ByteRounder([]byte(h.ValidatorsHash)),
-		ihash.ByteRounder([]byte(h.NextValidatorsHash)),
-		ihash.ByteRounder([]byte(h.ConsensusHash)),
-		ihash.ByteRounder([]byte(h.AppHash)),
-		ihash.ByteRounder([]byte(h.LastResultsHash)),
-		ihash.ByteRounder([]byte(h.EvidenceHash)),
-		ihash.ByteRounder([]byte(h.ProposerAddress)),
+		pedersen.ByteRounder(hbz),
+		pedersen.ByteRounder(crypto.ChecksumInt128(chainIDB)),
+		pedersen.ByteRounder(crypto.ChecksumInt128(heightB)),
+		pedersen.ByteRounder(pbt),
+		pedersen.ByteRounder(bzbi),
+		pedersen.ByteRounder([]byte(h.LastCommitHash)),
+		pedersen.ByteRounder(h.DataHash),
+		pedersen.ByteRounder([]byte(h.ValidatorsHash)),
+		pedersen.ByteRounder([]byte(h.NextValidatorsHash)),
+		pedersen.ByteRounder([]byte(h.ConsensusHash)),
+		pedersen.ByteRounder([]byte(h.AppHash)),
+		pedersen.ByteRounder([]byte(h.LastResultsHash)),
+		pedersen.ByteRounder([]byte(h.EvidenceHash)),
+		pedersen.ByteRounder([]byte(h.ProposerAddress)),
 	})
 }
 

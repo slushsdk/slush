@@ -8,7 +8,6 @@ import (
 	rand "crypto/rand"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/internal/jsontypes"
@@ -56,9 +55,12 @@ func (pv PrivKey) PubKey() crypto.PubKey {
 }
 
 func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
+
+	hash := crypto.ChecksumInt128(msg)
+
 	pv := privKey.MakeFull()
 
-	r, s, err := SignECDSA(&pv, msg, abstractions.New)
+	r, s, err := SignECDSA(&pv, hash, crypto.NewInt128)
 	if err != nil {
 		panic(err)
 	}
@@ -154,12 +156,14 @@ func (p PubKey) MakeFull() PublicKey {
 
 func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
 
+	hash := crypto.ChecksumInt128(msg)
+
 	r, s, err := deserializeSig(sig)
 	if err != nil {
 		return false
 	}
 	pb := p.MakeFull()
-	return Verify(&pb, msg, r, s)
+	return Verify(&pb, hash, r, s)
 }
 
 func (p PubKey) Equals(pb crypto.PubKey) bool {
@@ -200,16 +204,16 @@ func deserializeSig(sig []byte) (r *big.Int, s *big.Int, err error) {
 	return r, s, nil
 }
 
-//We modify MarshalCompressed so that we fit into 32 bytes, we can do this with 252 bits.
+// We modify MarshalCompressed so that we fit into 2*32 bytes.
 func (p PublicKey) MarshalCompressedStark() PubKey {
 	if p.IsNil() {
 		panic("can't marshall nil key")
 	}
 	curve := p.Curve
 	x := *p.X
-	y := p.Y
+	y := *p.Y
 
-	byteLen := 2 * (curve.Params().BitSize + 7) / 8
+	byteLen := 2 * ((curve.Params().BitSize + 7) / 8)
 	compressedX := make([]byte, byteLen/2)
 	compressedY := make([]byte, byteLen/2)
 
@@ -223,7 +227,7 @@ func (p PublicKey) MarshalCompressedStark() PubKey {
 
 func UnmarshalCompressedStark(curve weierstrass.Curve, data []byte) PublicKey {
 
-	byteLen := 2 * (curve.Params().BitSize + 7) / 8
+	byteLen := 2 * ((curve.Params().BitSize + 7) / 8)
 	if len(data) != byteLen {
 		// notest
 		panic("marshalling failed, wrong byte len")
@@ -233,7 +237,11 @@ func UnmarshalCompressedStark(curve weierstrass.Curve, data []byte) PublicKey {
 	x := new(big.Int).SetBytes(data[:32])
 	y := new(big.Int).SetBytes(data[32:])
 
-	pb := PublicKey{weierstrass.Stark(), x, y}
+	if !curve.IsOnCurve(x, y) {
+		return PublicKey{}
+	}
+
+	pb := PublicKey{curve, x, y}
 
 	return pb
 }

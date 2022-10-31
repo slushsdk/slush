@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	encoding_binary "encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -166,6 +167,20 @@ func (v *Validator) Bytes() []byte {
 	if err != nil {
 		panic(err)
 	}
+	return bz
+}
+
+func (v *Validator) Hash() []byte {
+
+	vPowerB := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(vPowerB, uint64(v.VotingPower))
+
+	toHash := make([]byte, 32)
+	copy(toHash[:32], v.PubKey.Bytes()[:32])
+	toApp := crypto.ChecksumInt128(vPowerB)
+	toHash = append(toHash, toApp...)
+	bz := crypto.ChecksumInt128(toHash)
+
 	return bz
 }
 

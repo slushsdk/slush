@@ -95,6 +95,12 @@ func newDefaultNode(
 			defaultGenesisDocProviderFunc(cfg),
 		)
 	}
+
+	verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
+	}
+
 	pval, err := makeDefaultPrivval(cfg)
 	if err != nil {
 		return nil, err
@@ -104,17 +110,21 @@ func newDefaultNode(
 	if err != nil {
 		return nil, err
 	}
-
 	return makeNode(
 		ctx,
 		cfg,
 		pval,
 		nodeKey,
+		verifierDetails,
 		appClient,
 		defaultGenesisDocProviderFunc(cfg),
 		config.DefaultDBProvider,
 		logger,
 	)
+}
+
+func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
+	state.VerifierDetails = vd
 }
 
 // makeNode returns a new, ready to go, Tendermint Node.
@@ -123,6 +133,7 @@ func makeNode(
 	cfg *config.Config,
 	filePrivval *privval.FilePV,
 	nodeKey types.NodeKey,
+	verifierDetails types.VerifierDetails,
 	client abciclient.Client,
 	genesisDocProvider genesisDocProvider,
 	dbProvider config.DBProvider,
@@ -305,6 +316,7 @@ func makeNode(
 		consensus.StateMetrics(nodeMetrics.consensus),
 		consensus.SkipStateStoreBootstrap,
 	)
+	AddVerifierDetails(csState, verifierDetails)
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 	}

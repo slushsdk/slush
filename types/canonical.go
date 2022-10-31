@@ -2,10 +2,12 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	encoding_binary "encoding/binary"
 	time "time"
 
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -90,7 +92,6 @@ func CanonicalTime(t time.Time) string {
 
 func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 
-	var voteArray []byte
 	typeByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Type))
 
@@ -104,37 +105,44 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 	if canVote.BlockID == nil {
 		blockIDHash = []byte{}
 	} else {
-		blockIDHash = BlockIDHasher(*canVote.GetBlockID())
+		blockIDHash = HashBlockID(*canVote.GetBlockID())
 	}
 
 	//timestampHash := HashTime(canVote.Timestamp)
 
-	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainID))
+	chainIDByte := pedersen.ByteRounder([]byte(canVote.ChainID))
 
-	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, chainIDByte}, make([]byte, 0))
-	hasher := ihash.New()
-	hasher.Write(voteArray)
-	r := hasher.Sum(nil)
+	var voteArray []byte
+	voteArray = bytes.Join([][]byte{crypto.ChecksumInt128(typeByte), crypto.ChecksumInt128(heightByte), crypto.ChecksumInt128(roundByte), blockIDHash, crypto.ChecksumInt128(chainIDByte)}, make([]byte, 0))
+
+	r := crypto.ChecksumFelt(voteArray)
 
 	return r
 }
 
 func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 
-	var voteArray []byte
-
-	extensionByte := ihash.ByteRounder(canVote.Extension)
+	extensionByte := pedersen.ByteRounder(canVote.Extension)
+	hasherForExtension := crypto.NewInt128()
+	hasherForExtension.Write(extensionByte)
 
 	heightByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
+	hasherForHeight := crypto.NewInt128()
+	hasherForHeight.Write(heightByte)
 
 	roundByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
+	hasherForRound := crypto.NewInt128()
+	hasherForRound.Write(roundByte)
 
-	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainId))
+	chainIDByte := pedersen.ByteRounder([]byte(canVote.ChainId))
+	hasherForChainID := crypto.NewInt128()
+	hasherForChainID.Write(chainIDByte)
 
-	voteArray = bytes.Join([][]byte{extensionByte, heightByte, roundByte, chainIDByte}, make([]byte, 0))
-	hasher := ihash.New()
+	var voteArray []byte
+	voteArray = bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
+	hasher := crypto.NewInt128()
 	hasher.Write(voteArray)
 	r := hasher.Sum(nil)
 
@@ -143,33 +151,28 @@ func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 
 func HashTime(timeStamp time.Time) []byte {
 
-	hasher := ihash.New()
-	hasher.Write(ihash.ByteRounder([]byte(tmtime.Canonical(timeStamp).Format(TimeFormat))))
-	return hasher.Sum(nil)
+	timeb := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeb, uint64(timeStamp.UnixNano()))
+	return crypto.ChecksumInt128(timeb)
 
 }
 
-func BlockIDHasher(m tmproto.CanonicalBlockID) []byte {
+func HashBlockID(m tmproto.CanonicalBlockID) []byte {
+	mHashCopy := make([]byte, 32)
+	copy(mHashCopy, m.GetHash())
+	toHash := append(mHashCopy, HashCPSetHeader(m.GetPartSetHeader())...)
+	return crypto.ChecksumInt128(toHash)
 
-	hasher := ihash.New()
-	hasher.Write(m.GetHash())
-	hasher.Write(CPSetHeaderHasher(m.GetPartSetHeader()))
-
-	r := hasher.Sum(nil)
-
-	return r
 }
 
-func CPSetHeaderHasher(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
+func HashCPSetHeader(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
+	//The organising principle is for hashes we put it directly into the hasher,
+	// for other formats we hash them seperately first
 
-	hasher := ihash.New()
-	b := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(b, uint64(canPartSetHeader.Total))
-	hasher.Write(b)
-	hasher.Write(canPartSetHeader.Hash)
+	totalb := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(totalb, uint64(canPartSetHeader.Total))
 
-	r := hasher.Sum(nil)
+	hashArray := append(crypto.ChecksumInt128(totalb), canPartSetHeader.Hash...)
 
-	return r
-
+	return crypto.ChecksumInt128(hashArray)
 }

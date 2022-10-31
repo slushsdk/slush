@@ -57,12 +57,13 @@ func New(
 		if err != nil {
 			return nil, err
 		}
-
+		vd := types.VerifierDetails{}
 		return makeNode(
 			ctx,
 			conf,
 			pval,
 			nodeKey,
+			vd,
 			cf,
 			genProvider,
 			config.DefaultDBProvider,

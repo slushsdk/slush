@@ -187,6 +187,7 @@ func NewPartSetFromData(data []byte, partSize uint32) *PartSet {
 	// Compute merkle proofs
 	root, proofs := merkle.ProofsFromByteSlices(partsBytes)
 	for i := uint32(0); i < total; i++ {
+
 		parts[i].Proof = *proofs[i]
 	}
 	return &PartSet{

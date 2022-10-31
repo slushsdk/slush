@@ -102,6 +102,7 @@ func (dve *DuplicateVoteEvidence) ABCI() []abci.Misbehavior {
 
 // Bytes returns the proto-encoded evidence as a byte array.
 func (dve *DuplicateVoteEvidence) Bytes() []byte {
+	//Slush Todo: we have to remove this encoding
 	pbe := dve.ToProto()
 	bz, err := pbe.Marshal()
 	if err != nil {
@@ -113,7 +114,7 @@ func (dve *DuplicateVoteEvidence) Bytes() []byte {
 
 // Hash returns the hash of the evidence.
 func (dve *DuplicateVoteEvidence) Hash() []byte {
-	return crypto.Checksum(dve.Bytes())
+	return crypto.ChecksumInt128(dve.Bytes())
 }
 
 // Height returns the height of the infraction
@@ -372,12 +373,16 @@ func (l *LightClientAttackEvidence) ConflictingHeaderIsInvalid(trustedHeader *He
 // TODO: We should change the hash to include the commit, header, total voting power, byzantine
 // validators and timestamp
 func (l *LightClientAttackEvidence) Hash() []byte {
+
 	buf := make([]byte, binary.MaxVarintLen64)
-	n := binary.PutVarint(buf, l.CommonHeight)
-	bz := make([]byte, crypto.HashSize+n)
+	binary.BigEndian.PutUint64(buf, uint64(l.CommonHeight))
+	commonHeightHash := crypto.ChecksumInt128(buf)
+
+	bz := make([]byte, 2*crypto.HashSize)
 	copy(bz[:crypto.HashSize-1], l.ConflictingBlock.Hash().Bytes())
-	copy(bz[crypto.HashSize:], buf)
-	return crypto.Checksum(bz)
+	copy(bz[crypto.HashSize:], commonHeightHash)
+
+	return crypto.ChecksumFelt(bz)
 }
 
 // Height returns the last height at which the primary provider and witness provider had the same header.

@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/libs/bits"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -241,7 +241,7 @@ func makeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) BlockID {
 
 var nilBytes []byte
 
-// This follows RFC-6962, i.e. `echo -n '' | sha256sum`
+// This follows RFC-6962, i.e. `echo -n ” | sha256sum`
 var emptyBytes = []byte{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
 	0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b,
 	0x78, 0x52, 0xb8, 0x55}
@@ -326,10 +326,10 @@ func TestMaxCommitBytes(t *testing.T) {
 		Height: math.MaxInt64,
 		Round:  math.MaxInt32,
 		BlockID: BlockID{
-			Hash: crypto.Checksum([]byte("blockID_hash")),
+			Hash: crypto.ChecksumInt128([]byte("blockID_hash")),
 			PartSetHeader: PartSetHeader{
 				Total: math.MaxInt32,
-				Hash:  crypto.Checksum([]byte("blockID_part_set_header_hash")),
+				Hash:  crypto.ChecksumInt128([]byte("blockID_part_set_header_hash")),
 			},
 		},
 		Signatures: []CommitSig{cs},
@@ -362,14 +362,14 @@ func TestHeaderHash(t *testing.T) {
 			Height:             3,
 			Time:               time.Date(2019, 10, 13, 16, 14, 44, 0, time.UTC),
 			LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), 6, make([]byte, crypto.HashSize)),
-			LastCommitHash:     crypto.Checksum([]byte("last_commit_hash")),
-			DataHash:           crypto.Checksum([]byte("data_hash")),
-			ValidatorsHash:     crypto.Checksum([]byte("validators_hash")),
-			NextValidatorsHash: crypto.Checksum([]byte("next_validators_hash")),
-			ConsensusHash:      crypto.Checksum([]byte("consensus_hash")),
-			AppHash:            crypto.Checksum([]byte("app_hash")),
-			LastResultsHash:    crypto.Checksum([]byte("last_results_hash")),
-			EvidenceHash:       crypto.Checksum([]byte("evidence_hash")),
+			LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
+			DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
+			ValidatorsHash:     crypto.ChecksumInt128([]byte("validators_hash")),
+			NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
+			ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
+			AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
+			LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
+			EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
 			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 		}, hexBytesFromString(t, "21208EBC14908E6DA2941FF8D7BDDD4B96F34FF38AA3BC88208F955743DBA955")},
 		{"nil header yields nil", nil, nil},
@@ -379,14 +379,14 @@ func TestHeaderHash(t *testing.T) {
 			Height:             3,
 			Time:               time.Date(2019, 10, 13, 16, 14, 44, 0, time.UTC),
 			LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), 6, make([]byte, crypto.HashSize)),
-			LastCommitHash:     crypto.Checksum([]byte("last_commit_hash")),
-			DataHash:           crypto.Checksum([]byte("data_hash")),
+			LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
+			DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
 			ValidatorsHash:     nil,
-			NextValidatorsHash: crypto.Checksum([]byte("next_validators_hash")),
-			ConsensusHash:      crypto.Checksum([]byte("consensus_hash")),
-			AppHash:            crypto.Checksum([]byte("app_hash")),
-			LastResultsHash:    crypto.Checksum([]byte("last_results_hash")),
-			EvidenceHash:       crypto.Checksum([]byte("evidence_hash")),
+			NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
+			ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
+			AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
+			LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
+			EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
 			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 		}, nil},
 	}
@@ -411,11 +411,11 @@ func TestHeaderHash(t *testing.T) {
 					case int64:
 						fB := make([]byte, 8)
 						encoding_binary.BigEndian.PutUint64(fB, uint64(f))
-						byteSlices = append(byteSlices, ihash.ByteRounder(fB))
+						byteSlices = append(byteSlices, pedersen.ByteRounder(fB))
 					case bytes.HexBytes:
-						byteSlices = append(byteSlices, ihash.ByteRounder(f))
+						byteSlices = append(byteSlices, pedersen.ByteRounder(f))
 					case string:
-						byteSlices = append(byteSlices, ihash.ByteRounder([]byte(f)))
+						byteSlices = append(byteSlices, pedersen.ByteRounder([]byte(f)))
 					case time.Time:
 						bz := HashTime(f)
 
@@ -426,7 +426,7 @@ func TestHeaderHash(t *testing.T) {
 						byteSlices = append(byteSlices, bz)
 					case BlockID:
 						fProto := CanonicalizeBlockID(f.ToProto())
-						bz := BlockIDHasher(*(fProto))
+						bz := HashBlockID(*(fProto))
 
 						byteSlices = append(byteSlices, bz)
 					default:
@@ -463,14 +463,14 @@ func TestMaxHeaderBytes(t *testing.T) {
 		Height:             math.MaxInt64,
 		Time:               timestamp,
 		LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), math.MaxInt32, make([]byte, crypto.HashSize)),
-		LastCommitHash:     crypto.Checksum([]byte("last_commit_hash")),
-		DataHash:           crypto.Checksum([]byte("data_hash")),
-		ValidatorsHash:     crypto.Checksum([]byte("validators_hash")),
-		NextValidatorsHash: crypto.Checksum([]byte("next_validators_hash")),
-		ConsensusHash:      crypto.Checksum([]byte("consensus_hash")),
-		AppHash:            crypto.Checksum([]byte("app_hash")),
-		LastResultsHash:    crypto.Checksum([]byte("last_results_hash")),
-		EvidenceHash:       crypto.Checksum([]byte("evidence_hash")),
+		LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
+		DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
+		ValidatorsHash:     crypto.ChecksumInt128([]byte("validators_hash")),
+		NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
+		ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
+		AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
+		LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
+		EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
 		ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 	}
 

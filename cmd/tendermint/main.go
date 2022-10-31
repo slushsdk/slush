@@ -46,7 +46,6 @@ func main() {
 		commands.NewCompletionCmd(rcmd, true),
 		commands.MakeCompactDBCommand(conf, logger),
 	)
-
 	// NOTE:
 	// Users wishing to:
 	//	* Use an external signer for their validators
