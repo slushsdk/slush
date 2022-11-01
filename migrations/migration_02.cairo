@@ -15,7 +15,7 @@ func up() {
             "externalVerifyAdjacent",
             inputJson,
             config={
-                "auto_estimate_fee": True,
+                "max_fee": "auto",
                 "wait_for_acceptance": True
             }
         )
