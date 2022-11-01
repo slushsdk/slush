@@ -37,7 +37,10 @@ from src.structs import (
     FractionData,
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
-from src.hashing import hash_int64, hash_int64_array, hash_felt, hash_felt_array
+from src.hashing import (
+    hash_felt,
+    hash_felt_array
+)
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 from src.struct_hasher import (
     hashHeader,
@@ -79,11 +82,11 @@ func test_hashCanonicalVoteNoTime{pedersen_ptr: HashBuiltin*, range_check_ptr}()
     let signature_data: SignatureData = SignatureData(signature_r=0, signature_s=1);
 
     local commitsig_Absent: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Absent, validators_address=1,
+        block_id_flag=Tendermint_BlockIDFLag_Absent, validator_address=1,
         timestamp=time0, signature=signature_data);
 
     local commitsig_Commit: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validators_address=1,
+        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=1,
         timestamp=time0, signature=signature_data);
 
     let (local commitsig1_pointer: CommitSigData*) = alloc();

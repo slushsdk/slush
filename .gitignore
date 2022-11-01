@@ -4,3 +4,4 @@ build
 ..*.*~
 tendermint-cairo
 .idea/
+/pkey
