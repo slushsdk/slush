@@ -136,7 +136,9 @@ func LoadVerifierDetails(verifierAddressPath string, verifierAbiPath string, acc
 	// 	return VerifierDetails{}, err
 	// }
 
-	// verifierDetails := VerifierDetails{verifierAddress, verifierAbiLocation, accountPrivKeyPath, accountAddress}
-	// return verifierDetails, nil
+	// 	verifierDetails := VerifierDetails{verifierAddress, verifierAbiLocation, accountPrivKeyPath, accountAddress}
+	// 	return verifierDetails, nil
+
 	return VerifierDetails{}, nil
+
 }
