@@ -43,13 +43,7 @@ from src.structs import (
     FractionData,
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
-from src.hashing import (
-    // hash_int64,
-    hash_int128_array,
-    // hash_felt,
-    hash_felt_array,
-    hash_felt_array_with_prefix,
-)
+from src.hashing import hash_int128_array, hash_felt_array, hash_felt_array_with_prefix
 
 // returns the largest power of two that is smaller than the input
 func get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt) -> (res: felt) {
