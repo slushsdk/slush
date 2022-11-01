@@ -316,7 +316,9 @@ func makeNode(
 		consensus.StateMetrics(nodeMetrics.consensus),
 		consensus.SkipStateStoreBootstrap,
 	)
+
 	AddVerifierDetails(csState, verifierDetails)
+
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 	}
