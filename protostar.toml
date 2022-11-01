@@ -2,7 +2,7 @@
 protostar_version = "0.5.0"
 
 ["protostar.project"]
-libs_path = "tendermint-cairo"
+libs_path = "./"
 
 ["protostar.contracts"]
 main = [
