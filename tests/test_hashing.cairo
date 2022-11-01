@@ -37,13 +37,7 @@ from src.structs import (
     FractionData,
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
-from src.hashing import (
-    // hash_int64,
-    hash_int128_array,
-    // split_felt_to_64,
-    // hash_felt,
-    hash_felt_array
-)
+from src.hashing import hash_int128_array, hash_felt_array
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 from src.struct_hasher import (
     hashHeader,
@@ -82,8 +76,6 @@ func test_hash_int128_array{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> ()
     return ();
 }
 
-
-
 @external
 func test_hash_felt_array{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
     // create array of felts to be split and hashed
@@ -102,7 +94,6 @@ func test_hash_felt_array{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
     // check that this res_hash is the same as hashing the single felt by hand
 
     let low_low3: felt = 104;
-
 
     let low_low4: felt = 105;
 
