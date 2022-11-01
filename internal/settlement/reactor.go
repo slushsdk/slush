@@ -2,32 +2,21 @@ package settlement
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/service"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
-)
-
-var _ service.Service = (*Reactor)(nil)
-
-const (
-	maxMsgSize = 1048576 // 1MB TODO make it configurable
-
-	// broadcast all uncommitted evidence this often. This sets when the reactor
-	// goes back to the start of the list and begins sending the evidence again.
-	// Most evidence should be committed in the very next block that is why we wait
-	// just over the block production rate before sending evidence again.
-	broadcastEvidenceIntervalS = 10
 )
 
 // Reactor handles evpool evidence broadcasting amongst peers.
 type Reactor struct {
 	service.BaseService
 	logger log.Logger
+
+	headerPool    HeaderPool
+	receiveBlocks <-chan types.LightBlock
 
 	mtx sync.Mutex
 }
@@ -41,7 +30,8 @@ func NewReactor(
 	peerEvents p2p.PeerEventSubscriber,
 ) *Reactor {
 	r := &Reactor{
-		logger: logger,
+		logger:     logger,
+		headerPool: HeaderPool{Headers: make([]types.LightBlock, 0)},
 	}
 
 	r.BaseService = *service.NewBaseService(logger, "Evidence", r)
@@ -61,27 +51,3 @@ func (r *Reactor) OnStart(ctx context.Context) error {
 // OnStop stops the reactor by signaling to all spawned goroutines to exit and
 // blocking until they all exit.
 func (r *Reactor) OnStop() {}
-
-// handleEvidenceMessage handles envelopes sent from peers on the EvidenceChannel.
-// It returns an error only if the Envelope.Message is unknown for this channel
-// or if the given evidence is invalid. This should never be called outside of
-// handleMessage.
-func (r *Reactor) handleEvidenceMessage(ctx context.Context, envelope *p2p.Envelope) error {
-	logger := r.logger.With("peer", envelope.From)
-
-	switch msg := envelope.Message.(type) {
-	case *tmproto.Evidence:
-		// Process the evidence received from a peer
-		// Evidence is sent and received one by one
-		_, err := types.EvidenceFromProto(msg)
-		if err != nil {
-			logger.Error("failed to convert evidence", "err", err)
-			return err
-		}
-
-	default:
-		return fmt.Errorf("received unknown message: %T", msg)
-	}
-
-	return nil
-}

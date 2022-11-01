@@ -4,6 +4,6 @@ import (
 	"github.com/tendermint/tendermint/types"
 )
 
-type headerPool struct {
-	headers []types.LightBlock
+type HeaderPool struct {
+	Headers []types.LightBlock
 }
