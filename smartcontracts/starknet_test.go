@@ -13,7 +13,8 @@ import (
 )
 
 func TestDeclare(t *testing.T) {
-	smartcontracts.DeclareDeploy()
+	// Todo: fill this out
+	//  smartcontracts.DeclareDeploy()
 }
 
 func TestInvoke(t *testing.T) {
