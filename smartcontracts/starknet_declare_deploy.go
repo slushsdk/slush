@@ -1,9 +1,12 @@
 package smartcontracts
 
 import (
+	"errors"
 	"fmt"
+	"math/big"
 	"os"
 	"os/exec"
+	"regexp"
 )
 
 // struct ContractAddressStruct{
@@ -12,7 +15,7 @@ import (
 
 // struct
 
-func DeclareDeploy(pathToFiles string, network string, devnetbool bool) ([]byte, error) {
+func DeclareDeploy(pathToFiles string, network string, devnetbool bool) (*big.Int, *big.Int, error) {
 
 	//"get contract class hash out of return value"
 
@@ -32,12 +35,12 @@ func DeclareDeploy(pathToFiles string, network string, devnetbool bool) ([]byte,
 		} else {
 			pkeyBytes, err := os.ReadFile(pathToFiles + "/pkey")
 			if err != nil {
-				return []byte{}, err
+				return big.NewInt(0), big.NewInt(0), err
 			}
 
 			addressBytes, err := os.ReadFile(pathToFiles + "/address")
 			if err != nil {
-				return []byte{}, err
+				return big.NewInt(0), big.NewInt(0), err
 			}
 			deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", string(pkeyBytes), "--account-address", string(addressBytes), "--no-confirm")
 			deploycmd.Dir = pathToFiles
@@ -47,12 +50,12 @@ func DeclareDeploy(pathToFiles string, network string, devnetbool bool) ([]byte,
 
 		pkeyBytes, err := os.ReadFile(pathToFiles + "/pkey")
 		if err != nil {
-			return []byte{}, err
+			return big.NewInt(0), big.NewInt(0), err
 		}
 
 		addressBytes, err := os.ReadFile(pathToFiles + "/address")
 		if err != nil {
-			return []byte{}, err
+			return big.NewInt(0), big.NewInt(0), err
 		}
 
 		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", string(pkeyBytes), "--account-address", string(addressBytes), "--network", network, "--no-confirm")
@@ -61,6 +64,24 @@ func DeclareDeploy(pathToFiles string, network string, devnetbool bool) ([]byte,
 
 	deploystdout, err := deploycmd.CombinedOutput()
 
+	contractA := regexp.MustCompile(`contract_address *.*?\n`)
+	classH := regexp.MustCompile(`class_hash *.*?\n`)
+
+	zerox := regexp.MustCompile(`0x.{64}`)
+	contractAddress, b := big.NewInt(0).SetString(string(zerox.Find(contractA.Find(deploystdout)))[2:], 16)
+
+	if b != true {
+		fmt.Println(deploystdout)
+		return big.NewInt(0), big.NewInt(0), errors.New("Was not able to parse address starknet declare/deploy output")
+	}
+
+	classHash, b := big.NewInt(0).SetString(string(zerox.Find(classH.Find(deploystdout))[2:]), 16)
+	if b != true {
+		fmt.Println(deploystdout)
+		return big.NewInt(0), big.NewInt(0), errors.New("Was not able to parse class hash in starknet declare/deploy output")
+	}
+
 	fmt.Println(string(deploystdout))
-	return deploystdout, err
+
+	return contractAddress, classHash, err
 }
