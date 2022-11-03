@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 
 	"github.com/spf13/cobra"
 
@@ -44,18 +43,14 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 				b = false
 
 			}
-			ret, err := smartcontracts.DeclareDeploy(pathToFiles, network, b)
+			address, class, err := smartcontracts.DeclareDeploy(pathToFiles, network, b)
 
 			if err != nil {
-				fmt.Println(string(ret))
-				fmt.Println(err)
 				return err
 			}
-			logger.Info("Successfully declared and deployed contract at:...")
-			line := regexp.MustCompile(`contract_address *.*?\n`)
-			zerox := regexp.MustCompile(`0x.{64}`)
-			fmt.Printf("%q\n", (line.Find(ret)))
-			fmt.Printf("%q\n", zerox.Find(line.Find(ret)))
+
+			logger.Info("Successfully declared with classhash: ", fmt.Sprintf("%x", class), "")
+			logger.Info("and deployed contract address:", fmt.Sprintf("%x", address), "")
 
 			return initFilesWithConfig(cmd.Context(), conf, logger, keyType)
 
