@@ -16,7 +16,7 @@ func TestFormatSignedHeader(t *testing.T) {
 	var lightBlock types.LightBlock
 	json.Unmarshal([]byte(lightBlockString), &lightBlock)
 
-	res := FormatSignedHeader(*lightBlock.SignedHeader);
+	res := FormatSignedHeader(*lightBlock.SignedHeader)
 
 	resLightBlock, _ := json.Marshal(res)
 	resLightBlockString := string(resLightBlock)
@@ -33,7 +33,7 @@ func TestFormatValidatorSet(t *testing.T) {
 
 	validators.Proposer = validators.Validators[0]
 
-	res := FormatValidatorSet(&validators);
+	res := FormatValidatorSet(&validators)
 
 	resLightBlock, _ := json.Marshal(res)
 	resLightBlockString := string(resLightBlock)
@@ -57,7 +57,7 @@ func TestFormatValidator(t *testing.T) {
 
 	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
 
-	res := FormatExternal(trustedLightBlock, untrustedLightBlock, &validatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
+	res := FormatCallData(trustedLightBlock, untrustedLightBlock, &validatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
 
 	resExternal, _ := json.Marshal(res)
 	resExternalString := string(resExternal)
