@@ -250,7 +250,7 @@ func FormatValidatorArray(validators []*types.Validator) []ValidatorData {
 }
 
 func formatChainId(chainId string) []*big.Int {
-	chainIDchunks := utils.Split(pedersen.ByteRounder([]byte(chainId)), 8)
+	chainIDchunks := utils.Split(pedersen.ByteRounder([]byte(chainId)), 16)
 
 	chainIdArray := make([]*big.Int, len(chainIDchunks))
 
