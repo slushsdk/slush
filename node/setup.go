@@ -22,6 +22,7 @@ import (
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/internal/p2p/conn"
 	"github.com/tendermint/tendermint/internal/p2p/pex"
+	"github.com/tendermint/tendermint/internal/settlement"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/state/indexer"
 	"github.com/tendermint/tendermint/internal/statesync"
@@ -196,6 +197,24 @@ func createEvidenceReactor(
 	evidenceReactor := evidence.NewReactor(logger, chCreator, peerEvents, evidencePool)
 
 	return evidenceReactor, evidencePool, evidenceDB.Close, nil
+}
+
+func createSettlementReactor(
+	logger log.Logger,
+	vd types.VerifierDetails,
+	SettlementCh <-chan consensus.InvokeData,
+) (*settlement.Reactor, error) {
+
+	logger = logger.With("module", "settlement")
+
+	evidenceReactor := settlement.NewReactor(logger, vd, SettlementCh)
+
+	return evidenceReactor, nil
+}
+
+func createSettlementChnel() chan consensus.InvokeData {
+	ch := make(chan consensus.InvokeData, 20)
+	return ch
 }
 
 func createPeerManager(

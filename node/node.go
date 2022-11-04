@@ -96,7 +96,7 @@ func newDefaultNode(
 		)
 	}
 
-	verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
+	verifierDetails, err := cfg.LoadVerifierDetails()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
 	}
@@ -123,8 +123,14 @@ func newDefaultNode(
 	)
 }
 
+// TODO: move this  somewhere ok
 func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
 	state.VerifierDetails = vd
+}
+
+// TODO: move this  somewhere ok
+func AddSettlementCh(state *consensus.State, ch chan consensus.InvokeData) {
+	state.SettlementCh = ch
 }
 
 // makeNode returns a new, ready to go, Tendermint Node.
@@ -276,6 +282,10 @@ func makeNode(
 	node.rpcEnv.EvidencePool = evPool
 	node.evPool = evPool
 
+	settlementCh := createSettlementChnel()
+	settlementReactor, err := createSettlementReactor(logger, verifierDetails, settlementCh)
+	node.services = append(node.services, settlementReactor)
+
 	mpReactor, mp := createMempoolReactor(logger, cfg, proxyApp, stateStore, nodeMetrics.mempool,
 		peerManager.Subscribe, node.router.OpenChannel)
 	node.rpcEnv.Mempool = mp
@@ -316,7 +326,10 @@ func makeNode(
 		consensus.StateMetrics(nodeMetrics.consensus),
 		consensus.SkipStateStoreBootstrap,
 	)
+
 	AddVerifierDetails(csState, verifierDetails)
+	AddSettlementCh(csState, settlementCh)
+
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 	}

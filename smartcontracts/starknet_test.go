@@ -2,7 +2,6 @@ package smartcontracts_test
 
 import (
 	"encoding/json"
-	"io/fs"
 	"math/big"
 	"os"
 	"testing"
@@ -13,7 +12,8 @@ import (
 )
 
 func TestDeclare(t *testing.T) {
-	smartcontracts.DeclareDeploy()
+	// Todo: fill this out
+	//  smartcontracts.DeclareDeploy()
 }
 
 func TestInvoke(t *testing.T) {
@@ -29,20 +29,15 @@ func TestInvoke(t *testing.T) {
 	json.Unmarshal([]byte(trustedLightBlockString), &trustedLightBlock)
 	json.Unmarshal([]byte(untrustedLightBlockString), &untrustedLightBlock)
 
-	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
+	curtime := big.NewInt(1665753884507526850)
 
-	ext := consensus.FormatExternal(trustedLightBlock, untrustedLightBlock, &validatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
-	jsonString, _ := json.Marshal(ext)
+	verifieraddress, _ := big.NewInt(0).SetString("2681321777313866831207172647830701585786458434608807373285616162347166442907", 10)
+	address, _ := big.NewInt(0).SetString("347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a", 16)
 
-	err := os.WriteFile("../../tendermint-cairo/invoke_input.json", jsonString, fs.FileMode(0644))
+	os.WriteFile("../../tendermint-cairo/seed42pkey", []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
 
-	if err != nil {
-		t.Error(err)
-	}
+	vd := types.VerifierDetails{VerifierAddress: verifieraddress, AccountPrivKeyPath: "./seed42pkey", AccountAddress: address, NetworkDetails: types.NetworkDetails{Network: "devnet", SeedKeysBool: true}}
+	id := consensus.InvokeData{TrustedLightB: trustedLightBlock, UntrustedLightB: untrustedLightBlock, ValidatorSet: validatorSet}
 
-	a := big.NewInt(0)
-	b, _ := big.NewInt(0).SetString("07e0e42703bE10f32F8c793395C3713141C15a3A80FF18e7515Df194DaC3eea7", 16)
-
-	vd := types.NewVerifierDetails(a, "", "./pkey", b)
-	smartcontracts.Invoke(vd)
+	smartcontracts.Invoke(vd, id, curtime)
 }

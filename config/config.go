@@ -48,10 +48,7 @@ var (
 	defaultPrivValKeyName   = "priv_validator_key.json"
 	defaultPrivValStateName = "priv_validator_state.json"
 
-	defaultVerifierAddressName = "verifier_address.json"
-	defaultVerifierAbiName     = "verifier_abi.json" //Todo: this might have to change
-	defaultAccountPrivKeyName  = "verifier_privkey.json"
-	defaultAccountAddressName  = "verifier_address.json"
+	defaultVerifierDetailsName = "verifier_details.json"
 
 	defaultNodeKeyName = "node_key.json"
 
@@ -60,10 +57,7 @@ var (
 	defaultPrivValKeyPath   = filepath.Join(defaultConfigDir, defaultPrivValKeyName)
 	defaultPrivValStatePath = filepath.Join(defaultDataDir, defaultPrivValStateName)
 
-	defaultVerifierAddressPath = filepath.Join(defaultDataDir, defaultVerifierAddressName)
-	defaultVerifierAbiPath     = filepath.Join(defaultDataDir, defaultVerifierAbiName)
-	defaultAccountPrivKeyPath  = filepath.Join(defaultDataDir, defaultAccountPrivKeyName)
-	defaultAccountAddressPath  = filepath.Join(defaultDataDir, defaultAccountAddressName)
+	defaultVerifierDetailsPath = filepath.Join(defaultDataDir, defaultVerifierDetailsName)
 
 	defaultNodeKeyPath = filepath.Join(defaultConfigDir, defaultNodeKeyName)
 )
@@ -228,16 +222,7 @@ type BaseConfig struct { //nolint: maligned
 	NodeKey string `mapstructure:"node-key-file"`
 
 	// A JSON file containing the verifier contract's address
-	VerifierAddress string `mapstructure:"verifier-address-file"`
-
-	// A JSON file containing the verifier contract's abi
-	VerifierAbi string `mapstructure:"verifier-abi-file"`
-
-	// A JSON file containing the verifier contract's address
-	AccountAddress string `mapstructure:"account-address-file"`
-
-	// A JSON file containing the private key to use for onchain verification of the light client
-	AccountPrivKey string `mapstructure:"account-privkey-file"`
+	VerifierDetails string `mapstructure:"verifier-details-file"`
 
 	// Mechanism to connect to the ABCI application: socket | grpc
 	ABCI string `mapstructure:"abci"`
@@ -254,10 +239,7 @@ func DefaultBaseConfig() BaseConfig {
 	return BaseConfig{
 		Genesis:         defaultGenesisJSONPath,
 		NodeKey:         defaultNodeKeyPath,
-		VerifierAddress: defaultVerifierAddressPath,
-		VerifierAbi:     defaultVerifierAbiPath,
-		AccountPrivKey:  defaultAccountPrivKeyPath,
-		AccountAddress:  defaultAccountAddressPath,
+		VerifierDetails: defaultVerifierDetailsPath,
 		Mode:            defaultMode,
 		Moniker:         defaultMoniker,
 		ProxyApp:        "tcp://127.0.0.1:26658",
@@ -295,23 +277,17 @@ func (cfg BaseConfig) NodeKeyFile() string {
 }
 
 // VerifierAddressFile returns the full path to the node_key.json file
-func (cfg BaseConfig) VerifierAddressFile() string {
-	return rootify(cfg.VerifierAddress, cfg.RootDir)
+func (cfg BaseConfig) VerifierDetailsFile() string {
+	return rootify(cfg.VerifierDetails, cfg.RootDir)
 }
 
-// VerifierAbiFile returns the full path to the node_key.json file
-func (cfg BaseConfig) VerifierAbiFile() string {
-	return rootify(cfg.VerifierAbi, cfg.RootDir)
-}
-
-// AccountPrivKeyFile returns the full path to the node_key.json file
-func (cfg BaseConfig) AccountPrivKeyFile() string {
-	return rootify(cfg.AccountPrivKey, cfg.RootDir)
-}
-
-// AccountAddressFile returns the full path to the node_key.json file
-func (cfg BaseConfig) AccountAddressFile() string {
-	return rootify(cfg.AccountAddress, cfg.RootDir)
+// LoadVerifierDetails loads VerofierDetails located in filePath.
+func (cfg BaseConfig) LoadVerifierDetails() (types.VerifierDetails, error) {
+	vd, err := types.LoadVerifierDetails(cfg.VerifierDetailsFile())
+	if err != nil {
+		return types.VerifierDetails{}, err
+	}
+	return vd, nil
 }
 
 // LoadNodeKey loads NodeKey located in filePath.
@@ -1164,12 +1140,14 @@ func (cfg *ConsensusConfig) DeprecatedFieldWarning() error {
 	return nil
 }
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // TxIndexConfig
 // Remember that Event has the following structure:
 // type: [
-//  key: value,
-//  ...
+//
+//	key: value,
+//	...
+//
 // ]
 //
 // CompositeKeys are constructed by `type.key`
