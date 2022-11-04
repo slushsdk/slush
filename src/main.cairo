@@ -51,7 +51,7 @@ from src.utils import (
     verifySig,
     blockIDEqual,
 )
-from src.hashing import  hash_felt_array
+from src.hashing import  hash_felt_array, hash_int128_array
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 from src.struct_hasher import (
     hashHeader,
@@ -136,10 +136,14 @@ func get_tallied_voting_power{
     local timestamp_nanos: felt = timestamp.nanos;
 
     let (local voteSB_array: felt*) = alloc();
-    assert voteSB_array[0] = timestamp_nanos;
-    assert voteSB_array[1] = res_hash;
+    let (high_res: felt, low_res:felt) = split_felt(res_hash);
+    assert voteSB_array[0] = 0;
+    assert voteSB_array[1] = timestamp_nanos;
+    assert voteSB_array[2] = high_res;
+    assert voteSB_array[3] = low_res;
 
-    let message1: felt = hash_felt_array(voteSB_array, 2);
+    
+    let message1: felt = hash_int128_array(voteSB_array, 4);
 
     local commit_sig_signature: SignatureData = signature.signature;
     verifySig(val, message1, commit_sig_signature);

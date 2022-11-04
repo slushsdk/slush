@@ -43,7 +43,7 @@ from src.structs import (
     FractionData,
 )
 from src.hashing import hash_int128, hash_int128_array,  hash_felt_array
-from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
+from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash, leafHash_int128, innerHash_int128
 
 func hashConsensus{range_check_ptr, pedersen_ptr: HashBuiltin*}(consensus: ConsensusData) -> (
     res_hash: felt
@@ -198,7 +198,6 @@ func hashBlockID{pedersen_ptr: HashBuiltin*, range_check_ptr}(block_id: BlockIDD
     local part_set_header: PartSetHeaderData = block_id.part_set_header;
 
     let (psh_hash) = canonicalPartSetHeaderHasher(part_set_header);
-
     let (local all_array: felt*) = alloc();
 
     assert all_array[0] = bid_hash;

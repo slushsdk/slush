@@ -43,13 +43,13 @@ from src.structs import (
     FractionData,
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
-from src.hashing import hash_int128_array, hash_felt_array, hash_felt_array_with_prefix
+from src.hashing import hash_int128_array, hash_int128_array_with_prefix, hash_felt_array, hash_felt_array_with_prefix
 
 // returns the largest power of two that is smaller than the input
 func get_split_point{bitwise_ptr: BitwiseBuiltin*, range_check_ptr}(input: felt) -> (res: felt) {
     alloc_locals;
 
-    let le: felt = is_le(1 + 1, input);
+    let le: felt = is_le(2, input);
     // %{print(ids.input)%}
     // [range_check_ptr] = input
     // let range_check_ptr = range_check_ptr + 1
@@ -139,6 +139,75 @@ func merkleRootHash{pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: Bi
             let right: felt = merkleRootHash(validator_array, new_start, new_total);
 
             let inner_hash: felt = innerHash(left, right);
+
+            return (inner_hash,);
+        }
+    }
+}
+
+
+
+func leafHash_int128{pedersen_ptr: HashBuiltin*, range_check_ptr}(leaf: felt) -> (res_hash: felt) {
+    alloc_locals;
+
+    let leafPrefix: felt = 0;
+
+    let (local leaf_array: felt*) = alloc();
+    assert leaf_array[0] = leaf;
+
+    // call the hash_array fn on this array
+    let res_hash: felt = hash_int128_array_with_prefix(
+        array_pointer=leaf_array, array_pointer_len=1, prefix=leafPrefix
+    );
+
+    return (res_hash,);
+}
+
+func innerHash_int128{range_check_ptr, pedersen_ptr: HashBuiltin*}(left: felt, right: felt) -> (
+    res_hash: felt
+) {
+    alloc_locals;
+    let innerPrefix: felt = 1;
+
+    // create array with leafPrefix and leaf value
+
+    let (local to_hash_array: felt*) = alloc();
+    assert to_hash_array[0] = left;
+    assert to_hash_array[1] = right;
+
+    // call the hash_array fn on this array
+    let res_hash: felt = hash_int128_array_with_prefix(
+        array_pointer=to_hash_array, array_pointer_len=2, prefix=innerPrefix
+    );
+
+    return (res_hash,);
+}
+
+func merkleRootHash_int128{pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
+    validator_array: felt*, start: felt, total: felt
+) -> (res_hash: felt) {
+    alloc_locals;
+    let empty_hash = 0;
+
+    if (total == 0) {
+        return (empty_hash,);
+    } else {
+        if (total == 1) {
+            local current_validator: felt = validator_array[start];
+
+            let res_hash: felt = leafHash_int128(current_validator);
+
+            return (res_hash,);
+        } else {
+            let split_point: felt = get_split_point(total);
+
+            let left: felt = merkleRootHash_int128(validator_array, start, split_point);
+
+            let new_start: felt = start + split_point;
+            let new_total: felt = total - split_point;
+            let right: felt = merkleRootHash_int128(validator_array, new_start, new_total);
+
+            let inner_hash: felt = innerHash_int128(left, right);
 
             return (inner_hash,);
         }

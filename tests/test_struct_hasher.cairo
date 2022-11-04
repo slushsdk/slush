@@ -41,13 +41,14 @@ from src.hashing import (
     hash_felt,
     hash_felt_array
 )
-from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
+from src.merkle import (get_split_point, leafHash, innerHash, merkleRootHash, )
 from src.struct_hasher import (
     hashHeader,
     canonicalPartSetHeaderHasher,
     hashBlockID,
     hashCanonicalVoteNoTime,
-)
+    merkleRootHashVals,
+    )
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
@@ -137,4 +138,36 @@ func test_psh_hasher{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: fel
 
     %{ print(ids.res_psh) %}
     return (res_psh,);
+}
+
+
+@external
+func test_merkleRootHashVals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*,}(
+    arguments
+) {
+    alloc_locals;
+    // create validator array
+    let (local ValidatorData_pointer0: ValidatorData*) = alloc();
+    let public_key0: PublicKeyData = PublicKeyData(
+        ecdsa=2018814482924085357616383108698434730223093418936929106356647082092697187097
+    );
+    let validator_data0: ValidatorData = ValidatorData(
+        Address = 2830285380090611654456097681741309491500115890662641243882829676108909157038,
+        pub_key=public_key0,
+        voting_power=10,
+        proposer_priority=0,
+    );
+    assert ValidatorData_pointer0[0] = validator_data0;
+
+    let validator_array0: ValidatorDataArray = ValidatorDataArray(
+        array=ValidatorData_pointer0, len=1
+    );
+    let validator_set0: ValidatorSetData = ValidatorSetData(
+        validators=validator_array0, proposer=validator_data0, total_voting_power=10
+    );
+
+    let (res:felt) = merkleRootHashVals(validator_array0, 0, 1);
+    %{print("ids.res")%}
+    %{print(ids.res)%}
+    return();
 }
