@@ -1,26 +1,41 @@
 package smartcontracts
 
 import (
-	"fmt"
+	"encoding/json"
+	"io/fs"
+	"math/big"
+	"os"
 	"os/exec"
 
+	"github.com/tendermint/tendermint/internal/consensus"
 	"github.com/tendermint/tendermint/types"
 )
 
-func Invoke(vd types.VerifierDetails) ([]byte, error) {
+func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.Int) ([]byte, error) {
 
-	//Declare cairo contract
+	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
 
-	cmd := exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--network", "alpha-goerli", "--private-key-path", vd.AccountPrivKeyPath, "--account-address", fmt.Sprint(vd.AccountAddress()), "--output-dir", "responses", "--no-confirm")
-	cmd.Dir = "../../tendermint-cairo"
+	cd := consensus.FormatCallData(id.TrustedLightB, id.UntrustedLightB, id.TrustedLightB.ValidatorSet, currentTime, big.NewInt(10), trustingPeriod)
+	ext := consensus.External{VerifierAddress: vd.VerifierAddress, CallData: cd}
+	jsonString, _ := json.Marshal(ext)
+
+	err := os.WriteFile(vd.PathToFiles+"/invoke_input.json", jsonString, fs.FileMode(0644))
+
+	if err != nil {
+		return []byte{}, err
+	}
+
+	// devnet is different
+	var cmd *exec.Cmd
+	if vd.NetworkDetails.Network == "devnet" {
+		cmd = exec.Command("protostar", "migrate", vd.PathToFiles+"/migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+		cmd.Dir = vd.PathToFiles
+	} else {
+		cmd = exec.Command("protostar", "migrate", vd.PathToFiles+"/migrations/migration_02.cairo", "--network", vd.NetworkDetails.Network, "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+		cmd.Dir = vd.PathToFiles
+	}
 
 	stdout, err := cmd.CombinedOutput()
 
-	if err != nil {
-		fmt.Print(string(stdout))
-		return stdout, err
-	}
-
-	fmt.Print(string(stdout))
 	return stdout, err
 }
