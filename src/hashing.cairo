@@ -72,7 +72,6 @@ func hash_int128_array_with_prefix{range_check_ptr, pedersen_ptr: HashBuiltin*}(
 ) -> (res_hash: felt) {
     alloc_locals;
 
-    // let prefix_hash: felt = split_and_hash(0, prefix);
     let prefix_hash: felt = hash2{hash_ptr=pedersen_ptr}(0, prefix);
 
     let previous_hash: felt = hash_int128_array_recursive(
