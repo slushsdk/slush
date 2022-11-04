@@ -7,8 +7,13 @@ func up() {
 
         with open('invoke_input.json', 'r') as infile:
             inputJson = json.load(infile)
-        #send here instead: 0x029fff01b33ffe66338d42c351e433ff7857dbdd092fe085760adc943e9d70ca
-        contract_address = 2681321777313866831207172647830701585786458434608807373285616162347166442907
+        with open('contract_address', 'r') as infile:
+            contract_address_hex = infile.readline()
+
+        contract_address = int(contract_address_hex.rstrip(), 16)
+
+        print("contract_address")
+        print(contract_address)
 
         invoke(
             contract_address,
