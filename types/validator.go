@@ -10,6 +10,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -172,16 +173,19 @@ func (v *Validator) Bytes() []byte {
 
 func (v *Validator) Hash() []byte {
 
-	vPowerB := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(vPowerB, uint64(v.VotingPower))
+	votingPowerBytes := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(votingPowerBytes, uint64(v.VotingPower))
 
-	toHash := make([]byte, 32)
-	copy(toHash[:32], v.PubKey.Bytes()[:32])
-	toApp := crypto.ChecksumInt128(vPowerB)
-	toHash = append(toHash, toApp...)
-	bz := crypto.ChecksumInt128(toHash)
+	votingPowerArray := *(*[16]byte)(pedersen.ByteRounder(votingPowerBytes))
+	votingPowerFeltArray := crypto.HashInt128(votingPowerArray)
 
-	return bz
+	publicKeyFelt := make([]byte, 32)
+	copy(publicKeyFelt[:32], v.PubKey.Bytes()[:32])
+
+	felts := append(publicKeyFelt, votingPowerFeltArray[:]...)
+	hash := crypto.ChecksumFelt(felts)
+
+	return hash
 }
 
 // ToProto converts Valiator to protobuf
