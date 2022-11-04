@@ -2052,10 +2052,10 @@ func (cs *State) finalizeCommit(ctx context.Context, height int64) {
 	// * cs.StartTime is set to when we will start round0.
 
 	// Finally, we want to send the commit to starknet (exact location TBD)
-	// err = cs.FormatAndSendCommit()
-	// if err != nil {
-	// 	logger.Error("Failed to construct tx to Cairo: ", err)
-	// }
+	err = cs.PushCommitToSettlment()
+	if err != nil {
+		logger.Error("Failed to construct tx to Cairo: ", err)
+	}
 }
 
 func (cs *State) RecordMetrics(height int64, block *types.Block) {
