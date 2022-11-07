@@ -41,13 +41,13 @@ func DeclareDeploy(vd types.VerifierDetails, verifierDetailsFile string) (*big.I
 	zerox := regexp.MustCompile(`0x.{64}`)
 	verifierAddress, b := big.NewInt(0).SetString(string(zerox.Find(contractA.Find(deploystdout)))[2:], 16)
 
-	if b != true {
-		return big.NewInt(0), big.NewInt(0), errors.New("Was not able to parse verifier address in starknet declare/deploy output")
+	if !b {
+		return big.NewInt(0), big.NewInt(0), errors.New("was not able to parse verifier address in starknet declare/deploy output")
 	}
 
 	classHash, b := big.NewInt(0).SetString(string(zerox.Find(classH.Find(deploystdout))[2:]), 16)
-	if b != true {
-		return big.NewInt(0), big.NewInt(0), errors.New("Was not able to parse class hash in starknet declare/deploy output")
+	if !b {
+		return big.NewInt(0), big.NewInt(0), errors.New("was not able to parse class hash in starknet declare/deploy output")
 	}
 
 	vd.VerifierAddress = verifierAddress

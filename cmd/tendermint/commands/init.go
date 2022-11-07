@@ -21,12 +21,11 @@ import (
 
 // MakeInitFilesCommand returns the command to initialize a fresh Tendermint Core instance.
 func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command {
-	var keyType string
-	var pathToFiles string
+	var keyType = "stark"
+	var pathToFiles = "./cairo"
 	var network string
 	var pkey string
 	var address string
-	var seedkeys string
 
 	cmd := &cobra.Command{
 		Use:       "init [full|validator|seed]",
@@ -40,7 +39,7 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 			}
 			conf.Mode = args[0]
 
-			vd, err := InitializeVerifierDetails(pathToFiles, pkey, address, network, seedkeys)
+			vd, err := InitializeVerifierDetails(pathToFiles, pkey, address, network)
 			if err != nil {
 				return err
 			}
@@ -59,42 +58,33 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 		},
 	}
 
-	cmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
-		"Key type to generate privval file with. Options: stark, ed25519, secp256k1")
-
-	// Todo: merge cairo and tm, remove this.k
-	cmd.Flags().StringVar(&pathToFiles, "path-to-files", "",
-		"For mainnet or testnet: relative path to folder . ")
-	cmd.MarkFlagRequired("path-to-files")
-
-	cmd.Flags().StringVar(&network, "network", "alpha-goerli",
+	cmd.Flags().StringVar(&network, "network", "devnet",
 		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42, and set seedkeys=1 here.")
-	cmd.MarkFlagRequired("network")
 
 	cmd.Flags().StringVar(&pkey, "pkey", "0", "Specify privatekey. Not needed if --seedkeys=1. ")
 
 	cmd.Flags().StringVar(&address, "address", "0", "Specify address. Not needed if --seedkeys=1. ")
 
-	cmd.Flags().StringVar(&seedkeys, "seedkeys", "0",
-		"If using devnet either provide keys (default), or launch devnet using seed=42 and set --seedkeys=1.")
-
 	return cmd
 }
 
-func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr string, network string, seedkeys string) (types.VerifierDetails, error) {
+func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr string, network string) (types.VerifierDetails, error) {
 
 	address, b := big.NewInt(0).SetString(addressStr, 16)
-	if b != true {
-		return types.VerifierDetails{}, errors.New("Could not read address string. Provide in hex, without leading 0x.")
+	if !b {
+		return types.VerifierDetails{}, errors.New("could not read address string. Provide in hex, without leading 0x")
 	}
 
 	pkey, b := big.NewInt(0).SetString(pkeyStr, 16)
-	if b != true {
-		return types.VerifierDetails{}, errors.New("Could not read pkey string. Provide in hex, without leading 0x.")
+	if !b {
+		return types.VerifierDetails{}, errors.New("could not read pkey string. Provide in hex, without leading 0x")
 	}
 
+	mul := big.NewInt(0)
+
+	// Check whether we need to use burnt in keys.
 	var seedKeysBool bool
-	if seedkeys == "1" {
+	if mul.Mul(pkey, address) == big.NewInt(0) {
 		seedKeysBool = true
 	} else {
 		seedKeysBool = false
@@ -110,8 +100,8 @@ func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr st
 			return types.VerifierDetails{}, err
 		}
 		address, b = big.NewInt(0).SetString("347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a", 16)
-		if b != true {
-			return types.VerifierDetails{}, errors.New("Could not read baked in address string. ")
+		if !b {
+			return types.VerifierDetails{}, errors.New("could not read baked in address string. ")
 		}
 
 	} else {
@@ -122,11 +112,11 @@ func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr st
 				return types.VerifierDetails{}, err
 			}
 		} else {
-			return types.VerifierDetails{}, errors.New("If not on devnet or seedkeys != 1 then pkey needs to be provided and nonzero. Input with --pkey  flag in hex, without leading 0x.")
+			return types.VerifierDetails{}, errors.New("if not on devnet or seedkeys != 1 then pkey needs to be provided and nonzero. Input with --pkey  flag in hex, without leading 0x")
 		}
 
 		if address.Cmp(big.NewInt(0)) == 0 {
-			return types.VerifierDetails{}, errors.New("If not on devnet or seedkeys != 1 then address needs to be provided and nonzero. Input with --address  flag in hex, without leading 0x.")
+			return types.VerifierDetails{}, errors.New("if not on devnet or seedkeys != 1 then address needs to be provided and nonzero. Input with --address  flag in hex, without leading 0x")
 		}
 	}
 
