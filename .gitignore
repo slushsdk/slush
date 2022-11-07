@@ -55,3 +55,5 @@ proto/spec/**/*.pb.go
 *.pdf
 *.gz
 *.dvi
+cairo/build
+cairo/pkey

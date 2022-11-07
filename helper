@@ -1,0 +1,9 @@
+#!bash
+
+protostar build --disable-hint-validation
+protostar_output=$(protostar migrate migrations/migration_declare_deploy.cairo --gateway-url="http://127.0.0.1:5050/" --chain-id=1536727068981429685321 --no-confirm --account-address 0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a --private-key ./pkey 2>&1)
+contract_address=$(echo "$protostar_output" | grep contract_address | awk '{print $3}' | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" )
+echo "$contract_address" > contract_address
+echo $protostar_output 
+protostar migrate migrations/migration_02.cairo --gateway-url="http://127.0.0.1:5050/" --chain-id=1536727068981429685321 --no-confirm --account-address 0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a --private-key ./pkey
+echo "end"
