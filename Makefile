@@ -205,7 +205,7 @@ clean_certs:
 ###############################################################################
 
 format:
-	find . -name '*.go' -type f -not -path "*.gigit merge --allow-unrelated-histories project-a/master t*" -not -name '*.pb.go' -not -name '*pb_test.go' | xargs gofmt -w -s
+	find . -name '*.go' -type f -not -path "*.git*" -not -name '*.pb.go' -not -name '*pb_test.go' | xargs gofmt -w -s
 	find . -name '*.go' -type f -not -path "*.git*"  -not -name '*.pb.go' -not -name '*pb_test.go' | xargs goimports -w -local github.com/tendermint/tendermint
 .PHONY: format
 
