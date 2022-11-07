@@ -34,7 +34,7 @@ func TestInvoke(t *testing.T) {
 	verifieraddress, _ := big.NewInt(0).SetString("2681321777313866831207172647830701585786458434608807373285616162347166442907", 10)
 	address, _ := big.NewInt(0).SetString("347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a", 16)
 
-	os.WriteFile("../../tendermint-cairo/seed42pkey", []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
+	os.WriteFile("cairo/seed42pkey", []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
 
 	vd := types.VerifierDetails{VerifierAddress: verifieraddress, AccountPrivKeyPath: "./seed42pkey", AccountAddress: address, NetworkDetails: types.NetworkDetails{Network: "devnet", SeedKeysBool: true}}
 	id := consensus.InvokeData{TrustedLightB: trustedLightBlock, UntrustedLightB: untrustedLightBlock, ValidatorSet: validatorSet}
