@@ -47,7 +47,7 @@ func TestResetValidator(t *testing.T) {
 	// test vote
 	height, round := int64(10), int32(1)
 	voteType := tmproto.PrevoteType
-	randBytes := tmrand.Bytes(crypto.HashSize)
+	randBytes := tmrand.FeltBytes(crypto.HashSize)
 	blockID := types.BlockID{Hash: randBytes, PartSetHeader: types.PartSetHeader{}}
 	vote := newVote(privVal.Key.Address, 0, height, round, voteType, blockID, nil)
 	err := privVal.SignVote(ctx, "mychainid", vote.ToProto())
