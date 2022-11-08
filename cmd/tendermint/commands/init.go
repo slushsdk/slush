@@ -21,9 +21,7 @@ import (
 
 // MakeInitFilesCommand returns the command to initialize a fresh Tendermint Core instance.
 func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command {
-	// Todo put these in config, or just somewhere better
 	var keyType = types.DefaultValidatorParams().PubKeyTypes[0]
-	var pathToFiles = "./cairo"
 	var network string
 	var pkey string
 	var address string
@@ -40,7 +38,7 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 			}
 			conf.Mode = args[0]
 
-			vd, err := InitializeVerifierDetails(pathToFiles, pkey, address, network)
+			vd, err := InitializeVerifierDetails(pkey, address, network)
 			if err != nil {
 				return err
 			}
@@ -69,7 +67,7 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 	return cmd
 }
 
-func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr string, network string) (types.VerifierDetails, error) {
+func InitializeVerifierDetails(pkeyStr string, addressStr string, network string) (types.VerifierDetails, error) {
 
 	address, b := big.NewInt(0).SetString(addressStr, 16)
 	if !b {
@@ -120,7 +118,7 @@ func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr st
 	}
 
 	nd := types.NetworkDetails{Network: network, SeedKeysBool: seedKeysBool}
-	vd := types.VerifierDetails{PathToFiles: pathToFiles, AccountPrivKeyPath: pkeypath, AccountAddress: address, NetworkDetails: nd}
+	vd := types.VerifierDetails{AccountPrivKeyPath: pkeypath, AccountAddress: address, NetworkDetails: nd}
 
 	return vd, nil
 }
