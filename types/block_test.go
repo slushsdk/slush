@@ -876,7 +876,7 @@ func MakeRandHeader() Header {
 	chainID := "test"
 	t := time.Now()
 	height := mrand.Int63()
-	randBytes := tmrand.Bytes(crypto.HashSize)
+	randBytes := tmrand.FeltBytes(crypto.HashSize)
 	randAddress := stark.GenPrivKey().PubKey().Address()
 	h := Header{
 		Version:            version.Consensus{Block: version.BlockProtocol, App: 1},
