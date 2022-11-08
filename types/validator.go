@@ -176,7 +176,7 @@ func (v *Validator) Hash() []byte {
 	votingPowerBytes := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(votingPowerBytes, uint64(v.VotingPower))
 
-	votingPowerArray := *(*[16]byte)(pedersen.ByteRounder(votingPowerBytes))
+	votingPowerArray := *(*[16]byte)(pedersen.ByteRounderInt128(votingPowerBytes))
 	votingPowerFeltArray := crypto.HashInt128(votingPowerArray)
 
 	publicKeyFelt := make([]byte, 32)

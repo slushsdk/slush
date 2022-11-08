@@ -460,30 +460,30 @@ func (h *Header) Hash() tmbytes.HexBytes {
 		bzbi = HashBlockID(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 	}
 
-	chainIDB := pedersen.ByteRounder([]byte(h.ChainID))
+	chainIDB := pedersen.ByteRounderInt128([]byte(h.ChainID))
 
 	heightB_int64 := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightB_int64, uint64(h.Height))
 
-	heightB_int128 := *(*[16]byte)(pedersen.ByteRounder(heightB_int64))
+	heightB_int128 := *(*[16]byte)(pedersen.ByteRounderInt128(heightB_int64))
 
 	heightB_hash := crypto.HashInt128(heightB_int128)
 
 	return merkle.HashFromByteSlicesFelt([][]byte{
-		pedersen.ByteRounder(hbz),
-		pedersen.ByteRounder(crypto.ChecksumInt128(chainIDB)),
-		pedersen.ByteRounder(heightB_hash[:]),
-		pedersen.ByteRounder(pbt),
-		pedersen.ByteRounder(bzbi),
-		pedersen.ByteRounder([]byte(h.LastCommitHash)),
-		pedersen.ByteRounder(h.DataHash),
-		pedersen.ByteRounder([]byte(h.ValidatorsHash)),
-		pedersen.ByteRounder([]byte(h.NextValidatorsHash)),
-		pedersen.ByteRounder([]byte(h.ConsensusHash)),
-		pedersen.ByteRounder([]byte(h.AppHash)),
-		pedersen.ByteRounder([]byte(h.LastResultsHash)),
-		pedersen.ByteRounder([]byte(h.EvidenceHash)),
-		pedersen.ByteRounder([]byte(h.ProposerAddress)),
+		pedersen.ByteRounderInt128(hbz),
+		pedersen.ByteRounderInt128(crypto.ChecksumInt128(chainIDB)),
+		pedersen.ByteRounderInt128(heightB_hash[:]),
+		pedersen.ByteRounderInt128(pbt),
+		pedersen.ByteRounderInt128(bzbi),
+		pedersen.ByteRounderInt128([]byte(h.LastCommitHash)),
+		pedersen.ByteRounderInt128(h.DataHash),
+		pedersen.ByteRounderInt128([]byte(h.ValidatorsHash)),
+		pedersen.ByteRounderInt128([]byte(h.NextValidatorsHash)),
+		pedersen.ByteRounderInt128([]byte(h.ConsensusHash)),
+		pedersen.ByteRounderInt128([]byte(h.AppHash)),
+		pedersen.ByteRounderInt128([]byte(h.LastResultsHash)),
+		pedersen.ByteRounderInt128([]byte(h.EvidenceHash)),
+		pedersen.ByteRounderInt128([]byte(h.ProposerAddress)),
 	})
 }
 

@@ -57,7 +57,7 @@ func TestFormatLightBlock(t *testing.T) {
 	binary.BigEndian.PutUint64(trustedtimeb, uint64(trustedLightB.SignedHeader.Header.Time.UnixNano()))
 	trustedtimeNano := big.NewInt(0).SetBytes(trustedtimeb)
 
-	chainIDchunks := utils.Split(pedersen.ByteRounder([]byte(trustedLightB.SignedHeader.Header.ChainID)), 8)
+	chainIDchunks := utils.Split(pedersen.ByteRounderInt128([]byte(trustedLightB.SignedHeader.Header.ChainID)), 8)
 	chainIDlen := len(chainIDchunks)
 
 	fmt.Println(`let (local chain_id_ptr: felt*) =alloc()`)
@@ -74,8 +74,8 @@ func TestFormatLightBlock(t *testing.T) {
 		version = ConsensusData(block = ` + fmt.Sprint(trustedLightB.SignedHeader.Header.Version.Block) + `, app= ` + fmt.Sprint(trustedLightB.SignedHeader.Header.Version.App) + `),
 		chain_id = chain_id1, #this is a placeholder value
 		height = ` + fmt.Sprint(trustedLightB.SignedHeader.Header.Height) + `,
-		time = TimestampData(nanos =` + fmt.Sprint(trustedtimeNano) + `),  
-		last_block_id = BlockIDData(hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastBlockID.Hash)) + `, 
+		time = TimestampData(nanos =` + fmt.Sprint(trustedtimeNano) + `),
+		last_block_id = BlockIDData(hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastBlockID.Hash)) + `,
 		part_set_header = PartSetHeaderData(total = ` + fmt.Sprint((trustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Total)) + `,
 		hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Hash)) + `)),
 		last_commit_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastCommitHash)) + `,
@@ -85,7 +85,7 @@ func TestFormatLightBlock(t *testing.T) {
 		consensus_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.ConsensusHash)) + `,
 		app_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.AppHash)) + `,
 		last_results_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastResultsHash)) + `,
-		evidence_hash =` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.EvidenceHash)) + `, 
+		evidence_hash =` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.EvidenceHash)) + `,
 		proposer_address =  ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.ProposerAddress)) + `
 		)`)
 
@@ -102,18 +102,18 @@ func TestFormatLightBlock(t *testing.T) {
 		block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = `, fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.Commit.Signatures[0].ValidatorAddress)), `,
 		timestamp = TimestampData(nanos= `, fmt.Sprint(big.NewInt(0).SetBytes(timeb2)), `), signature= signature_data_trusted)
 
-		let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
+		let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()
 		assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
 		let commitsig1_array_trusted = CommitSigDataArray(array = commitsig1_pointer_trusted, len = 1)
 
-		let commit1_trusted: CommitData = CommitData(height = `, fmt.Sprint((trustedLightB.Commit.Height)), `, 
-		round = `, fmt.Sprint(trustedLightB.Commit.Round), `, 
+		let commit1_trusted: CommitData = CommitData(height = `, fmt.Sprint((trustedLightB.Commit.Height)), `,
+		round = `, fmt.Sprint(trustedLightB.Commit.Round), `,
 		block_id= BlockIDData(
 				hash= `, fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.Commit.BlockID.Hash)), `,
 				part_set_header = PartSetHeaderData(total = `, fmt.Sprint((trustedLightB.Commit.BlockID.PartSetHeader.Total)), `, hash=`, fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.Commit.BlockID.PartSetHeader.Hash)), `)),
 		signatures = commitsig1_array_trusted
 		)
-		
+
 		# create the header from these two
 		let trusted_header: SignedHeaderData = SignedHeaderData(header = header1_trusted, commit = commit1_trusted)
 	`)
@@ -132,8 +132,8 @@ func TestFormatLightBlock(t *testing.T) {
 		version = ConsensusData(block = ` + fmt.Sprint(untrustedLightB.SignedHeader.Header.Version.Block) + `, app= ` + fmt.Sprint(untrustedLightB.SignedHeader.Header.Version.App) + `),
 		chain_id = chain_id1, #this is a placeholder value
 		height = ` + fmt.Sprint(untrustedLightB.SignedHeader.Header.Height) + `,
-		time = TimestampData(nanos =` + fmt.Sprint(untrustedtimeNano) + `),  
-		last_block_id = BlockIDData(hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.LastBlockID.Hash)) + `, 
+		time = TimestampData(nanos =` + fmt.Sprint(untrustedtimeNano) + `),
+		last_block_id = BlockIDData(hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.LastBlockID.Hash)) + `,
 		part_set_header = PartSetHeaderData(total = ` + fmt.Sprint((untrustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Total)) + `,
 		 hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Hash)) + `)),
 		last_commit_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.LastCommitHash)) + `,
@@ -143,7 +143,7 @@ func TestFormatLightBlock(t *testing.T) {
 		consensus_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.ConsensusHash)) + `,
 		app_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.AppHash)) + `,
 		last_results_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.LastResultsHash)) + `,
-		evidence_hash =` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.EvidenceHash)) + `, 
+		evidence_hash =` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.EvidenceHash)) + `,
 		proposer_address =  ` + fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.SignedHeader.Header.ProposerAddress)) + `
 		)`)
 
@@ -154,25 +154,25 @@ func TestFormatLightBlock(t *testing.T) {
 	fmt.Println(`
 		# create commit
 		let Tendermint_BlockIDFLag_Commit = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag( BlockIDFlag = 2)
-	
+
 		let signature_data_trusted: SignatureData = SignatureData(signature_r =`, fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.Commit.Signatures[0].Signature[:32])), `, signature_s =`, fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.Commit.Signatures[0].Signature[32:])), `)
-	
+
 		local commitsig_Absent_trusted : CommitSigData = CommitSigData(
 		block_id_flag = Tendermint_BlockIDFLag_Commit, validators_address = `, fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.Commit.Signatures[0].ValidatorAddress)), `,
 		timestamp = TimestampData(nanos= `, fmt.Sprint(big.NewInt(0).SetBytes(timeb4)), `), signature= signature_data_trusted)
-	
-		let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()   
+
+		let (local commitsig1_pointer_trusted: CommitSigData*) =alloc()
 		assert commitsig1_pointer_trusted[0] = commitsig_Absent_trusted
 		let commitsig1_array_trusted = CommitSigDataArray(array = commitsig1_pointer_trusted, len = 1)
-	
-		let commit1_trusted: CommitData = CommitData(height = `, fmt.Sprint((untrustedLightB.Commit.Height)), `, 
-		round = `, fmt.Sprint(untrustedLightB.Commit.Round), `, 
+
+		let commit1_trusted: CommitData = CommitData(height = `, fmt.Sprint((untrustedLightB.Commit.Height)), `,
+		round = `, fmt.Sprint(untrustedLightB.Commit.Round), `,
 		block_id= BlockIDData(
 				hash= `, fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.Commit.BlockID.Hash)), `,
 				part_set_header = PartSetHeaderData(total = `, fmt.Sprint((untrustedLightB.Commit.BlockID.PartSetHeader.Total)), `, hash=`, fmt.Sprint(big.NewInt(0).SetBytes(untrustedLightB.Commit.BlockID.PartSetHeader.Hash)), `)),
 		signatures = commitsig1_array_trusted
 		)
-		
+
 		# create the header from these two
 		let untrusted_header: SignedHeaderData = SignedHeaderData(header = header1_trusted, commit = commit1_trusted)
 		`)
@@ -198,16 +198,16 @@ func TestFormatLightBlock(t *testing.T) {
 		let validator_data0: ValidatorData =  ValidatorData(Address = `, big.NewInt(0).SetBytes(validators.Validators[0].Address), `,
 		pub_key = public_key0, voting_power= `, validators.Validators[0].VotingPower, `, proposer_priority = `, validators.Validators[0].ProposerPriority, `)
 		assert ValidatorData_pointer0[0] = validator_data0
-															
+
 		let validator_array0: ValidatorDataArray = ValidatorDataArray(array = ValidatorData_pointer0, len = 1)
 		let validator_set0: ValidatorSetData = ValidatorSetData(validators = validator_array0, proposer = validator_data0, total_voting_power =10 )
 		let currentTime2 = DurationData(nanos = `, untrustedtimeNano.Add(untrustedtimeNano, big.NewInt(1000)), `)
 		let maxClockDrift= DurationData(nanos = 10)
 		let trustingPeriod = DurationData(nanos = 99999999999999999999)
-		
+
 		verifyAdjacent(trustedHeader= trusted_header, untrustedHeader= untrusted_header, untrustedVals=validator_set0,
-			trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift) 
-		
+			trustingPeriod = trustingPeriod, currentTime = currentTime2, maxClockDrift = maxClockDrift)
+
 		return()
 	end	`)
 
@@ -308,9 +308,9 @@ func TestVoteSignBytes1(t *testing.T) {
 	fmt.Println("newSig_r", big.NewInt(0).SetBytes(newSig[:32]))
 	fmt.Println("newSig_s", big.NewInt(0).SetBytes(newSig[32:]))
 
-	chainIDfelt1 := big.NewInt(0).SetBytes(pedersen.ByteRounder([]byte("test-chain-IrF74Y"))[:8])
-	chainIDfelt2 := big.NewInt(0).SetBytes(pedersen.ByteRounder([]byte("test-chain-IrF74Y"))[8:16])
-	chainIDfelt3 := big.NewInt(0).SetBytes(pedersen.ByteRounder([]byte("test-chain-IrF74Y"))[16:])
+	chainIDfelt1 := big.NewInt(0).SetBytes(pedersen.ByteRounderInt128([]byte("test-chain-IrF74Y"))[:8])
+	chainIDfelt2 := big.NewInt(0).SetBytes(pedersen.ByteRounderInt128([]byte("test-chain-IrF74Y"))[8:16])
+	chainIDfelt3 := big.NewInt(0).SetBytes(pedersen.ByteRounderInt128([]byte("test-chain-IrF74Y"))[16:])
 
 	fmt.Println("chainIDFelts", chainIDfelt1, chainIDfelt2, chainIDfelt3)
 
