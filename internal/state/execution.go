@@ -263,7 +263,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 	if err != nil {
 		return state, fmt.Errorf("marshaling TxResults: %w", err)
 	}
-	h := merkle.HashFromByteSlices(rs)
+	h := merkle.HashFromByteSlicesInt128(rs)
 	state, err = state.Update(blockID, &block.Header, h, fBlockRes.ConsensusParamUpdates, validatorUpdates)
 	if err != nil {
 		return state, fmt.Errorf("commit failed for application: %w", err)
