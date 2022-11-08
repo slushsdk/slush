@@ -19,7 +19,7 @@ func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.
 	ext := consensus.External{VerifierAddress: vd.VerifierAddress, CallData: cd}
 	jsonString, _ := json.Marshal(ext)
 
-	err := os.WriteFile(vd.PathToFiles+"/invoke_input.json", jsonString, fs.FileMode(0644))
+	err := os.WriteFile("/invoke_input.json", jsonString, fs.FileMode(0644))
 
 	if err != nil {
 		return []byte{}, err
@@ -28,11 +28,11 @@ func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.
 	// devnet is different
 	var cmd *exec.Cmd
 	if vd.NetworkDetails.Network == "devnet" {
-		cmd = exec.Command("protostar", "migrate", vd.PathToFiles+"/migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
-		cmd.Dir = vd.PathToFiles
+		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+		cmd.Dir = "./cairo"
 	} else {
-		cmd = exec.Command("protostar", "migrate", vd.PathToFiles+"/migrations/migration_02.cairo", "--network", vd.NetworkDetails.Network, "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
-		cmd.Dir = vd.PathToFiles
+		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--network", vd.NetworkDetails.Network, "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+		cmd.Dir = "./cairo"
 	}
 
 	stdout, err := cmd.CombinedOutput()
