@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -151,9 +152,12 @@ func VoteSignBytes(chainID string, vote *tmproto.Vote) []byte {
 
 	bz := HashCanonicalVoteNoTime(pb)
 	//note here we use 32 so we will be able to hash votesignbytes as a felt_array in Cairo
-	timeb := make([]byte, 32)
-	binary.BigEndian.PutUint64(timeb[24:32], uint64(vote.GetTimestamp().UnixNano()))
-	return append(timeb, bz...)
+	timeb := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeb, uint64(vote.GetTimestamp().UnixNano()))
+
+	timebRounded := pedersen.ByteRounderFelt(timeb)
+
+	return append(timebRounded, bz...)
 
 }
 
