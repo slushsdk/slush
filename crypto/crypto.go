@@ -78,7 +78,7 @@ func HashFelt(b [32]byte) [32]byte {
 }
 
 func ByteRounder(b []byte) []byte {
-	return pedersen.ByteRounder(b)
+	return pedersen.ByteRounderInt128(b)
 }
 
 func ByteRounderFelt(b []byte) []byte {
