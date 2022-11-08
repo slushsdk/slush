@@ -11,7 +11,7 @@ import (
 
 func TestBlockMeta_ToProto(t *testing.T) {
 	h := MakeRandHeader()
-	bi := BlockID{Hash: h.Hash(), PartSetHeader: PartSetHeader{Total: 123, Hash: tmrand.Bytes(crypto.HashSize)}}
+	bi := BlockID{Hash: h.Hash(), PartSetHeader: PartSetHeader{Total: 123, Hash: tmrand.FeltBytes(crypto.HashSize)}}
 
 	bm := &BlockMeta{
 		BlockID:   bi,
