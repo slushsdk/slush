@@ -32,15 +32,15 @@ func TestHashAndProveResults(t *testing.T) {
 	// Make sure that we can get a root hash from results and verify proofs.
 	rs, err := abci.MarshalTxResults(trs)
 	require.NoError(t, err)
-	root := merkle.HashFromByteSlices(rs)
+	root := merkle.HashFromByteSlicesFelt(rs)
 	assert.NotEmpty(t, root)
 
-	_, proofs := merkle.ProofsFromByteSlices(rs)
+	_, proofs := merkle.ProofsFromByteSlicesFelt(rs)
 	for i, tr := range trs {
 		bz, err := tr.Marshal()
 		require.NoError(t, err)
 
-		valid := proofs[i].Verify(root, bz)
+		valid := proofs[i].VerifyFelt(root, bz)
 		assert.NoError(t, valid, "%d", i)
 	}
 }
