@@ -28,6 +28,7 @@ import (
 	"github.com/tendermint/tendermint/internal/store"
 	"github.com/tendermint/tendermint/internal/test/factory"
 	"github.com/tendermint/tendermint/libs/log"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
 )
@@ -182,15 +183,15 @@ func TestFinalizeBlockMisbehavior(t *testing.T) {
 		Height:             10,
 		Time:               defaultEvidenceTime,
 		LastBlockID:        blockID,
-		LastCommitHash:     crypto.CRandBytes(crypto.HashSize),
-		DataHash:           crypto.CRandBytes(crypto.HashSize),
+		LastCommitHash:     tmrand.FeltBytes(crypto.HashSize),
+		DataHash:           tmrand.FeltBytes(crypto.HashSize),
 		ValidatorsHash:     state.Validators.Hash(),
 		NextValidatorsHash: state.Validators.Hash(),
-		ConsensusHash:      crypto.CRandBytes(crypto.HashSize),
-		AppHash:            crypto.CRandBytes(crypto.HashSize),
-		LastResultsHash:    crypto.CRandBytes(crypto.HashSize),
-		EvidenceHash:       crypto.CRandBytes(crypto.HashSize),
-		ProposerAddress:    crypto.CRandBytes(crypto.AddressSize),
+		ConsensusHash:      tmrand.FeltBytes(crypto.HashSize),
+		AppHash:            tmrand.FeltBytes(crypto.HashSize),
+		LastResultsHash:    tmrand.FeltBytes(crypto.HashSize),
+		EvidenceHash:       tmrand.FeltBytes(crypto.HashSize),
+		ProposerAddress:    tmrand.FeltBytes(crypto.AddressSize),
 	}
 
 	// we don't need to worry about validating the evidence as long as they pass validate basic
@@ -671,7 +672,8 @@ func TestEmptyPrepareProposal(t *testing.T) {
 
 // TestPrepareProposalErrorOnNonExistingRemoved tests that the block creation logic returns
 // an error if the ResponsePrepareProposal returned from the application marks
-//  a transaction as REMOVED that was not present in the original proposal.
+//
+//	a transaction as REMOVED that was not present in the original proposal.
 func TestPrepareProposalErrorOnNonExistingRemoved(t *testing.T) {
 	const height = 2
 	ctx, cancel := context.WithCancel(context.Background())
