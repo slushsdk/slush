@@ -70,5 +70,5 @@ func TestHashDeterministicFieldsOnly(t *testing.T) {
 	require.NoError(t, err)
 	r2, err := abci.MarshalTxResults([]*abci.ExecTxResult{&tr2})
 	require.NoError(t, err)
-	require.Equal(t, merkle.HashFromByteSlices(r1), merkle.HashFromByteSlices(r2))
+	require.Equal(t, merkle.HashFromByteSlicesInt128(r1), merkle.HashFromByteSlicesInt128(r2))
 }

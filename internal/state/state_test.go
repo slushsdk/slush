@@ -212,9 +212,9 @@ func TestFinalizeBlockResponsesSaveLoad2(t *testing.T) {
 			t.Log(res)
 			e, err := abci.MarshalTxResults(tc.expected)
 			require.NoError(t, err)
-			he := merkle.HashFromByteSlices(e)
+			he := merkle.HashFromByteSlicesInt128(e)
 			rs, err := abci.MarshalTxResults(res.TxResults)
-			hrs := merkle.HashFromByteSlices(rs)
+			hrs := merkle.HashFromByteSlicesInt128(rs)
 			require.NoError(t, err)
 			assert.Equal(t, he, hrs, "%d", i)
 		}
@@ -284,7 +284,7 @@ func TestOneValidatorChangesSaveLoad(t *testing.T) {
 		require.NoError(t, err)
 		rs, err := abci.MarshalTxResults(responses.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		state, err = state.Update(blockID, &header, h, responses.ConsensusParamUpdates, validatorUpdates)
 		require.NoError(t, err)
 		err = stateStore.Save(state)
@@ -469,7 +469,7 @@ func TestProposerPriorityDoesNotGetResetToZero(t *testing.T) {
 	require.NoError(t, err)
 	rs, err := abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h := merkle.HashFromByteSlices(rs)
+	h := merkle.HashFromByteSlicesInt128(rs)
 	updatedState, err := state.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 	curTotal := val1VotingPower
@@ -487,7 +487,7 @@ func TestProposerPriorityDoesNotGetResetToZero(t *testing.T) {
 	assert.NoError(t, err)
 	rs, err = abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h = merkle.HashFromByteSlices(rs)
+	h = merkle.HashFromByteSlicesInt128(rs)
 	updatedState2, err := updatedState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 
@@ -529,7 +529,7 @@ func TestProposerPriorityDoesNotGetResetToZero(t *testing.T) {
 	// to be larger than threshold == 2*totalVotingPower (22):
 	rs, err = abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h = merkle.HashFromByteSlices(rs)
+	h = merkle.HashFromByteSlicesInt128(rs)
 	updatedState3, err := updatedState2.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 
@@ -595,7 +595,7 @@ func TestProposerPriorityProposerAlternates(t *testing.T) {
 
 	rs, err := abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h := merkle.HashFromByteSlices(rs)
+	h := merkle.HashFromByteSlicesInt128(rs)
 	updatedState, err := state.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 
@@ -615,7 +615,7 @@ func TestProposerPriorityProposerAlternates(t *testing.T) {
 
 	rs, err = abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h = merkle.HashFromByteSlices(rs)
+	h = merkle.HashFromByteSlicesInt128(rs)
 	updatedState2, err := updatedState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 
@@ -661,7 +661,7 @@ func TestProposerPriorityProposerAlternates(t *testing.T) {
 
 	rs, err = abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h = merkle.HashFromByteSlices(rs)
+	h = merkle.HashFromByteSlicesInt128(rs)
 	updatedState3, err := updatedState2.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 
@@ -706,7 +706,7 @@ func TestProposerPriorityProposerAlternates(t *testing.T) {
 
 	rs, err = abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h = merkle.HashFromByteSlices(rs)
+	h = merkle.HashFromByteSlicesInt128(rs)
 	oldState, err = oldState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	assert.NoError(t, err)
 	expectedVal1Prio2 = 1
@@ -724,7 +724,7 @@ func TestProposerPriorityProposerAlternates(t *testing.T) {
 
 		rs, err := abci.MarshalTxResults(fb.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		updatedState, err := oldState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 		assert.NoError(t, err)
 		// alternate (and cyclic priorities):
@@ -789,7 +789,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 
 		rs, err := abci.MarshalTxResults(fb.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		updatedState, err := oldState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 		require.NoError(t, err)
 		// no changes in voting power (ProposerPrio += VotingPower == Voting in 1st round; than shiftByAvg == 0,
@@ -823,7 +823,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 	blockID := types.BlockID{Hash: block.Hash(), PartSetHeader: bps.Header()}
 	rs, err := abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h := merkle.HashFromByteSlices(rs)
+	h := merkle.HashFromByteSlicesInt128(rs)
 	updatedState, err := oldState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	require.NoError(t, err)
 
@@ -845,7 +845,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 
 		rs, err := abci.MarshalTxResults(fb.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		updatedStateInner, err := lastState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 		require.NoError(t, err)
 		lastState = updatedStateInner
@@ -882,7 +882,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 		blockID := types.BlockID{Hash: block.Hash(), PartSetHeader: bps.Header()}
 		rs, err := abci.MarshalTxResults(fb.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		state, err = state.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 		require.NoError(t, err)
 	}
@@ -907,7 +907,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 	require.NoError(t, err)
 	rs, err = abci.MarshalTxResults(fb.TxResults)
 	require.NoError(t, err)
-	h = merkle.HashFromByteSlices(rs)
+	h = merkle.HashFromByteSlicesInt128(rs)
 	updatedState, err = state.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 	require.NoError(t, err)
 	// only the first added val (not the genesis val) should be left
@@ -932,7 +932,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 		blockID = types.BlockID{Hash: block.Hash(), PartSetHeader: bps.Header()}
 		rs, err := abci.MarshalTxResults(fb.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		curState, err = curState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 		require.NoError(t, err)
 		if !bytes.Equal(curState.Validators.Proposer.Address, curState.NextValidators.Proposer.Address) {
@@ -964,7 +964,7 @@ func TestLargeGenesisValidator(t *testing.T) {
 
 		rs, err := abci.MarshalTxResults(fb.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		updatedState, err = updatedState.Update(blockID, &block.Header, h, fb.ConsensusParamUpdates, validatorUpdates)
 		require.NoError(t, err)
 		if i > numVals { // expect proposers to cycle through after the first iteration (of numVals blocks):
@@ -1026,7 +1026,7 @@ func TestManyValidatorChangesSaveLoad(t *testing.T) {
 	require.NoError(t, err)
 	rs, err := abci.MarshalTxResults(responses.TxResults)
 	require.NoError(t, err)
-	h := merkle.HashFromByteSlices(rs)
+	h := merkle.HashFromByteSlicesInt128(rs)
 	state, err = state.Update(blockID, &header, h, responses.ConsensusParamUpdates, validatorUpdates)
 	require.NoError(t, err)
 	nextHeight := state.LastBlockHeight + 1
@@ -1106,7 +1106,7 @@ func TestConsensusParamsChangesSaveLoad(t *testing.T) {
 		require.NoError(t, err)
 		rs, err := abci.MarshalTxResults(responses.TxResults)
 		require.NoError(t, err)
-		h := merkle.HashFromByteSlices(rs)
+		h := merkle.HashFromByteSlicesInt128(rs)
 		state, err = state.Update(blockID, &header, h, responses.ConsensusParamUpdates, validatorUpdates)
 
 		require.NoError(t, err)
