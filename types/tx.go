@@ -59,7 +59,7 @@ func (txs Txs) IndexByHash(hash []byte) int {
 
 func (txs Txs) Proof(i int) TxProof {
 	hl := txs.hashList()
-	root, proofs := merkle.ProofsFromByteSlices(hl)
+	root, proofs := merkle.ProofsFromByteSlicesInt128(hl)
 
 	return TxProof{
 		RootHash: root,
@@ -292,7 +292,7 @@ func (tp TxProof) Validate(dataHash []byte) error {
 	if tp.Proof.Total <= 0 {
 		return errors.New("proof total must be positive")
 	}
-	valid := tp.Proof.Verify(tp.RootHash, tp.Leaf())
+	valid := tp.Proof.VerifyInt128(tp.RootHash, tp.Leaf())
 	if valid != nil {
 		return errors.New("proof is not internally consistent")
 	}
