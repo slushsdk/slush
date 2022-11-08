@@ -411,11 +411,11 @@ func TestHeaderHash(t *testing.T) {
 					case int64:
 						fB := make([]byte, 8)
 						encoding_binary.BigEndian.PutUint64(fB, uint64(f))
-						byteSlices = append(byteSlices, pedersen.ByteRounder(fB))
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(fB))
 					case bytes.HexBytes:
-						byteSlices = append(byteSlices, pedersen.ByteRounder(f))
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(f))
 					case string:
-						byteSlices = append(byteSlices, pedersen.ByteRounder([]byte(f)))
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128([]byte(f)))
 					case time.Time:
 						bz := HashTime(f)
 
