@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/pedersen/pedersenFelt"
 )
@@ -19,8 +20,8 @@ func TestHasher(t *testing.T) {
 
 	num1, _ := big.NewInt(0).SetString("104", 10)
 	num2, _ := big.NewInt(0).SetString("105", 10)
-	hasher.Write(pedersen.ByteRounder(num1.Bytes()))
-	hasher.Write(pedersen.ByteRounder(num2.Bytes()))
+	hasher.Write(pedersen.ByteRounderInt128(num1.Bytes()))
+	hasher.Write(pedersen.ByteRounderInt128(num2.Bytes()))
 
 	var key snapshotKey
 	copy(key[:], hasher.Sum(nil))
@@ -29,10 +30,19 @@ func TestHasher(t *testing.T) {
 
 }
 
-func TestByteRounder(t *testing.T) {
-	ba := []byte("asdv")
-	n := big.NewInt(0).SetBytes(ba)
-	m := big.NewInt(0).SetBytes(pedersen.ByteRounder(ba))
+// Also run in Cairo.
+func TestPedersenHashFeltArray(t *testing.T) {
+	hasher := pedersenFelt.New()
 
-	require.Equal(t, n.Cmp(m), 0)
+	//we write the zeros for padding to simulate hashing a felt
+
+	hasher.Write(append(make([]byte, 16), pedersen.ByteRounderInt128(([]byte{104}))...))
+	hasher.Write(append(make([]byte, 16), pedersen.ByteRounderInt128(([]byte{105}))...))
+
+	result := hasher.Sum(nil)
+
+	resultInt := new(big.Int).SetBytes(result)
+	fmt.Println(resultInt)
+	expected, _ := new(big.Int).SetString("949196962641716154526889172894504096264434458913100418940040777598300992821", 10)
+	require.True(t, resultInt.Cmp(expected) == 0)
 }
