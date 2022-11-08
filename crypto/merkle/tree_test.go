@@ -100,7 +100,7 @@ func TestHashFromByteSlices(t *testing.T) {
 func TestProof(t *testing.T) {
 
 	// Try an empty proof first
-	rootHash, proofs := ProofsFromByteSlices([][]byte{})
+	rootHash, proofs := ProofsFromByteSlicesInt128([][]byte{})
 	// require.Equal(t, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", hex.EncodeToString(rootHash))
 	require.Empty(t, proofs)
 
@@ -113,7 +113,7 @@ func TestProof(t *testing.T) {
 
 	rootHash = HashFromByteSlices(items)
 
-	rootHash2, proofs := ProofsFromByteSlices(items)
+	rootHash2, proofs := ProofsFromByteSlicesInt128(items)
 
 	require.Equal(t, rootHash, rootHash2, "Unmatched root hashes: %X vs %X", rootHash, rootHash2)
 
@@ -127,30 +127,30 @@ func TestProof(t *testing.T) {
 		require.EqualValues(t, proof.Total, total, "Unmatched totals: %d vs %d", proof.Total, total)
 
 		// Verify success
-		err := proof.Verify(rootHash, item)
+		err := proof.VerifyInt128(rootHash, item)
 		require.NoError(t, err, "Verification failed: %v.", err)
 
 		// Trail too long should make it fail
 		origAunts := proof.Aunts
 		proof.Aunts = append(proof.Aunts, tmrand.Bytes(32))
-		err = proof.Verify(rootHash, item)
+		err = proof.VerifyInt128(rootHash, item)
 		require.Error(t, err, "Expected verification to fail for wrong trail length")
 
 		proof.Aunts = origAunts
 
 		// Trail too short should make it fail
 		proof.Aunts = proof.Aunts[0 : len(proof.Aunts)-1]
-		err = proof.Verify(rootHash, item)
+		err = proof.VerifyInt128(rootHash, item)
 		require.Error(t, err, "Expected verification to fail for wrong trail length")
 
 		proof.Aunts = origAunts
 
 		// Mutating the itemHash should make it fail.
-		err = proof.Verify(rootHash, ctest.MutateByteSlice(item))
+		err = proof.VerifyInt128(rootHash, ctest.MutateByteSlice(item))
 		require.Error(t, err, "Expected verification to fail for mutated leaf hash")
 
 		// Mutating the rootHash should make it fail.
-		err = proof.Verify(ctest.MutateByteSlice(rootHash), item)
+		err = proof.VerifyInt128(ctest.MutateByteSlice(rootHash), item)
 		require.Error(t, err, "Expected verification to fail for mutated root hash")
 	}
 }
