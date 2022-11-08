@@ -30,7 +30,7 @@ func Sum256(b []byte) [32]byte {
 func HashInt128(b [16]byte) [32]byte {
 	var res [32]byte
 	x := pedersen.PedersenHashInt128(b)
-	copy(res[:], pedersen.ByteRounder(x[:]))
+	copy(res[:], pedersen.ByteRounderInt128(x[:]))
 	return res
 }
 
@@ -43,7 +43,7 @@ func HashFelt(b [32]byte) [32]byte {
 
 func (ph *PedersenHashInt128) Sum(b []byte) []byte {
 	bs := pedersen.PedersenHashInt128Array(ph.Input)
-	return append(b, pedersen.ByteRounder(bs[:])...)
+	return append(b, pedersen.ByteRounderInt128(bs[:])...)
 }
 
 func (ph *PedersenHashInt128) BlockSize() int {
