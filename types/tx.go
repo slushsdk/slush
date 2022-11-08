@@ -34,7 +34,7 @@ type Txs []Tx
 // i.e. the leaves of the tree are the hashes of the txs.
 func (txs Txs) Hash() []byte {
 	hl := txs.hashList()
-	return merkle.HashFromByteSlices(hl)
+	return merkle.HashFromByteSlicesInt128(hl)
 }
 
 // Index returns the index of this transaction in the list, or -1 if not found

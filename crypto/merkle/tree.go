@@ -7,9 +7,9 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-// HashFromByteSlices computes a Merkle tree where the leaves are the byte slice,
+// HashFromByteSlicesInt128 computes a Merkle tree where the leaves are the byte slice,
 // in the provided order. It follows RFC-6962.
-func HashFromByteSlices(items [][]byte) []byte {
+func HashFromByteSlicesInt128(items [][]byte) []byte {
 	return hashFromByteSlices(crypto.NewInt128(), items)
 }
 
