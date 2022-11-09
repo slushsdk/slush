@@ -62,6 +62,9 @@ include test/Makefile
 ###############################################################################
 
 build: $(BUILDDIR)/
+	@cd cairo; \
+	protostar build; \
+	cd ..
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(BUILDDIR)/ ./cmd/tendermint/
 .PHONY: build
 
