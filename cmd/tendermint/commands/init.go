@@ -103,8 +103,8 @@ func InitializeVerifierDetails(pkeyStr string, addressStr string, network string
 
 	} else {
 
-		if pkey.Cmp(big.NewInt(0)) == 0 {
-			err := os.WriteFile(pkeypath, []byte(pkeyStr), 0644)
+		if pkey.Cmp(big.NewInt(0)) != 0 {
+			err := os.WriteFile("cairo/"+pkeypath, []byte(pkeyStr), 0644)
 			if err != nil {
 				return types.VerifierDetails{}, err
 			}
