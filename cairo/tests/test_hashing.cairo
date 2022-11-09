@@ -55,6 +55,22 @@ from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.math import assert_nn, split_felt, unsigned_div_rem
 
 @external
+func test_hash_int128_array_empty{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
+    alloc_locals;
+    let (local to_hash_array: felt*) = alloc();
+
+    let res_hash: felt = hash_int128_array(to_hash_array, 0);
+
+    let (res_1: felt) = hash2{hash_ptr=pedersen_ptr}(0, 0);
+
+    // This output is fed into tendermint tests.
+    %{ print(ids.res_hash) %}
+
+    assert res_1 = res_hash;
+    return ();
+}
+
+@external
 func test_hash_int128_array{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
     alloc_locals;
     let (local to_hash_array: felt*) = alloc();
