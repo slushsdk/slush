@@ -19,7 +19,7 @@ func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.
 	ext := consensus.External{VerifierAddress: vd.VerifierAddress, CallData: cd}
 	jsonString, _ := json.Marshal(ext)
 
-	err := os.WriteFile("/invoke_input.json", jsonString, fs.FileMode(0644))
+	err := os.WriteFile("./cairo/migrations/invoke_input.json", jsonString, fs.FileMode(0644))
 
 	if err != nil {
 		return []byte{}, err
