@@ -359,44 +359,56 @@ func TestHeaderHash(t *testing.T) {
 		header     *Header
 		expectHash bytes.HexBytes
 	}{
-		{"Generates expected hash", &Header{
-			Version:            version.Consensus{Block: 1, App: 2},
-			ChainID:            "chainId",
-			Height:             3,
-			Time:               time.Date(2019, 10, 13, 16, 14, 44, 0, time.UTC),
-			LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), 6, make([]byte, crypto.HashSize)),
-			LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
-			DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
-			ValidatorsHash:     crypto.ChecksumInt128([]byte("validators_hash")),
-			NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
-			ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
-			AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
-			LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
-			EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
-			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
-		}, hexBytesFromString(t, "21208EBC14908E6DA2941FF8D7BDDD4B96F34FF38AA3BC88208F955743DBA955")},
-		{"nil header yields nil", nil, nil},
-		{"nil ValidatorsHash yields nil", &Header{
-			Version:            version.Consensus{Block: 1, App: 2},
-			ChainID:            "chainId",
-			Height:             3,
-			Time:               time.Date(2019, 10, 13, 16, 14, 44, 0, time.UTC),
-			LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), 6, make([]byte, crypto.HashSize)),
-			LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
-			DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
-			ValidatorsHash:     nil,
-			NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
-			ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
-			AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
-			LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
-			EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
-			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
-		}, nil},
+		{
+			desc: "TestCase1: Generates expected hash",
+			header: &Header{
+				Version:            version.Consensus{Block: 1, App: 2},
+				ChainID:            "chainId",
+				Height:             3,
+				Time:               time.Date(2019, 10, 13, 16, 14, 44, 0, time.UTC),
+				LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), 6, make([]byte, crypto.HashSize)),
+				LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
+				DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
+				ValidatorsHash:     crypto.ChecksumInt128([]byte("validators_hash")),
+				NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
+				ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
+				AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
+				LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
+				EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
+				ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
+			},
+			expectHash: hexBytesFromString(t, "00B5F6182F597E433F8B618D251CAF33A2445EA1AF6F57A35FD45232114B9944"),
+		},
+		{
+			desc:       "TestCase2: nil header yields nil",
+			header:     nil,
+			expectHash: nil,
+		},
+		{
+			desc: "TestCase3: nil ValidatorsHash yields nil",
+			header: &Header{
+				Version:            version.Consensus{Block: 1, App: 2},
+				ChainID:            "chainId",
+				Height:             3,
+				Time:               time.Date(2019, 10, 13, 16, 14, 44, 0, time.UTC),
+				LastBlockID:        makeBlockID(make([]byte, crypto.HashSize), 6, make([]byte, crypto.HashSize)),
+				LastCommitHash:     crypto.ChecksumInt128([]byte("last_commit_hash")),
+				DataHash:           crypto.ChecksumInt128([]byte("data_hash")),
+				ValidatorsHash:     nil,
+				NextValidatorsHash: crypto.ChecksumInt128([]byte("next_validators_hash")),
+				ConsensusHash:      crypto.ChecksumInt128([]byte("consensus_hash")),
+				AppHash:            crypto.ChecksumInt128([]byte("app_hash")),
+				LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
+				EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
+				ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
+			},
+			expectHash: nil,
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			assert.Equal(t, tc.expectHash, tc.header.Hash())
+			assert.Equal(t, tc.expectHash, tc.header.Hash(), "%s failed: header hashes don't match", tc.desc)
 
 			// We also make sure that all fields are hashed in struct order, and that all
 			// fields in the test struct are non-zero.
@@ -412,35 +424,36 @@ func TestHeaderHash(t *testing.T) {
 
 					switch f := f.Interface().(type) {
 					case int64:
-						fB := make([]byte, 8)
-						encoding_binary.BigEndian.PutUint64(fB, uint64(f))
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(fB))
+						heightInt64Bytes := make([]byte, 8)
+						encoding_binary.BigEndian.PutUint64(heightInt64Bytes, uint64(f))
+						heightInt128Bytes := *(*[16]byte)(pedersen.ByteRounderInt128(heightInt64Bytes))
+						heightHash := crypto.HashInt128(heightInt128Bytes)
+
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(heightHash[:]))
 					case bytes.HexBytes:
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(f))
+						hexBytes := []byte(f)
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(hexBytes))
 					case string:
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128([]byte(f)))
+						chainIdBytes := []byte(f)
+						chainIdBytesRounded := pedersen.ByteRounderInt128(chainIdBytes)
+						chainIdHash := crypto.ChecksumInt128(chainIdBytesRounded)
+
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(chainIdHash))
 					case time.Time:
-						bz := HashTime(f)
-
-						byteSlices = append(byteSlices, bz)
+						pbt := HashTime(f)
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(pbt))
 					case version.Consensus:
-						bz := f.Hash()
-
-						byteSlices = append(byteSlices, bz)
+						hbz := f.Hash()
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(hbz))
 					case BlockID:
-						fProto := CanonicalizeBlockID(f.ToProto())
-						bz := HashBlockID(*(fProto))
-
-						byteSlices = append(byteSlices, bz)
+						bzbi := HashBlockID(*CanonicalizeBlockID(f.ToProto()))
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(bzbi))
 					default:
 						t.Errorf("unknown type %T", f)
 					}
 				}
-				// dst, _ := hex.DecodeString("86C7509710A4ECFD79B5E703399FAC56C01722B5F380ED7122FA8746AB18B028")
-				// assert.Equal(t,
-				// 	bytes.HexBytes(dst), tc.header.Hash())
 				assert.Equal(t,
-					bytes.HexBytes(merkle.HashFromByteSlicesInt128(byteSlices)), tc.header.Hash())
+					bytes.HexBytes(merkle.HashFromByteSlicesFelt(byteSlices)), tc.header.Hash(), "%s failed: merkle hash doesn't match with header hash", tc.desc)
 			}
 		})
 	}
