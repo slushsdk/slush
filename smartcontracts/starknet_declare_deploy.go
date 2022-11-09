@@ -28,7 +28,7 @@ func DeclareDeploy(vd types.VerifierDetails, verifierDetailsFile string) (*big.I
 		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", "./"+vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
 		deploycmd.Dir = "./cairo"
 	} else {
-		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--private-key", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.String(), "--network", vd.NetworkDetails.Network, "--no-confirm")
+		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--private-key", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--network", vd.NetworkDetails.Network, "--no-confirm")
 		deploycmd.Dir = "./cairo"
 	}
 
