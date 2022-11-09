@@ -5,7 +5,7 @@ func up() {
     %{
         import json
 
-        with open('invoke_input.json', 'r') as infile:
+        with open('migrations/invoke_input.json', 'r') as infile:
             inputJson = json.load(infile)
 
         contract_address = inputJson['address']
