@@ -655,6 +655,7 @@ func ResetTestRootWithChainID(testName string, chainID string) (*Config, error) 
 	if err := writeFile(privStateFilePath, []byte(testPrivValidatorState), 0644); err != nil {
 		return nil, err
 	}
+
 	config := TestConfig().SetRoot(rootDir)
 	return config, nil
 }
