@@ -299,6 +299,7 @@ func TestReactor_SyncTime(t *testing.T) {
 
 	valSet, privVals := factory.ValidatorSet(ctx, t, 1, 30)
 	genDoc := factory.GenesisDoc(cfg, time.Now(), valSet.Validators, factory.ConsensusParams())
+	// this needs to be >100, as the lastSyncRate is updated every 100 blocks
 	maxBlockHeight := int64(101)
 
 	rts := setup(ctx, t, genDoc, privVals[0], []int64{maxBlockHeight, 0})
@@ -311,8 +312,8 @@ func TestReactor_SyncTime(t *testing.T) {
 			return rts.reactors[rts.nodes[1]].GetRemainingSyncTime() > time.Nanosecond &&
 				rts.reactors[rts.nodes[1]].pool.getLastSyncRate() > 0.001
 		},
-		4*10*time.Second,
-		3*10*time.Millisecond,
+		60*10*time.Second,
+		60*10*time.Millisecond,
 		"expected node to be partially synced",
 	)
 }
@@ -349,8 +350,8 @@ func TestReactor_NoBlockResponse(t *testing.T) {
 	require.Eventually(
 		t,
 		func() bool { return secondaryPool.MaxPeerHeight() > 0 && secondaryPool.IsCaughtUp() },
-		10*time.Second,
-		10*time.Millisecond,
+		60*10*time.Second,
+		10*10*time.Millisecond,
 		"expected node to be fully synced",
 	)
 
