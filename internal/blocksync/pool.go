@@ -87,9 +87,9 @@ type BlockPool struct {
 	requestsCh chan<- BlockRequest
 	errorsCh   chan<- peerError
 
-	startHeight               int64
-	lastHundredBlockTimeStamp time.Time
-	lastSyncRate              float64
+	startHeight            int64
+	lastRateBlockTimeStamp time.Time
+	lastSyncRate           float64
 }
 
 // NewBlockPool returns a new BlockPool with the height equal to start. Block
@@ -120,7 +120,7 @@ func NewBlockPool(
 // pool's start time.
 func (pool *BlockPool) OnStart(ctx context.Context) error {
 	pool.lastAdvance = time.Now()
-	pool.lastHundredBlockTimeStamp = pool.lastAdvance
+	pool.lastRateBlockTimeStamp = pool.lastAdvance
 	go pool.makeRequestersRoutine(ctx)
 
 	return nil
@@ -234,16 +234,17 @@ func (pool *BlockPool) PopRequest() {
 		pool.height++
 		pool.lastAdvance = time.Now()
 
-		// the lastSyncRate will be updated every 100 blocks, it uses the adaptive filter
-		// to smooth the block sync rate and the unit represents the number of blocks per second.
-		if (pool.height-pool.startHeight)%100 == 0 {
-			newSyncRate := 100 / time.Since(pool.lastHundredBlockTimeStamp).Seconds()
+		blockRate := int64(10)
+		// the lastSyncRate will be updated every blockRate blocks, it uses the adaptive filter
+		// to smooth the block sync rate and the unit repretsents the number of blocks per second.
+		if (pool.height-pool.startHeight)%blockRate == 0 {
+			newSyncRate := float64(blockRate) / time.Since(pool.lastRateBlockTimeStamp).Seconds()
 			if pool.lastSyncRate == 0 {
 				pool.lastSyncRate = newSyncRate
 			} else {
 				pool.lastSyncRate = 0.9*pool.lastSyncRate + 0.1*newSyncRate
 			}
-			pool.lastHundredBlockTimeStamp = time.Now()
+			pool.lastRateBlockTimeStamp = time.Now()
 		}
 
 	} else {
@@ -459,6 +460,7 @@ func (pool *BlockPool) sendError(err error, peerID types.NodeID) {
 }
 
 // for debugging purposes
+//
 //nolint:unused
 func (pool *BlockPool) debug() string {
 	pool.mtx.Lock()
@@ -488,7 +490,6 @@ func (pool *BlockPool) targetSyncBlocks() int64 {
 func (pool *BlockPool) getLastSyncRate() float64 {
 	pool.mtx.RLock()
 	defer pool.mtx.RUnlock()
-
 	return pool.lastSyncRate
 }
 
