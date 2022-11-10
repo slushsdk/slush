@@ -19,6 +19,7 @@ import (
 	"github.com/tendermint/tendermint/abci/example/kvstore"
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 
 	"github.com/tendermint/tendermint/internal/evidence"
@@ -460,9 +461,9 @@ func TestMaxProposalBlockSize(t *testing.T) {
 
 	cs := types.CommitSig{
 		BlockIDFlag:      types.BlockIDFlagNil,
-		ValidatorAddress: crypto.AddressHash([]byte("validator_address")),
+		ValidatorAddress: crypto.AddressHash(pedersen.RandFeltBytes(32)),
 		Timestamp:        timestamp,
-		Signature:        crypto.CRandBytes(types.MaxSignatureSize),
+		Signature:        pedersen.RandFeltBytes(32),
 	}
 
 	commit := &types.Commit{
