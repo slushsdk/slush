@@ -127,8 +127,8 @@ func TestHTTPBatching(t *testing.T) {
 			}
 			return exists == 2
 		},
-		10*time.Second,
-		time.Second,
+		10*10*time.Second, //SLU-12 10s original
+		10*1*time.Second,  //SLU-12 1s original
 	)
 
 	// Send the 2 queries and keep the results
