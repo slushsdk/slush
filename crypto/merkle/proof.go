@@ -39,14 +39,6 @@ func ProofsFromByteSlicesFelt(items [][]byte) (rootHash []byte, proofs []*Proof)
 	return proofsFromByteSlices(crypto.NewFelt(), items)
 }
 
-func ProofsFromByteSlicesInt128(items [][]byte) (rootHash []byte, proofs []*Proof) {
-	return proofsFromByteSlices(crypto.NewInt128(), items)
-}
-
-func ProofsFromByteSlicesFelt(items [][]byte) (rootHash []byte, proofs []*Proof) {
-	return proofsFromByteSlices(crypto.NewFelt(), items)
-}
-
 // ProofsFromByteSlices computes inclusion proof for given items.
 // proofs[0] is the proof for items[0].
 func proofsFromByteSlices(hasher hash.Hash, items [][]byte) (rootHash []byte, proofs []*Proof) {

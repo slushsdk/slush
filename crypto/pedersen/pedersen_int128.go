@@ -20,7 +20,7 @@ func ByteRounderInt128(ba []byte) []byte {
 func PedersenHashInt128(b [16]byte) [32]byte {
 	bigInteger := big.NewInt(0).SetBytes(b[:])
 	zero := big.NewInt(0)
-	pedersenOutputBytes := ByteRounderFelt(Digest(bigInteger, zero).Bytes())
+	pedersenOutputBytes := ByteRounderFactory(32)(Digest(bigInteger, zero).Bytes())
 	return *(*[32]byte)(pedersenOutputBytes)
 }
 
@@ -29,7 +29,7 @@ func PedersenHashInt128Array(b []byte) [32]byte {
 
 	if len(chunks) == 0 {
 		zero := big.NewInt(0)
-		pedersenOutputBytes := ByteRounderFelt(Digest(zero, zero).Bytes())
+		pedersenOutputBytes := ByteRounderFactory(32)(Digest(zero, zero).Bytes())
 		return *(*[32]byte)(pedersenOutputBytes)
 	}
 	lastWordSize := len(chunks[len(chunks)-1])
@@ -48,6 +48,6 @@ func PedersenHashInt128Array(b []byte) [32]byte {
 	}
 
 	pedersenOutput := ArrayDigest(pedersenInput...)
-	pedersenOutputBytes := ByteRounderFelt(pedersenOutput.Bytes())
+	pedersenOutputBytes := ByteRounderFactory(32)(pedersenOutput.Bytes())
 	return *(*[32]byte)(pedersenOutputBytes)
 }
