@@ -455,11 +455,13 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	err = proxyApp.Start(ctx)
 	require.NoError(t, err)
 
-	state, stateDB, privVals := state(t, types.MaxVotesCount, int64(1))
+	const maxVotesCount = types.MaxVotesCount / 20
+	state, stateDB, privVals := state(t, maxVotesCount, int64(1))
 
 	stateStore := sm.NewStore(stateDB)
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
-	const maxBytes int64 = 1024 * 1024 * 2
+	const maxBytes int64 = 65536
+	const partSize uint32 = 2048
 	state.ConsensusParams.Block.MaxBytes = maxBytes
 	proposerAddr, _ := state.Validators.GetByIndex(0)
 
@@ -471,7 +473,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	)
 
 	// fill the mempool with one txs just below the maximum size
-	txLength := int(types.MaxDataBytesNoEvidence(maxBytes, types.MaxVotesCount))
+	txLength := int(types.MaxDataBytesNoEvidence(maxBytes, maxVotesCount))
 	tx := tmrand.Bytes(txLength - 6) // to account for the varint
 	err = mp.CheckTx(ctx, tx, nil, mempool.TxInfo{})
 	assert.NoError(t, err)
@@ -529,7 +531,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	voteSet := types.NewExtendedVoteSet(state.ChainID, math.MaxInt64-1, math.MaxInt32, tmproto.PrecommitType, state.Validators)
 
 	// add maximum amount of signatures to a single commit
-	for i := 0; i < types.MaxVotesCount; i++ {
+	for i := 0; i < maxVotesCount; i++ {
 		pubKey, err := privVals[i].GetPubKey(ctx)
 		require.NoError(t, err)
 		valIdx, val := state.Validators.GetByAddress(pubKey.Address())
@@ -563,7 +565,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 		proposerAddr,
 	)
 	require.NoError(t, err)
-	partSet, err := block.MakePartSet(types.BlockPartSizeBytes)
+	partSet, err := block.MakePartSet(partSize)
 	require.NoError(t, err)
 
 	// this ensures that the header is at max size
@@ -574,9 +576,9 @@ func TestMaxProposalBlockSize(t *testing.T) {
 
 	// require that the header and commit be the max possible size
 	require.Equal(t, int64(pb.Header.Size()), types.MaxHeaderBytes)
-	require.Equal(t, int64(pb.LastCommit.Size()), types.MaxCommitBytes(types.MaxVotesCount))
+	require.Equal(t, int64(pb.LastCommit.Size()), types.MaxCommitBytes(maxVotesCount))
 	// make sure that the block is less than the max possible size
-	assert.Equal(t, int64(pb.Size()), maxBytes)
+	assert.LessOrEqual(t, int64(pb.Size()), maxBytes)
 	// because of the proto overhead we expect the part set bytes to be equal or
 	// less than the pb block size
 	assert.LessOrEqual(t, partSet.ByteSize(), int64(pb.Size()))
