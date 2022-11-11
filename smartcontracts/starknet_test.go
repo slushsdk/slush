@@ -39,5 +39,5 @@ func TestInvoke(t *testing.T) {
 	vd := types.VerifierDetails{VerifierAddress: verifieraddress, AccountPrivKeyPath: "./seed42pkey", AccountAddress: address, NetworkDetails: types.NetworkDetails{Network: "devnet", SeedKeysBool: true}}
 	id := consensus.InvokeData{TrustedLightB: trustedLightBlock, UntrustedLightB: untrustedLightBlock, ValidatorSet: validatorSet}
 
-	smartcontracts.Invoke(vd, id, curtime)
+	smartcontracts.InvokePath(vd, id, curtime, "../cairo/migrations")
 }
