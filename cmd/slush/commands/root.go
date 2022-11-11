@@ -34,7 +34,7 @@ func ParseConfig(conf *config.Config) (*config.Config, error) {
 // RootCommand constructs the root command-line entry point for Tendermint core.
 func RootCommand(conf *config.Config, logger log.Logger) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tendermint",
+		Use:   "slush",
 		Short: "BFT state machine replication for applications in any programming languages",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Name() == VersionCmd.Name() {
