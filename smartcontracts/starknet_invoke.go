@@ -12,6 +12,10 @@ import (
 )
 
 func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.Int) ([]byte, error) {
+	return InvokePath(vd, id, currentTime, "./cairo/migrations")
+}
+
+func InvokePath(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.Int, path string) ([]byte, error) {
 
 	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
 
@@ -19,7 +23,7 @@ func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.
 	ext := consensus.External{VerifierAddress: vd.VerifierAddress, CallData: cd}
 	jsonString, _ := json.Marshal(ext)
 
-	err := os.WriteFile("./cairo/migrations/invoke_input.json", jsonString, fs.FileMode(0644))
+	err := os.WriteFile(path+"/invoke_input.json", jsonString, fs.FileMode(0644))
 
 	if err != nil {
 		return []byte{}, err
