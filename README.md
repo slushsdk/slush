@@ -1,6 +1,5 @@
 # Slush SDK 
 
-[![Go version](https://img.shields.io/badge/go-1.16-blue.svg)](https://github.com/moovweb/gvm)
 [![license](https://img.shields.io/github/license/tendermint/tendermint.svg)](https://github.com/slushsdk/slush/blob/master/LICENSE)
 
 
@@ -22,7 +21,7 @@ Send transactions to tendermint with the [ABCI-CLI](https://docs.tendermint.com/
 
 | Requirements                                                                                |     |
 | ------------------------------------------------------------------------------------------- | --- |
-| Go tested with 1.16                                                                         |
+| Go tested with 1.19                                                                         |
 | [Starknet Devnet](https://shard-labs.github.io/starknet-devnet/docs/intro#install)   v0.3.5 |
 | [Protostar](https://github.com/software-mansion/protostar)      v.0.6                       |
 | Python 3.9.14 (use [pyenv](https://github.com/pyenv/pyenv))                                 |
