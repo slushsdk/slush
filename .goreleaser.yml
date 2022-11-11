@@ -5,8 +5,8 @@ env:
   - GO111MODULE=on
 
 builds:
-  - id: "tendermint"
-    main: ./cmd/tendermint/main.go
+  - id: "slush"
+    main: ./cmd/slush/main.go
     ldflags:
       - -s -w -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Version }}
     env:
