@@ -285,10 +285,10 @@ func FormatCallData(trustedLightBlock types.LightBlock, untrustedLightBlock type
 
 // we use this to push new block to settlment channel
 func (cs *State) PushCommitToSettlment() error {
-	// First two blocks are not sent to starknet, they are required for the consensus initialization
-	if cs.Height <= 2 {
+	// First blocks are not sent to starknet, they are required for the consensus initialization
+	if cs.Height <= 3 {
 		logger := cs.logger
-		logger.Info(fmt.Sprintf("Initialization block %d of 2", cs.Height))
+		logger.Info(fmt.Sprintf("Initialization block %d of 3", cs.Height))
 		return nil
 	}
 
