@@ -1,0 +1,16 @@
+#!/bin/bash
+
+MESSAGE=$(cat $1)
+REGEX="^(feat|fix|chore|refactor|docs|style|test|perf|ci|build|revert)(\((.*)\))?: (.+) SLU-([0-9]+)$"
+
+if ! [[ "$MESSAGE" =~ $REGEX ]]; then
+  echo "Your commit was rejected due to the commit message. Skipping..."
+  echo ""
+  echo "Please use the the following format:"
+  echo "<type<(<scope>): <subject> <linear-issue>"
+  echo ""
+  echo "Example:"
+  echo "feat: add new feature SLU-123"
+  echo ""
+  exit 1
+fi

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+REGEX="^(feat|fix|chore|refactor|docs|style|test|perf|ci|build|revert)\/SLU-([0-9]+)-([a-z0-9\-]+)$"
+
+if ! [[ $BRANCH =~ $REGEX ]]; then
+  echo "Your commit was rejected due to the name of your branch. Skipping..."
+  echo ""
+  echo "Please rename your branch to use the the following format:"
+  echo "<type>/<linear-issue>-<subject>"
+  echo ""
+  echo "Example:"
+  echo "feat/SLU-123-add-new-feature"
+  echo ""
+  echo "You can rename your branch with the following command:"
+  echo "git branch (-m | -M) [<oldbranch>] <newbranch>"
+  echo "See: https://git-scm.com/docs/git-branch"
+  echo ""
+  exit 1
+fi
