@@ -55,3 +55,8 @@ proto/spec/**/*.pb.go
 *.pdf
 *.gz
 *.dvi
+cairo/build
+cairo/pkey
+seed42pkey
+cairo/migrations/*.json
+valdata/*
