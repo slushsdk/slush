@@ -132,7 +132,7 @@ func DefaultConsensusParams() *ConsensusParams {
 // DefaultBlockParams returns a default BlockParams.
 func DefaultBlockParams() BlockParams {
 	return BlockParams{
-		MaxBytes: 78000,
+		MaxBytes: 135000, // with 250byte txs, this means a bit less than 500 txs.
 		MaxGas:   -1,
 	}
 }
@@ -192,7 +192,7 @@ func DefaultTimeoutParams() TimeoutParams {
 		ProposeDelta:        1 * 500 * time.Millisecond,
 		Vote:                1 * 1000 * time.Millisecond,
 		VoteDelta:           1 * 500 * time.Millisecond,
-		Commit:              30 * 1000 * time.Millisecond,
+		Commit:              10 * 1000 * time.Millisecond,
 		BypassCommitTimeout: false,
 	}
 }
