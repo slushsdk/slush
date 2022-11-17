@@ -1,9 +1,9 @@
 package pedersen
 
 // implementation of hash.Hash interface
-
 import (
 	"crypto/rand"
+
 	"hash"
 	"math/big"
 
