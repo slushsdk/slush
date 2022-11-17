@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/libs/log"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -144,7 +144,7 @@ func TestSignerProposal(t *testing.T) {
 			defer tc.closer()
 
 			ts := time.Now()
-			hash := tmrand.Bytes(crypto.HashSize)
+			hash := pedersen.FeltBytes(32)
 			have := &types.Proposal{
 				Type:      tmproto.ProposalType,
 				Height:    1,
@@ -184,7 +184,7 @@ func TestSignerVote(t *testing.T) {
 			defer tc.closer()
 
 			ts := time.Now()
-			hash := tmrand.Bytes(crypto.HashSize)
+			hash := pedersen.FeltBytes(32)
 			valAddr := stark.GenPrivKey().PubKey().Address()
 
 			want := &types.Vote{
@@ -226,7 +226,7 @@ func TestSignerVoteResetDeadline(t *testing.T) {
 	for _, tc := range getSignerTestCases(ctx, t, logger) {
 		t.Run(tc.name, func(t *testing.T) {
 			ts := time.Now()
-			hash := tmrand.Bytes(crypto.HashSize)
+			hash := pedersen.FeltBytes(32)
 			valAddr := stark.GenPrivKey().PubKey().Address()
 			want := &types.Vote{
 				Type:             tmproto.PrecommitType,
@@ -279,7 +279,7 @@ func TestSignerVoteKeepAlive(t *testing.T) {
 			defer tc.closer()
 
 			ts := time.Now()
-			hash := tmrand.Bytes(crypto.HashSize)
+			hash := pedersen.FeltBytes(32)
 			valAddr := stark.GenPrivKey().PubKey().Address()
 			want := &types.Vote{
 				Type:             tmproto.PrecommitType,
@@ -332,7 +332,7 @@ func TestSignerSignProposalErrors(t *testing.T) {
 			tc.mockPV = types.NewErroringMockPV()
 
 			ts := time.Now()
-			hash := tmrand.Bytes(crypto.HashSize)
+			hash := pedersen.FeltBytes(32)
 			proposal := &types.Proposal{
 				Type:      tmproto.ProposalType,
 				Height:    1,
@@ -370,7 +370,7 @@ func TestSignerSignVoteErrors(t *testing.T) {
 			defer tc.closer()
 
 			ts := time.Now()
-			hash := tmrand.Bytes(crypto.HashSize)
+			hash := pedersen.FeltBytes(32)
 			valAddr := stark.GenPrivKey().PubKey().Address()
 			vote := &types.Vote{
 				Type:             tmproto.PrecommitType,

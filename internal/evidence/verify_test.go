@@ -253,7 +253,7 @@ func TestVerifyLightClientAttack_Equivocation(t *testing.T) {
 		Timestamp:           defaultEvidenceTime,
 	}
 
-	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, []byte("partshash"))
+	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, pedersen.FeltBytes(32))
 	trustedVoteSet := types.NewExtendedVoteSet(evidenceChainID, 10, 1, tmproto.SignedMsgType(2), conflictingVals)
 	trustedExtCommit, err := factory.MakeExtendedCommit(ctx, trustedBlockID, 10, 1,
 		trustedVoteSet, conflictingPrivVals, defaultEvidenceTime)
@@ -336,7 +336,7 @@ func TestVerifyLightClientAttack_Amnesia(t *testing.T) {
 
 	// we are simulating an amnesia attack where all the validators in the conflictingVals set
 	// except the last validator vote twice. However this time the commits are of different rounds.
-	blockID := makeBlockID(conflictingHeader.Hash(), 1000, []byte("partshash"))
+	blockID := makeBlockID(conflictingHeader.Hash(), 1000, pedersen.FeltBytes(32))
 	voteSet := types.NewExtendedVoteSet(evidenceChainID, height, 0, tmproto.SignedMsgType(2), conflictingVals)
 	extCommit, err := factory.MakeExtendedCommit(ctx, blockID, height, 0, voteSet, conflictingPrivVals, defaultEvidenceTime)
 	require.NoError(t, err)
@@ -356,7 +356,7 @@ func TestVerifyLightClientAttack_Amnesia(t *testing.T) {
 		Timestamp:           defaultEvidenceTime,
 	}
 
-	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, []byte("partshash"))
+	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, pedersen.FeltBytes(32))
 	trustedVoteSet := types.NewExtendedVoteSet(evidenceChainID, height, 1, tmproto.SignedMsgType(2), conflictingVals)
 	trustedExtCommit, err := factory.MakeExtendedCommit(ctx, trustedBlockID, height, 1,
 		trustedVoteSet, conflictingPrivVals, defaultEvidenceTime)
@@ -416,10 +416,10 @@ func TestVerifyDuplicateVoteEvidence(t *testing.T) {
 	val2 := types.NewMockPV()
 	valSet := types.NewValidatorSet([]*types.Validator{val.ExtractIntoValidator(ctx, 1)})
 
-	blockID := makeBlockID([]byte("blockhash"), 1000, []byte("partshash"))
-	blockID2 := makeBlockID([]byte("blockhash2"), 1000, []byte("partshash"))
-	blockID3 := makeBlockID([]byte("blockhash"), 10000, []byte("partshash"))
-	blockID4 := makeBlockID([]byte("blockhash"), 10000, []byte("partshash2"))
+	blockID := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
+	blockID2 := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
+	blockID3 := makeBlockID(pedersen.FeltBytes(32), 10000, pedersen.FeltBytes(32))
+	blockID4 := makeBlockID(pedersen.FeltBytes(32), 10000, pedersen.FeltBytes(32))
 
 	const chainID = "mychain"
 
