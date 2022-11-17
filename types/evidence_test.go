@@ -356,8 +356,8 @@ func TestEvidenceProto(t *testing.T) {
 
 	// -------- Votes --------
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	const chainID = "mychain"
 	v := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
