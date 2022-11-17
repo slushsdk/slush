@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	provider_mocks "github.com/tendermint/tendermint/light/provider/mocks"
@@ -63,7 +64,7 @@ func (pkz privKeys) signHeader(t testing.TB, header *types.Header, valSet *types
 
 	blockID := types.BlockID{
 		Hash:          header.Hash(),
-		PartSetHeader: types.PartSetHeader{Total: 1, Hash: crypto.CRandBytes(32)},
+		PartSetHeader: types.PartSetHeader{Total: 1, Hash: pedersen.FeltBytes(crypto.HashSize)},
 	}
 
 	// Fill in the votes we want.

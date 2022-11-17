@@ -11,6 +11,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/internal/eventbus"
 	"github.com/tendermint/tendermint/internal/evidence"
 	"github.com/tendermint/tendermint/internal/evidence/mocks"
@@ -274,7 +275,7 @@ func TestVerifyLightClientAttack_Equivocation(t *testing.T) {
 
 	// conflicting header has different next validators hash which should have been correctly derived from
 	// the previous round
-	ev.ConflictingBlock.Header.NextValidatorsHash = crypto.CRandBytes(crypto.HashSize)
+	ev.ConflictingBlock.Header.NextValidatorsHash = pedersen.FeltBytes(crypto.HashSize)
 	assert.Error(t, evidence.VerifyLightClientAttack(ev, trustedSignedHeader, trustedSignedHeader, nil,
 		defaultEvidenceTime.Add(1*time.Minute), 2*time.Hour))
 

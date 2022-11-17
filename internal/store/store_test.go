@@ -14,6 +14,7 @@ import (
 
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/state/test/factory"
@@ -41,8 +42,8 @@ func makeTestExtCommit(height int64, timestamp time.Time) *types.ExtendedCommit 
 	return &types.ExtendedCommit{
 		Height: height,
 		BlockID: types.BlockID{
-			Hash:          crypto.CRandBytes(32),
-			PartSetHeader: types.PartSetHeader{Hash: crypto.CRandBytes(32), Total: 2},
+			Hash:          pedersen.FeltBytes(crypto.HashSize),
+			PartSetHeader: types.PartSetHeader{Hash: pedersen.FeltBytes(crypto.HashSize), Total: 2},
 		},
 		ExtendedSignatures: extCommitSigs,
 	}
