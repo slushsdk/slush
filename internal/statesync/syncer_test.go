@@ -13,6 +13,7 @@ import (
 
 	clientmocks "github.com/tendermint/tendermint/abci/client/mocks"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/internal/proxy"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/statesync/mocks"
@@ -36,7 +37,7 @@ func TestSyncer_SyncAny(t *testing.T) {
 		},
 
 		LastBlockHeight: 1,
-		LastBlockID:     types.BlockID{Hash: []byte("blockhash")},
+		LastBlockID:     types.BlockID{Hash: pedersen.FeltBytes(32)},
 		LastBlockTime:   time.Now(),
 		LastResultsHash: []byte("last_results_hash"),
 		AppHash:         []byte("app_hash"),
@@ -48,7 +49,7 @@ func TestSyncer_SyncAny(t *testing.T) {
 		ConsensusParams:                  *types.DefaultConsensusParams(),
 		LastHeightConsensusParamsChanged: 1,
 	}
-	commit := &types.Commit{BlockID: types.BlockID{Hash: []byte("blockhash")}}
+	commit := &types.Commit{BlockID: types.BlockID{Hash: pedersen.FeltBytes(32)}}
 
 	chunks := []*chunk{
 		{Height: 1, Format: 1, Index: 0, Chunk: []byte{1, 1, 0}},

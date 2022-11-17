@@ -8,10 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
@@ -58,7 +57,7 @@ func TestGetPubKey(t *testing.T) {
 func TestSignVote(t *testing.T) {
 
 	ts := time.Now()
-	hash := tmrand.Bytes(crypto.HashSize)
+	hash := pedersen.FeltBytes(32)
 	valAddr := stark.GenPrivKey().PubKey().Address()
 
 	testCases := []struct {
@@ -134,7 +133,7 @@ func TestSignVote(t *testing.T) {
 func TestSignProposal(t *testing.T) {
 
 	ts := time.Now()
-	hash := tmrand.Bytes(crypto.HashSize)
+	hash := pedersen.FeltBytes(32)
 
 	testCases := []struct {
 		name       string

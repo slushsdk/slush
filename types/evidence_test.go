@@ -75,8 +75,8 @@ func TestEvidenceListProtoBuf(t *testing.T) {
 func randomDuplicateVoteEvidence(ctx context.Context, t *testing.T) *DuplicateVoteEvidence {
 	t.Helper()
 	val := NewMockPV()
-	blockID := makeBlockID([]byte("blockhash"), 1000, []byte("partshash"))
-	blockID2 := makeBlockID([]byte("blockhash2"), 1000, []byte("partshash"))
+	blockID := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
+	blockID2 := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
 	const chainID = "mychain"
 	return &DuplicateVoteEvidence{
 		VoteA:            makeVote(ctx, t, val, chainID, 0, 10, 2, 1, blockID, defaultVoteTime),
@@ -101,8 +101,8 @@ func TestDuplicateVoteEvidence(t *testing.T) {
 
 func TestDuplicateVoteEvidenceValidation(t *testing.T) {
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	const chainID = "mychain"
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -154,7 +154,7 @@ func TestLightClientAttackEvidenceBasic(t *testing.T) {
 
 	header := makeHeaderRandom()
 	header.Height = height
-	blockID := makeBlockID(crypto.ChecksumInt128([]byte("blockhash")), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(pedersen.FeltBytes(32)), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	extCommit, err := makeExtCommit(ctx, blockID, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	commit := extCommit.ToCommit()
@@ -220,7 +220,7 @@ func TestLightClientAttackEvidenceValidation(t *testing.T) {
 	header := makeHeaderRandom()
 	header.Height = height
 	header.ValidatorsHash = valSet.Hash()
-	blockID := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	extCommit, err := makeExtCommit(ctx, blockID, height, 1, voteSet, privVals, time.Now())
 	require.NoError(t, err)
 	commit := extCommit.ToCommit()
@@ -355,8 +355,8 @@ func TestEvidenceProto(t *testing.T) {
 
 	// -------- Votes --------
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	const chainID = "mychain"
 	v := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
@@ -400,8 +400,8 @@ func TestEvidenceVectors(t *testing.T) {
 	// Votes for duplicateEvidence
 	val := NewMockPV()
 	val.PrivKey = stark.GenPrivKeyFromSecret([]byte("it's a secret")) // deterministic key
-	blockID := makeBlockID(crypto.ChecksumInt128([]byte("blockhash")), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.ChecksumInt128([]byte("blockhash2")), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(pedersen.FeltBytes(32)), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(pedersen.FeltBytes(32)), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	const chainID = "mychain"
 	v := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(ctx, t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
@@ -430,7 +430,7 @@ func TestEvidenceVectors(t *testing.T) {
 		EvidenceHash:       emptyBytes,
 		ProposerAddress:    emptyBytes,
 	}
-	blockID3 := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID3 := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	extCommit, err := makeExtCommit(ctx, blockID3, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{

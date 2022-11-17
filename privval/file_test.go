@@ -15,7 +15,6 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
@@ -151,8 +150,8 @@ func TestSignVote(t *testing.T) {
 
 	privVal, _, _ := newTestFilePV(t)
 
-	randbytes := tmrand.Bytes(crypto.HashSize)
-	randbytes2 := tmrand.Bytes(crypto.HashSize)
+	randbytes := pedersen.FeltBytes(32)
+	randbytes2 := pedersen.FeltBytes(32)
 
 	block1 := types.BlockID{Hash: randbytes,
 		PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
@@ -200,8 +199,8 @@ func TestSignProposal(t *testing.T) {
 
 	privVal, _, _ := newTestFilePV(t)
 
-	randbytes := tmrand.Bytes(crypto.HashSize)
-	randbytes2 := tmrand.Bytes(crypto.HashSize)
+	randbytes := pedersen.FeltBytes(32)
+	randbytes2 := pedersen.FeltBytes(32)
 
 	block1 := types.BlockID{Hash: randbytes,
 		PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
@@ -247,7 +246,7 @@ func TestDifferByTimestamp(t *testing.T) {
 
 	privVal, err := GenFilePV(tempKeyFile.Name(), tempStateFile.Name(), "")
 	require.NoError(t, err)
-	randbytes := tmrand.Bytes(crypto.HashSize)
+	randbytes := pedersen.FeltBytes(32)
 	height, round := int64(10), int32(1)
 	chainID := "mychainid"
 
@@ -286,8 +285,8 @@ func TestVoteExtensionsAreAlwaysSigned(t *testing.T) {
 	assert.NoError(t, err)
 
 	block := types.BlockID{
-		Hash:          tmrand.Bytes(crypto.HashSize),
-		PartSetHeader: types.PartSetHeader{Total: 5, Hash: tmrand.Bytes(crypto.HashSize)},
+		Hash:          pedersen.FeltBytes(32),
+		PartSetHeader: types.PartSetHeader{Total: 5, Hash: pedersen.FeltBytes(32)},
 	}
 
 	height, round := int64(10), int32(1)
