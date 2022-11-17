@@ -63,10 +63,6 @@ func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan consensus.InvokeData) {
 		select {
 		case newBlock := <-SettlementCh:
 			r.FormatAndSendCommit(newBlock)
-		// case <-ctx.Done():
-		// 	r.logger.Info("Stopping settlement reactor via context")
-
-		// 	return
 		case <-r.stopChan:
 			r.logger.Info("Stopping settlement reactor via stopChan")
 
