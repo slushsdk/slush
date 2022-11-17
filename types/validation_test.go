@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	tmmath "github.com/tendermint/tendermint/libs/math"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -19,7 +20,7 @@ func TestValidatorSet_VerifyCommit_All(t *testing.T) {
 		round  = int32(0)
 		height = int64(100)
 
-		blockID    = makeBlockID([]byte("blockhash"), 1000, []byte("partshash"))
+		blockID    = makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
 		chainID    = "Lalande21185"
 		trustLevel = tmmath.Fraction{Numerator: 2, Denominator: 3}
 	)

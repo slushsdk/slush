@@ -4,7 +4,6 @@ import (
 	// it is ok to use math/rand here: we do not need a cryptographically secure random
 	// number generator here and we can run the tests a bit faster
 	"context"
-	"crypto/rand"
 	encoding_binary "encoding/binary"
 	"encoding/hex"
 	"math"
@@ -215,11 +214,9 @@ func TestBlockString(t *testing.T) {
 
 func makeBlockIDRandom() BlockID {
 	var (
-		blockHash   = make([]byte, crypto.HashSize)
-		partSetHash = make([]byte, crypto.HashSize)
+		blockHash   = pedersen.FeltBytes(crypto.HashSize)
+		partSetHash = pedersen.FeltBytes(crypto.HashSize)
 	)
-	rand.Read(blockHash)   //nolint: errcheck // ignore errcheck for read
-	rand.Read(partSetHash) //nolint: errcheck // ignore errcheck for read
 	return BlockID{blockHash, PartSetHeader{123, partSetHash}}
 }
 
@@ -377,7 +374,7 @@ func TestHeaderHash(t *testing.T) {
 				EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
 				ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 			},
-			expectHash: hexBytesFromString(t, "00B5F6182F597E433F8B618D251CAF33A2445EA1AF6F57A35FD45232114B9944"),
+			expectHash: hexBytesFromString(t, "049802D4342C3D77CC99071BBC50FC0C07BFF7E2DFA06BC69187692CB3E6F5B7"),
 		},
 		{
 			desc:       "TestCase2: nil header yields nil",
@@ -714,7 +711,7 @@ func TestExtendedCommitToVoteSet(t *testing.T) {
 }
 
 func TestCommitToVoteSetWithVotesForNilBlock(t *testing.T) {
-	blockID := makeBlockID([]byte("blockhash"), 1000, []byte("partshash"))
+	blockID := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
 
 	const (
 		height = int64(3)
@@ -1478,7 +1475,7 @@ func TestHeaderHashVector(t *testing.T) {
 				EvidenceHash:       emptyBytes,
 				ProposerAddress:    emptyBytes,
 			},
-			expBytes: "07610f45d2c0349f0d48543ee9e2f40018836f5535c478691723b74fa4103b75"},
+			expBytes: "0406c3800071299d0ac7d9b13efb16e3f63abc4317ca4d9a77c7f010dd5884e6"},
 	}
 
 	for _, tc := range testCases {
