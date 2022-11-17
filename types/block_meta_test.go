@@ -6,12 +6,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
 func TestBlockMeta_ToProto(t *testing.T) {
 	h := MakeRandHeader()
-	bi := BlockID{Hash: h.Hash(), PartSetHeader: PartSetHeader{Total: 123, Hash: tmrand.FeltBytes(crypto.HashSize)}}
+	bi := BlockID{Hash: h.Hash(), PartSetHeader: PartSetHeader{Total: 123, Hash: pedersen.FeltBytes(crypto.HashSize)}}
 
 	bm := &BlockMeta{
 		BlockID:   bi,
