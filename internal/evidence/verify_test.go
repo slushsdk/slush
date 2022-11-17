@@ -12,7 +12,6 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/pedersen"
-
 	"github.com/tendermint/tendermint/internal/evidence"
 	"github.com/tendermint/tendermint/internal/evidence/mocks"
 	sm "github.com/tendermint/tendermint/internal/state"
