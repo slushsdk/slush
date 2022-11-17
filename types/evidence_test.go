@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -336,15 +337,15 @@ func makeHeaderRandom() *Header {
 		Height:             int64(mrand.Uint32() + 1),
 		Time:               time.Now(),
 		LastBlockID:        makeBlockIDRandom(),
-		LastCommitHash:     tmrand.FeltBytes(crypto.HashSize),
-		DataHash:           tmrand.FeltBytes(crypto.HashSize),
-		ValidatorsHash:     tmrand.FeltBytes(crypto.HashSize),
-		NextValidatorsHash: tmrand.FeltBytes(crypto.HashSize),
-		ConsensusHash:      tmrand.FeltBytes(crypto.HashSize),
-		AppHash:            tmrand.FeltBytes(crypto.HashSize),
-		LastResultsHash:    tmrand.FeltBytes(crypto.HashSize),
-		EvidenceHash:       tmrand.FeltBytes(crypto.HashSize),
-		ProposerAddress:    tmrand.FeltBytes(crypto.AddressSize),
+		LastCommitHash:     pedersen.FeltBytes(crypto.HashSize),
+		DataHash:           pedersen.FeltBytes(crypto.HashSize),
+		ValidatorsHash:     pedersen.FeltBytes(crypto.HashSize),
+		NextValidatorsHash: pedersen.FeltBytes(crypto.HashSize),
+		ConsensusHash:      pedersen.FeltBytes(crypto.HashSize),
+		AppHash:            pedersen.FeltBytes(crypto.HashSize),
+		LastResultsHash:    pedersen.FeltBytes(crypto.HashSize),
+		EvidenceHash:       pedersen.FeltBytes(crypto.HashSize),
+		ProposerAddress:    pedersen.FeltBytes(crypto.AddressSize),
 	}
 }
 

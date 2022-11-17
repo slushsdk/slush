@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
 )
@@ -21,11 +21,11 @@ var (
 )
 
 func RandomAddress() []byte {
-	return tmrand.FeltBytes(crypto.AddressSize)
+	return pedersen.FeltBytes(crypto.AddressSize)
 }
 
 func RandomHash() []byte {
-	return tmrand.FeltBytes(crypto.HashSize)
+	return pedersen.FeltBytes(crypto.HashSize)
 }
 
 func MakeBlockID() types.BlockID {

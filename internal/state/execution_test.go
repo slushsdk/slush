@@ -17,6 +17,7 @@ import (
 	abcimocks "github.com/tendermint/tendermint/abci/types/mocks"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/eventbus"
 	mpmocks "github.com/tendermint/tendermint/internal/mempool/mocks"
@@ -28,7 +29,6 @@ import (
 	"github.com/tendermint/tendermint/internal/store"
 	"github.com/tendermint/tendermint/internal/test/factory"
 	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
 )
@@ -183,15 +183,15 @@ func TestFinalizeBlockMisbehavior(t *testing.T) {
 		Height:             10,
 		Time:               defaultEvidenceTime,
 		LastBlockID:        blockID,
-		LastCommitHash:     tmrand.FeltBytes(crypto.HashSize),
-		DataHash:           tmrand.FeltBytes(crypto.HashSize),
+		LastCommitHash:     pedersen.FeltBytes(crypto.HashSize),
+		DataHash:           pedersen.FeltBytes(crypto.HashSize),
 		ValidatorsHash:     state.Validators.Hash(),
 		NextValidatorsHash: state.Validators.Hash(),
-		ConsensusHash:      tmrand.FeltBytes(crypto.HashSize),
-		AppHash:            tmrand.FeltBytes(crypto.HashSize),
-		LastResultsHash:    tmrand.FeltBytes(crypto.HashSize),
-		EvidenceHash:       tmrand.FeltBytes(crypto.HashSize),
-		ProposerAddress:    tmrand.FeltBytes(crypto.AddressSize),
+		ConsensusHash:      pedersen.FeltBytes(crypto.HashSize),
+		AppHash:            pedersen.FeltBytes(crypto.HashSize),
+		LastResultsHash:    pedersen.FeltBytes(crypto.HashSize),
+		EvidenceHash:       pedersen.FeltBytes(crypto.HashSize),
+		ProposerAddress:    pedersen.FeltBytes(crypto.AddressSize),
 	}
 
 	// we don't need to worry about validating the evidence as long as they pass validate basic
