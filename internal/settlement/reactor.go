@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"github.com/tendermint/tendermint/internal/consensus"
@@ -21,8 +20,7 @@ type Reactor struct {
 
 	verifierDetails types.VerifierDetails
 	SettlementCh    <-chan consensus.InvokeData
-
-	mtx sync.Mutex
+	stopChan        chan bool
 }
 
 // NewReactor returns a reference to a new evidence reactor, which implements the
@@ -56,7 +54,9 @@ func (r *Reactor) OnStart(ctx context.Context) error {
 
 // OnStop stops the reactor by signaling to all spawned goroutines to exit and
 // blocking until they all exit.
-func (r *Reactor) OnStop() {}
+func (r *Reactor) OnStop() {
+	r.stopChan <- true
+}
 
 func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan consensus.InvokeData) {
 	r.logger.Info("started settlement reactor")
@@ -65,7 +65,11 @@ func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan co
 		case newBlock := <-SettlementCh:
 			r.FormatAndSendCommit(newBlock)
 		case <-ctx.Done():
-			r.logger.Info("Stopping settlement reactor")
+			r.logger.Info("Stopping settlement reactor via context")
+
+			return
+		case <-r.stopChan:
+			r.logger.Info("Stopping settlement reactor via stopChan")
 
 			return
 		}
