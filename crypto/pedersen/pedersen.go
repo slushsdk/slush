@@ -3,6 +3,7 @@
 package pedersen
 
 import (
+	"crypto/rand"
 	_ "embed"
 	"math/big"
 
@@ -49,4 +50,23 @@ func PedersenHashFeltArray(b []byte) [32]byte {
 	pedersenOutput := ArrayDigest(pedersenInput...)
 	pedersenOutputBytes := ByteRounderFelt(pedersenOutput.Bytes())
 	return *(*[32]byte)(pedersenOutputBytes)
+}
+
+func ByteRounderFactory(n int) func(byteSlice []byte) []byte {
+	return func(byteSlice []byte) []byte {
+		rem := len(byteSlice) % n
+		rem = (n - rem) % n
+		byteSliceRounded := append(make([]byte, rem), byteSlice...)
+		return byteSliceRounded
+	}
+}
+
+func FeltBytes(n int) []byte {
+	numb, _ := big.NewInt(0).SetString("3618502788666131213697322783095070105623107215331596699973092056135872020480", 10)
+	randNumb, _ := rand.Int(rand.Reader, numb)
+	randBytes := randNumb.Bytes()
+
+	randBytesRounded := ByteRounderFactory(n)(randBytes)
+
+	return randBytesRounded[:n]
 }
