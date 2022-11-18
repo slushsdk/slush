@@ -104,6 +104,7 @@ func TestDuplicateVoteEvidenceValidation(t *testing.T) {
 	val := NewMockPV()
 	blockID := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	blockID2 := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+
 	const chainID = "mychain"
 
 	ctx, cancel := context.WithCancel(context.Background())
