@@ -94,7 +94,7 @@ func hash_int128_array_recursive{pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
     local current_int: felt = [array_ptr];
 
-    // Check that 0 <= x < 2**64.
+    // Check that 0 <= x < 2**128.
     [range_check_ptr] = current_int;
     assert [range_check_ptr + 1] = 2 ** 128 - 1 - current_int;
     let range_check_ptr = range_check_ptr + 2;
@@ -111,7 +111,7 @@ func hash_int128_array_recursive{pedersen_ptr: HashBuiltin*, range_check_ptr}(
 func hash_felt{range_check_ptr, pedersen_ptr: HashBuiltin*}(input1: felt) -> (res_hash: felt) {
     alloc_locals;
 
-    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}( input1, 0);
+    let (res_hash5) = hash2{hash_ptr=pedersen_ptr}(input1, 0);
 
     return (res_hash5,);
 }
@@ -162,6 +162,44 @@ func hash_felt_array_recursive{range_check_ptr, pedersen_ptr: HashBuiltin*}(
     let res_hash: felt = hash_felt_array_recursive(
         array_pointer + 1, array_pointer_len - 1, res_felt
     );
+
+    return (res_hash,);
+}
+
+func hash{range_check_ptr, pedersen_ptr: HashBuiltin*}(
+    array_pointer: felt*, array_pointer_len: felt
+) -> (res_hash: felt) {
+    alloc_locals;
+
+    if (array_pointer_len == 0) {
+        let (res_hash) = hash_felt(0);
+        return (res_hash,);
+    }
+    if (array_pointer_len == 1) {
+        let (res_hash) = hash_felt([array_pointer]);
+        return (res_hash,);
+    }
+
+    let res_hash: felt = hash_felt_array(array_pointer, array_pointer_len);
+
+    return (res_hash,);
+}
+
+func hash_i128{range_check_ptr, pedersen_ptr: HashBuiltin*}(
+    array_pointer: felt*, array_pointer_len: felt
+) -> (res_hash: felt) {
+    alloc_locals;
+
+    if (array_pointer_len == 0) {
+        let (res_hash) = hash_int128(0);
+        return (res_hash,);
+    }
+    if (array_pointer_len == 1) {
+        let (res_hash) = hash_int128([array_pointer]);
+        return (res_hash,);
+    }
+
+    let res_hash: felt = hash_int128_array(array_pointer, array_pointer_len);
 
     return (res_hash,);
 }
