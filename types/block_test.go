@@ -377,19 +377,18 @@ func TestHeaderHash(t *testing.T) {
 					case int64:
 						heightInt64Bytes := make([]byte, 8)
 						encoding_binary.BigEndian.PutUint64(heightInt64Bytes, uint64(f))
-						heightInt128Bytes := *(*[16]byte)(pedersen.ByteRounderInt128(heightInt64Bytes))
-						heightHash := crypto.Checksum128(heightInt128Bytes[:])
+						heightHash := crypto.Checksum128(heightInt64Bytes)
 
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(heightHash[:]))
+						byteSlices = append(byteSlices, utils.ByteRounder(16)(heightHash[:]))
 					case bytes.HexBytes:
 						hexBytes := []byte(f)
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(hexBytes))
+						byteSlices = append(byteSlices, utils.ByteRounder(16)(hexBytes))
 					case string:
 						chainIdBytes := []byte(f)
-						chainIdBytesRounded := pedersen.ByteRounderInt128(chainIdBytes)
+						chainIdBytesRounded := utils.ByteRounder(16)(chainIdBytes)
 						chainIdHash := crypto.Checksum128(chainIdBytesRounded)
 
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(chainIdHash))
+						byteSlices = append(byteSlices, utils.ByteRounder(16)(chainIdHash))
 					case time.Time:
 						pbt := HashTime(f)
 						byteSlices = append(byteSlices, utils.ByteRounder(16)(pbt))

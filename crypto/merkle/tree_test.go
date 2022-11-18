@@ -226,7 +226,6 @@ func TestPedersen(t *testing.T) {
 
 	elapsed := time.Since(start)
 	fmt.Println("elapsed time", elapsed)
-	return
 
 }
 
@@ -241,7 +240,6 @@ func TestSha(t *testing.T) {
 
 	elapsed := time.Since(start)
 	fmt.Println("elapsed time", elapsed)
-	return
 
 }
 
@@ -256,6 +254,5 @@ func TestTreePedersen(t *testing.T) {
 
 	elapsed := time.Since(start)
 	fmt.Println("elapsed time", elapsed)
-	return
 
 }
