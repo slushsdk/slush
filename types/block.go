@@ -13,7 +13,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/libs/bits"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmmath "github.com/tendermint/tendermint/libs/math"
@@ -460,30 +460,28 @@ func (h *Header) Hash() tmbytes.HexBytes {
 		bzbi = HashBlockID(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 	}
 
-	chainIDB := pedersen.ByteRounderInt128([]byte(h.ChainID))
+	chainIDB := utils.ByteRounder(16)([]byte(h.ChainID))
 
 	heightB_int64 := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightB_int64, uint64(h.Height))
 
-	heightB_int128 := *(*[16]byte)(pedersen.ByteRounderInt128(heightB_int64))
-
-	heightB_hash := crypto.HashInt128(heightB_int128)
+	heightB_hash := crypto.Checksum128(heightB_int64)
 
 	return merkle.HashFromByteSlicesFelt([][]byte{
-		pedersen.ByteRounderInt128(hbz),
-		pedersen.ByteRounderInt128(crypto.ChecksumInt128(chainIDB)),
-		pedersen.ByteRounderInt128(heightB_hash[:]),
-		pedersen.ByteRounderInt128(pbt),
-		pedersen.ByteRounderInt128(bzbi),
-		pedersen.ByteRounderInt128([]byte(h.LastCommitHash)),
-		pedersen.ByteRounderInt128(h.DataHash),
-		pedersen.ByteRounderInt128([]byte(h.ValidatorsHash)),
-		pedersen.ByteRounderInt128([]byte(h.NextValidatorsHash)),
-		pedersen.ByteRounderInt128([]byte(h.ConsensusHash)),
-		pedersen.ByteRounderInt128([]byte(h.AppHash)),
-		pedersen.ByteRounderInt128([]byte(h.LastResultsHash)),
-		pedersen.ByteRounderInt128([]byte(h.EvidenceHash)),
-		pedersen.ByteRounderInt128([]byte(h.ProposerAddress)),
+		utils.ByteRounder(16)(hbz),
+		utils.ByteRounder(16)(crypto.Checksum128(chainIDB)),
+		utils.ByteRounder(16)(heightB_hash[:]),
+		utils.ByteRounder(16)(pbt),
+		utils.ByteRounder(16)(bzbi),
+		utils.ByteRounder(16)([]byte(h.LastCommitHash)),
+		utils.ByteRounder(16)(h.DataHash),
+		utils.ByteRounder(16)([]byte(h.ValidatorsHash)),
+		utils.ByteRounder(16)([]byte(h.NextValidatorsHash)),
+		utils.ByteRounder(16)([]byte(h.ConsensusHash)),
+		utils.ByteRounder(16)([]byte(h.AppHash)),
+		utils.ByteRounder(16)([]byte(h.LastResultsHash)),
+		utils.ByteRounder(16)([]byte(h.EvidenceHash)),
+		utils.ByteRounder(16)([]byte(h.ProposerAddress)),
 	})
 }
 
