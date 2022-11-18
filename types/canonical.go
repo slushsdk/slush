@@ -7,7 +7,7 @@ import (
 	time "time"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/utils"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -110,19 +110,15 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 
 	//timestampHash := HashTime(canVote.Timestamp)
 
-	chainIDByte := pedersen.ByteRounderInt128([]byte(canVote.ChainID))
+	chainIDByte := utils.ByteRounder(16)([]byte(canVote.ChainID))
 
-	typeByteArray := *(*[16]byte)(pedersen.ByteRounderInt128(typeByte))
-	typeByteHashArray := crypto.HashInt128(typeByteArray)
+	typeByteHashArray := crypto.Checksum128(typeByte)
 
-	heighByteArray := *(*[16]byte)(pedersen.ByteRounderInt128(heightByte))
-	heightByteHashArray := crypto.HashInt128(heighByteArray)
+	heightByteHashArray := crypto.Checksum128(heightByte)
 
-	roundByteArray := *(*[16]byte)(pedersen.ByteRounderInt128(roundByte))
-	roundByteHashArray := crypto.HashInt128(roundByteArray)
+	roundByteHashArray := crypto.Checksum128(roundByte)
 
-	chainIdByteArray := (pedersen.ByteRounderInt128(chainIDByte))
-	chainIDByteHashArray := crypto.ChecksumInt128(chainIdByteArray)
+	chainIDByteHashArray := crypto.Checksum128(chainIDByte)
 
 	voteArray := bytes.Join([][]byte{typeByteHashArray[:], heightByteHashArray[:], roundByteHashArray[:], blockIDHash, chainIDByteHashArray[:]}, make([]byte, 0))
 
@@ -132,22 +128,22 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 
 func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 
-	extensionByte := pedersen.ByteRounderInt128(canVote.Extension)
-	hasherForExtension := crypto.NewInt128()
+	extensionByte := utils.ByteRounder(16)(canVote.Extension)
+	hasherForExtension := crypto.New128()
 	hasherForExtension.Write(extensionByte)
 
 	heightByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
-	hasherForHeight := crypto.NewInt128()
+	hasherForHeight := crypto.New128()
 	hasherForHeight.Write(heightByte)
 
 	roundByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
-	hasherForRound := crypto.NewInt128()
+	hasherForRound := crypto.New128()
 	hasherForRound.Write(roundByte)
 
-	chainIDByte := pedersen.ByteRounderInt128([]byte(canVote.ChainId))
-	hasherForChainID := crypto.NewInt128()
+	chainIDByte := utils.ByteRounder(16)([]byte(canVote.ChainId))
+	hasherForChainID := crypto.New128()
 	hasherForChainID.Write(chainIDByte)
 
 	voteArray := bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
@@ -162,8 +158,7 @@ func HashTime(timeStamp time.Time) []byte {
 
 	timeb := make([]byte, 8)
 	binary.BigEndian.PutUint64(timeb, uint64(timeStamp.UnixNano()))
-	time_int128 := *(*[16]byte)(pedersen.ByteRounderInt128(timeb))
-	time_ret := crypto.HashInt128(time_int128)
+	time_ret := crypto.Checksum128(timeb)
 	return time_ret[:]
 
 }
@@ -182,8 +177,7 @@ func HashCPSetHeader(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
 
 	totalb := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(totalb, uint64(canPartSetHeader.Total))
-	totalb_array := *(*[16]byte)(pedersen.ByteRounderInt128(totalb))
-	totalb_hash := crypto.HashInt128(totalb_array)
+	totalb_hash := crypto.Checksum128(totalb)
 
 	hashArray := append(totalb_hash[:], canPartSetHeader.Hash...)
 

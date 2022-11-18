@@ -24,7 +24,7 @@ func exampleVote() *types.Vote {
 		Type:             tmproto.PrecommitType,
 		Height:           3,
 		Round:            2,
-		BlockID:          types.BlockID{Hash: crypto.ChecksumInt128([]byte("blockID_hash")), PartSetHeader: types.PartSetHeader{Total: 1000000, Hash: crypto.ChecksumInt128([]byte("blockID_part_set_header_hash"))}},
+		BlockID:          types.BlockID{Hash: crypto.Checksum128([]byte("blockID_hash")), PartSetHeader: types.PartSetHeader{Total: 1000000, Hash: crypto.Checksum128([]byte("blockID_part_set_header_hash"))}},
 		Timestamp:        stamp,
 		ValidatorAddress: crypto.AddressHash([]byte("validator_address")),
 		ValidatorIndex:   56789,
@@ -42,10 +42,10 @@ func exampleProposal() *types.Proposal {
 		POLRound:  2,
 		Signature: []byte("it's a signature"),
 		BlockID: types.BlockID{
-			Hash: crypto.ChecksumInt128([]byte("blockID_hash")),
+			Hash: crypto.Checksum128([]byte("blockID_hash")),
 			PartSetHeader: types.PartSetHeader{
 				Total: 1000000,
-				Hash:  crypto.ChecksumInt128([]byte("blockID_part_set_header_hash")),
+				Hash:  crypto.Checksum128([]byte("blockID_part_set_header_hash")),
 			},
 		},
 	}
