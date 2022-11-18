@@ -4,9 +4,6 @@ import (
 	"hash"
 
 	"github.com/tendermint/tendermint/crypto/pedersen"
-	"github.com/tendermint/tendermint/crypto/pedersen/pedersenInt128"
-
-	"github.com/tendermint/tendermint/crypto/pedersen/pedersenFelt"
 
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
@@ -14,7 +11,7 @@ import (
 
 const (
 	// HashSize is the size in bytes of an AddressHash.
-	HashSize = pedersenInt128.Size
+	HashSize = 32
 
 	// AddressSize is the size of a pubkey address.
 	AddressSize = 32
@@ -30,7 +27,7 @@ type Address = bytes.HexBytes
 //
 // See: https://docs.tendermint.com/master/spec/core/data_structures.html#address
 func AddressHash(bz []byte) Address {
-	h := Sum256Felt(bz)
+	h := pedersen.Sum(bz)
 	size := AddressSize
 	if size <= 32 {
 		return Address(h[:size])
@@ -39,50 +36,32 @@ func AddressHash(bz []byte) Address {
 	return Address(h[:32])
 }
 
-func NewInt128() hash.Hash {
-	return pedersenInt128.New()
-}
-
-// Hashes b
-func Sum256Int128(b []byte) [32]byte {
-	return pedersenInt128.Sum256(b)
-}
-
-// Checksum returns the SHA256 of the bz.
-func ChecksumInt128(bz []byte) []byte {
-	h := Sum256Int128(bz)
-	return h[:]
-}
-
+// NewFelt returns a new pedersen hasher that expects a byte chunk
+// containing 32 length felt byte slices
 func NewFelt() hash.Hash {
-	return pedersenFelt.New()
+	return pedersen.New()
 }
 
-// Hashes b
-func Sum256Felt(b []byte) [32]byte {
-	return pedersenFelt.Sum256(b)
+// New128 returns a new pedersen hasher that expects a byte chunk
+// containing 16 length felt byte slices
+func New128() hash.Hash {
+	return pedersen.New128()
+}
+
+// Checksum returns the pedersen of the bz.
+func Checksum128(in []byte) []byte {
+	hash := pedersen.Sum128(in)
+	return hash[:]
 }
 
 // Checksum returns the SHA256 of the bz.
-func ChecksumFelt(bz []byte) []byte {
-	h := pedersenFelt.Sum256(bz)
-	return h[:]
+func ChecksumFelt(in []byte) []byte {
+	hash := pedersen.Sum(in)
+	return hash[:]
 }
 
-func HashInt128(b [16]byte) [32]byte {
-	return pedersenInt128.HashInt128(b)
-}
-
-func HashFelt(b [32]byte) [32]byte {
-	return pedersenFelt.HashFelt(b)
-}
-
-func ByteRounder(b []byte) []byte {
-	return pedersen.ByteRounderInt128(b)
-}
-
-func ByteRounderFelt(b []byte) []byte {
-	return pedersen.ByteRounderFelt(b)
+func Sum128(in []byte) [HashSize]byte {
+	return pedersen.Sum128(in)
 }
 
 type PubKey interface {

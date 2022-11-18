@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/utils"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -155,7 +155,7 @@ func VoteSignBytes(chainID string, vote *tmproto.Vote) []byte {
 	timeb := make([]byte, 8)
 	binary.BigEndian.PutUint64(timeb, uint64(vote.GetTimestamp().UnixNano()))
 
-	timebRounded := pedersen.ByteRounderFelt(timeb)
+	timebRounded := utils.ByteRounder(32)(timeb)
 
 	return append(timebRounded, bz...)
 

@@ -32,7 +32,7 @@ type Proof struct {
 }
 
 func ProofsFromByteSlicesInt128(items [][]byte) (rootHash []byte, proofs []*Proof) {
-	return proofsFromByteSlices(crypto.NewInt128(), items)
+	return proofsFromByteSlices(crypto.New128(), items)
 }
 
 func ProofsFromByteSlicesFelt(items [][]byte) (rootHash []byte, proofs []*Proof) {
@@ -57,7 +57,7 @@ func proofsFromByteSlices(hasher hash.Hash, items [][]byte) (rootHash []byte, pr
 }
 
 func (sp *Proof) VerifyInt128(rootHash []byte, leaf []byte) error {
-	return sp.verify(crypto.NewInt128(), rootHash, leaf)
+	return sp.verify(crypto.New128(), rootHash, leaf)
 }
 
 func (sp *Proof) VerifyFelt(rootHash []byte, leaf []byte) error {
@@ -85,7 +85,7 @@ func (sp *Proof) verify(hasher hash.Hash, rootHash []byte, leaf []byte) error {
 }
 
 func (sp *Proof) ComputeRootHashInt128() []byte {
-	return sp.computeRootHash(crypto.NewInt128())
+	return sp.computeRootHash(crypto.New128())
 }
 
 func (sp *Proof) ComputeRootHashFelt() []byte {
@@ -172,7 +172,7 @@ func ProofFromProto(pb *tmcrypto.Proof) (*Proof, error) {
 }
 
 func ComputeHashFromAuntsInt128(index, total int64, leafHash []byte, innerHashes [][]byte) []byte {
-	return computeHashFromAunts(crypto.NewInt128(), index, total, leafHash, innerHashes)
+	return computeHashFromAunts(crypto.New128(), index, total, leafHash, innerHashes)
 }
 
 func ComputeHashFromAuntsFelt(index, total int64, leafHash []byte, innerHashes [][]byte) []byte {
@@ -249,7 +249,7 @@ func (spn *ProofNode) FlattenAunts() [][]byte {
 }
 
 func TrailsFromByteSlicesInt128(items [][]byte) (trails []*ProofNode, root *ProofNode) {
-	return trailsFromByteSlices(crypto.NewInt128(), items)
+	return trailsFromByteSlices(crypto.New128(), items)
 }
 
 func TrailsFromByteSlicesFelt(items [][]byte) (trails []*ProofNode, root *ProofNode) {
