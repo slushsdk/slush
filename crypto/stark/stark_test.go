@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/pedersen/felt"
+	"github.com/tendermint/tendermint/crypto/pedersen/hashing"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 )
@@ -67,13 +68,13 @@ func TestMarshalling(t *testing.T) {
 
 }
 
-//imported signature from https://www.cairo-lang.org/docs/hello_starknet/signature_verification.html?highlight=signature#interacting-with-the-contract
-//to make sure of compatibility
+// imported signature from https://www.cairo-lang.org/docs/hello_starknet/signature_verification.html?highlight=signature#interacting-with-the-contract
+// to make sure of compatibility
 func TestImportedSig(t *testing.T) {
 
 	//we have to use this specially to match the raw starknet hashing.
-	hashint := (pedersen.Digest(big.NewInt(4321), big.NewInt(0)))
-	hash := hashint.Bytes()
+	hashint := hashing.Hash(felt.New().SetBigInt(big.NewInt(4321))).Bytes32()
+	hash := hashint[:]
 
 	//we have to recreate the full public key (with y coordinate) from the imported pubkey.
 	pubx, _ := big.NewInt(0).SetString("1628448741648245036800002906075225705100596136133912895015035902954123957052", 10)

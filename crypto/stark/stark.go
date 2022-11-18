@@ -56,11 +56,11 @@ func (pv PrivKey) PubKey() crypto.PubKey {
 
 func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
 
-	hash := crypto.ChecksumInt128(msg)
+	hash := crypto.Checksum128(msg)
 
 	pv := privKey.MakeFull()
 
-	r, s, err := SignECDSA(&pv, hash, crypto.NewInt128)
+	r, s, err := SignECDSA(&pv, hash, crypto.New128)
 	if err != nil {
 		panic(err)
 	}
@@ -156,7 +156,7 @@ func (p PubKey) MakeFull() PublicKey {
 
 func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
 
-	hash := crypto.ChecksumInt128(msg)
+	hash := crypto.Checksum128(msg)
 
 	r, s, err := deserializeSig(sig)
 	if err != nil {
