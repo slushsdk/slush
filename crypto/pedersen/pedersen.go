@@ -12,6 +12,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/utils"
 )
 
+// implementation of hash.Hash interface
+
 // The size of a pedersen checksum
 const Size = 32
 
