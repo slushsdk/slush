@@ -1,4 +1,4 @@
-package pedersen
+package hashing
 
 import "math/big"
 
@@ -9,7 +9,8 @@ var (
 	// points is a slice of *big.Int that contains the constant points.
 	points [506]point
 	// prime is the characteristic of our field.
-	prime *big.Int
+	prime         *big.Int
+	primeMinusOne *big.Int
 )
 
 func init() {
@@ -2045,6 +2046,8 @@ func init() {
 		points[i] = point{x, y}
 	}
 	prime, _ = new(big.Int).SetString("800000000000011000000000000000000000000000000000000000000000001", 16)
+	primeMinusOne, _ = new(big.Int).SetString("800000000000011000000000000000000000000000000000000000000000000", 16)
+
 }
 
 // divMod finds a non-negative integer x < p such that (m * x) % p == n.
