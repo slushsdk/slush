@@ -1,9 +1,9 @@
 package pedersen
 
 // implementation of hash.Hash interface
+
 import (
 	"crypto/rand"
-
 	"hash"
 	"math/big"
 
@@ -11,8 +11,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/pedersen/hashing"
 	"github.com/tendermint/tendermint/crypto/utils"
 )
-
-// implementation of hash.Hash interface
 
 // The size of a pedersen checksum
 const Size = 32
@@ -108,7 +106,7 @@ func (ph *pedersenHash) Sum(in []byte) []byte {
 
 // Sum splits the input into 32 length byte chunks and returns
 // the fixed length (32 bytes) checksum of these chunks
-func Sum(data []byte) [pedersen.Size]byte {
+func Sum(data []byte) [Size]byte {
 	var ph pedersenHash
 	ph.Reset()
 	ph.Write(data)
@@ -117,7 +115,7 @@ func Sum(data []byte) [pedersen.Size]byte {
 
 // Sum128 splits the input into 16 length byte chunks and returns
 // the fixed length (32 bytes) checksum of these chunks
-func Sum128(data []byte) [pedersen.Size]byte {
+func Sum128(data []byte) [Size]byte {
 	var ph pedersenHash
 	ph.Reset()
 	ph.is128 = true
