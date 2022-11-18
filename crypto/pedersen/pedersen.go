@@ -1,55 +1,126 @@
-// Package pedersen implements the StarkNet variant of the Pedersen
-// hash function.
 package pedersen
+
+// implementation of hash.Hash interface
 
 import (
 	"crypto/rand"
-	_ "embed"
+	"hash"
 	"math/big"
 
+	"github.com/tendermint/tendermint/crypto/pedersen/felt"
+	"github.com/tendermint/tendermint/crypto/pedersen/hashing"
 	"github.com/tendermint/tendermint/crypto/utils"
 )
 
-func ByteRounderFelt(ba []byte) []byte {
-	rem := len(ba) % 32
-	// Taking reminder with 32 only changes rem if it was originally 0.
-	rem = (32 - rem) % 32
-	return append(make([]byte, rem), ba...)
+// The size of a pedersen checksum
+const Size = 32
+
+// The blocksize of pedersen
+const BlockSize = 32
+
+// The blocksize of pedersen128
+const BlockSize128 = 16
+
+type pedersenHash struct {
+	input []*felt.Felt
+	is128 bool
 }
 
-func PedersenHashFelt(b [32]byte) [32]byte {
-	bigInteger := big.NewInt(0).SetBytes(b[:])
-	zero := big.NewInt(0)
-	pedersenOutputBytes := ByteRounderFelt(Digest(bigInteger, zero).Bytes())
-	return *(*[32]byte)(pedersenOutputBytes)
+// New creates a pedersenHash (with the BlockSize of 32)
+// which implements the hash.Hash interface
+func New() hash.Hash {
+	ph := new(pedersenHash)
+	ph.Reset()
+	return ph
 }
 
-func PedersenHashFeltArray(b []byte) [32]byte {
-	chunks := utils.Split(b, 32)
+// New128 creates a pedersenHash (with the BlockSize of 16)
+// which implements the hash.Hash interface
+func New128() hash.Hash {
+	ph := new(pedersenHash)
+	ph.Reset()
+	ph.is128 = true
+	return ph
+}
 
-	if len(chunks) == 0 {
-		zero := big.NewInt(0)
-		pedersenOutputBytes := ByteRounderFelt(Digest(zero, zero).Bytes())
-		return *(*[32]byte)(pedersenOutputBytes)
+// Size returns the size of the pedersenHash's checksum
+func (ph *pedersenHash) Size() int {
+	return Size
+}
+
+// BlockSize returns the pederesenHash's BlockSize
+func (ph *pedersenHash) BlockSize() int {
+	if ph.is128 {
+		return BlockSize128
 	}
-	lastWordSize := len(chunks[len(chunks)-1])
-	isLastWordFull := lastWordSize == 32
+	return BlockSize
+}
 
-	if !isLastWordFull {
-		remainingBytes := 32 - lastWordSize
-		leadingBytes := make([]byte, remainingBytes)
-		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
+// Reset resets the pedersenHash's input to an empty Felt slice
+func (ph *pedersenHash) Reset() {
+	var empty []*felt.Felt
+	ph.input = empty
+}
+
+// getFeltsFromBytes returns a function that splits the input
+// into chunks of the given length and converts these chunks
+// to Felts
+func getFeltsFromBytes(blockSize int) func(bytes []byte) []*felt.Felt {
+	return func(bytes []byte) []*felt.Felt {
+		rounded := utils.ByteRounder(blockSize)(bytes)
+
+		chunks := utils.Split(rounded, blockSize)
+
+		feltSlice := make([]*felt.Felt, len(chunks))
+		for i, chunk := range chunks {
+			feltSlice[i] = felt.New().SetBytes(chunk)
+		}
+		return feltSlice
 	}
+}
 
-	pedersenInput := make([]*big.Int, len(chunks))
-
-	for i := 0; i < len(chunks); i++ {
-		pedersenInput[i] = big.NewInt(0).SetBytes((chunks[i]))
+// Write splits the input either into 32 or 16 length byte chunks
+// (depending on the BlockSize), converts them to Felts and
+// appends these Felts to the pedersenHash's input
+func (ph *pedersenHash) Write(input []byte) (int, error) {
+	if ph.is128 {
+		ph.input = append(ph.input, getFeltsFromBytes(BlockSize128)(input)...)
+	} else {
+		ph.input = append(ph.input, getFeltsFromBytes(BlockSize)(input)...)
 	}
+	return len(input), nil
+}
 
-	pedersenOutput := ArrayDigest(pedersenInput...)
-	pedersenOutputBytes := ByteRounderFelt(pedersenOutput.Bytes())
-	return *(*[32]byte)(pedersenOutputBytes)
+// checkSum returns the fixed length (32 bytes) hash of the
+// pedersenHash's input
+func (ph *pedersenHash) checkSum() [Size]byte {
+	return hashing.Hash(ph.input...).Bytes32()
+}
+
+// Sum appends the checksum of the pedersenHash's input to the
+// bytes slice that was passed in and returns the resulting slice
+func (ph *pedersenHash) Sum(in []byte) []byte {
+	hash := ph.checkSum()
+	return append(in, hash[:]...)
+}
+
+// Sum splits the input into 32 length byte chunks and returns
+// the fixed length (32 bytes) checksum of these chunks
+func Sum(data []byte) [Size]byte {
+	var ph pedersenHash
+	ph.Reset()
+	ph.Write(data)
+	return ph.checkSum()
+}
+
+// Sum128 splits the input into 16 length byte chunks and returns
+// the fixed length (32 bytes) checksum of these chunks
+func Sum128(data []byte) [Size]byte {
+	var ph pedersenHash
+	ph.Reset()
+	ph.is128 = true
+	ph.Write(data)
+	return ph.checkSum()
 }
 
 func ByteRounderFactory(n int) func(byteSlice []byte) []byte {
