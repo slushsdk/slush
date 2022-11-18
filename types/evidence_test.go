@@ -279,7 +279,7 @@ func makeHeaderRandom() *Header {
 }
 
 func TestEvidenceProto(t *testing.T) {
-	// -------- Votes --------
+	// -------- Votes --------s
 	val := NewMockPV()
 	blockID := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.RandFeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.RandFeltBytes(32)))
 	blockID2 := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.RandFeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.RandFeltBytes(32)))
