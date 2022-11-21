@@ -123,16 +123,6 @@ func newDefaultNode(
 	)
 }
 
-// TODO: move this  somewhere ok
-// func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
-// 	state.VerifierDetails = vd
-// }
-
-// TODO: move this  somewhere ok
-func AddSettlementCh(state *consensus.State, ch chan consensus.InvokeData) {
-	state.SettlementCh = ch
-}
-
 // makeNode returns a new, ready to go, Tendermint Node.
 func makeNode(
 	ctx context.Context,
