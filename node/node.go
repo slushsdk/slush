@@ -124,9 +124,9 @@ func newDefaultNode(
 }
 
 // TODO: move this  somewhere ok
-func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
-	state.VerifierDetails = vd
-}
+// func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
+// 	state.VerifierDetails = vd
+// }
 
 // TODO: move this  somewhere ok
 func AddSettlementCh(state *consensus.State, ch chan consensus.InvokeData) {
@@ -282,8 +282,8 @@ func makeNode(
 	node.rpcEnv.EvidencePool = evPool
 	node.evPool = evPool
 
-	settlementCh := createSettlementChnel()
-	settlementReactor, err := createSettlementReactor(logger, verifierDetails, settlementCh)
+	settlementCh := CreateSettlementChan()
+	settlementReactor, _ := CreateSettlementReactor(logger, verifierDetails, settlementCh)
 	node.services = append(node.services, settlementReactor)
 
 	mpReactor, mp := createMempoolReactor(logger, cfg, proxyApp, stateStore, nodeMetrics.mempool,
@@ -323,12 +323,11 @@ func makeNode(
 		mp,
 		evPool,
 		eventBus,
+		verifierDetails,
+		settlementCh,
 		consensus.StateMetrics(nodeMetrics.consensus),
 		consensus.SkipStateStoreBootstrap,
 	)
-
-	AddVerifierDetails(csState, verifierDetails)
-	AddSettlementCh(csState, settlementCh)
 
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
