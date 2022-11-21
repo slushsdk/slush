@@ -38,7 +38,7 @@ func RunReplayFile(
 	csConfig *config.ConsensusConfig,
 	console bool,
 ) error {
-	consensusState, err := newConsensusStateForReplay(ctx, cfg, logger, csConfig)
+	consensusState, setReactor, err := newConsensusStateForReplay(ctx, cfg, logger, csConfig)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func RunReplayFile(
 	if err := consensusState.ReplayFile(ctx, csConfig.WalFile(), console); err != nil {
 		return fmt.Errorf("consensus replay: %w", err)
 	}
-
+	setReactor.OnStop()
 	return nil
 }
 
@@ -305,52 +305,52 @@ func newConsensusStateForReplay(
 	cfg config.BaseConfig,
 	logger log.Logger,
 	csConfig *config.ConsensusConfig,
-) (*State, error) {
+) (*State, *DummySettlementReactor, error) {
 	dbType := dbm.BackendType(cfg.DBBackend)
 	// Get BlockStore
 	blockStoreDB, err := dbm.NewDB("blockstore", dbType, cfg.DBDir())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	blockStore := store.NewBlockStore(blockStoreDB)
 
 	// Get State
 	stateDB, err := dbm.NewDB("state", dbType, cfg.DBDir())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	stateStore := sm.NewStore(stateDB)
 	gdoc, err := sm.MakeGenesisDocFromFile(cfg.GenesisFile())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	state, err := sm.MakeGenesisState(gdoc)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	client, _, err := proxy.ClientFactory(logger, cfg.ProxyApp, cfg.ABCI, cfg.DBDir())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	proxyApp := proxy.New(client, logger, proxy.NopMetrics())
 	err = proxyApp.Start(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("starting proxy app conns: %w", err)
+		return nil, nil, fmt.Errorf("starting proxy app conns: %w", err)
 	}
 
 	eventBus := eventbus.NewDefault(logger)
 	if err := eventBus.Start(ctx); err != nil {
-		return nil, fmt.Errorf("failed to start event bus: %w", err)
+		return nil, nil, fmt.Errorf("failed to start event bus: %w", err)
 	}
 
 	handshaker := NewHandshaker(logger, stateStore, state, blockStore, eventBus, gdoc)
 
 	if err = handshaker.Handshake(ctx, proxyApp); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	mempool, evpool := emptyMempool{}, sm.EmptyEvidencePool{}
@@ -364,9 +364,9 @@ func newConsensusStateForReplay(
 	consensusState, err := NewState(logger, csConfig, stateStore, blockExec,
 		blockStore, mempool, evpool, eventBus, verifierDetails, settlementChan)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return consensusState, nil
+	return consensusState, &settlementReactor, nil
 }
 
 func DevnetVerifierDetails() types.VerifierDetails {
