@@ -23,6 +23,7 @@ import (
 	"github.com/tendermint/tendermint/config"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
 	"github.com/tendermint/tendermint/internal/eventbus"
+
 	"github.com/tendermint/tendermint/internal/mempool"
 	tmpubsub "github.com/tendermint/tendermint/internal/pubsub"
 	sm "github.com/tendermint/tendermint/internal/state"
@@ -40,7 +41,7 @@ import (
 const (
 	testSubscriber = "test-client"
 
-	multiplier = 30
+	multiplier = 120
 	// genesis, chain_id, priv_val
 	ensureTimeout = multiplier * time.Millisecond * 200
 )
@@ -443,7 +444,7 @@ func newState(
 	state sm.State,
 	pv types.PrivValidator,
 	app abci.Application,
-) *State {
+) (*State, DummySettlementReactor) {
 	t.Helper()
 
 	cfg, err := config.ResetTestRoot(t.TempDir(), "consensus_state_test")
@@ -460,7 +461,7 @@ func newStateWithConfig(
 	state sm.State,
 	pv types.PrivValidator,
 	app abci.Application,
-) *State {
+) (*State, DummySettlementReactor) {
 	t.Helper()
 	return newStateWithConfigAndBlockStore(ctx, t, logger, thisConfig, state, pv, app, store.NewBlockStore(dbm.NewMemDB()))
 }
@@ -474,7 +475,7 @@ func newStateWithConfigAndBlockStore(
 	pv types.PrivValidator,
 	app abci.Application,
 	blockStore *store.BlockStore,
-) *State {
+) (*State, DummySettlementReactor) {
 	t.Helper()
 
 	// one for mempool, one for consensus
@@ -503,6 +504,11 @@ func newStateWithConfigAndBlockStore(
 	eventBus := eventbus.NewDefault(logger.With("module", "events"))
 	require.NoError(t, eventBus.Start(ctx))
 
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+
 	blockExec := sm.NewBlockExecutor(stateStore, logger, proxyAppConnCon, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 	cs, err := NewState(logger.With("module", "consensus"),
 		thisConfig.Consensus,
@@ -512,6 +518,8 @@ func newStateWithConfigAndBlockStore(
 		mempool,
 		evpool,
 		eventBus,
+		verifierDetails,
+		settlementChan,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -519,7 +527,7 @@ func newStateWithConfigAndBlockStore(
 
 	cs.SetPrivValidator(ctx, pv)
 
-	return cs
+	return cs, settlementReactor
 }
 
 func loadPrivValidator(t *testing.T, cfg *config.Config) *privval.FilePV {
@@ -541,7 +549,7 @@ type makeStateArgs struct {
 	application     abci.Application
 }
 
-func makeState(ctx context.Context, t *testing.T, args makeStateArgs) (*State, []*validatorStub) {
+func makeState(ctx context.Context, t *testing.T, args makeStateArgs) (*State, []*validatorStub, DummySettlementReactor) {
 	t.Helper()
 	// Get State
 	validators := 4
@@ -571,7 +579,7 @@ func makeState(ctx context.Context, t *testing.T, args makeStateArgs) (*State, [
 
 	vss := make([]*validatorStub, validators)
 
-	cs := newState(ctx, t, args.logger, state, privVals[0], app)
+	cs, setReactor := newState(ctx, t, args.logger, state, privVals[0], app)
 
 	for i := 0; i < validators; i++ {
 		vss[i] = newValidatorStub(privVals[i], int32(i))
@@ -579,7 +587,7 @@ func makeState(ctx context.Context, t *testing.T, args makeStateArgs) (*State, [
 	// since cs1 starts at 1
 	incrementHeight(vss[1:]...)
 
-	return cs, vss
+	return cs, vss, setReactor
 }
 
 //-------------------------------------------------------------------------------
@@ -600,7 +608,7 @@ func ensureNoNewEventOnChannel(t *testing.T, ch <-chan tmpubsub.Message) {
 	ensureNoMessageBeforeTimeout(
 		t,
 		ch,
-		1/100*ensureTimeout,
+		ensureTimeout/100,
 		"We should be stuck waiting, not receiving new event on the channel")
 }
 
@@ -812,6 +820,7 @@ func makeConsensusState(
 	valSet, privVals := factory.ValidatorSet(ctx, t, nValidators, 30)
 	genDoc := factory.GenesisDoc(cfg, time.Now(), valSet.Validators, factory.ConsensusParams())
 	css := make([]*State, nValidators)
+	setReactors := make([]DummySettlementReactor, nValidators)
 	logger := consensusLogger()
 
 	closeFuncs := make([]func() error, 0, nValidators)
@@ -842,7 +851,7 @@ func makeConsensusState(
 		require.NoError(t, err)
 
 		l := logger.With("validator", i, "module", "consensus")
-		css[i] = newStateWithConfigAndBlockStore(ctx, t, l, thisConfig, state, privVals[i], app, blockStore)
+		css[i], setReactors[i] = newStateWithConfigAndBlockStore(ctx, t, l, thisConfig, state, privVals[i], app, blockStore)
 		css[i].SetTimeoutTicker(tickerFunc())
 	}
 
@@ -852,6 +861,9 @@ func makeConsensusState(
 		}
 		for _, dir := range configRootDirs {
 			os.RemoveAll(dir)
+		}
+		for _, reactor := range setReactors {
+			reactor.OnStop()
 		}
 	}
 }
@@ -872,6 +884,8 @@ func randConsensusNetWithPeers(
 	valSet, privVals := factory.ValidatorSet(ctx, t, nValidators, testMinPower)
 	genDoc := factory.GenesisDoc(cfg, time.Now(), valSet.Validators, factory.ConsensusParams())
 	css := make([]*State, nPeers)
+	setReactors := make([]DummySettlementReactor, nPeers)
+
 	t.Helper()
 	logger := consensusLogger()
 
@@ -914,12 +928,15 @@ func randConsensusNetWithPeers(
 		require.NoError(t, err)
 		// sm.SaveState(stateDB,state)	//height 1's validatorsInfo already saved in LoadStateFromDBOrGenesisDoc above
 
-		css[i] = newStateWithConfig(ctx, t, logger.With("validator", i, "module", "consensus"), thisConfig, state, privVal, app)
+		css[i], setReactors[i] = newStateWithConfig(ctx, t, logger.With("validator", i, "module", "consensus"), thisConfig, state, privVal, app)
 		css[i].SetTimeoutTicker(tickerFunc())
 	}
 	return css, genDoc, peer0Config, func() {
 		for _, dir := range configRootDirs {
 			os.RemoveAll(dir)
+		}
+		for _, setReactor := range setReactors {
+			setReactor.OnStop()
 		}
 	}
 }

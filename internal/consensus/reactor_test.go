@@ -508,8 +508,13 @@ func TestReactorWithEvidence(t *testing.T) {
 
 		blockExec := sm.NewBlockExecutor(stateStore, log.NewNopLogger(), proxyAppConnCon, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 
+		settlementChan := make(chan InvokeData, 100)
+		verifierDetails := DevnetVerifierDetails()
+		settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+		settlementReactor.OnStart()
+
 		cs, err := NewState(logger.With("validator", i, "module", "consensus"),
-			thisConfig.Consensus, stateStore, blockExec, blockStore, mempool, evpool2, eventBus)
+			thisConfig.Consensus, stateStore, blockExec, blockStore, mempool, evpool2, eventBus, verifierDetails, settlementChan)
 		require.NoError(t, err)
 		cs.SetPrivValidator(ctx, pv)
 
@@ -650,7 +655,12 @@ func TestSwitchToConsensusVoteExtensions(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 			defer cancel()
-			cs, vs := makeState(ctx, t, makeStateArgs{validators: 1})
+			cs, vs, setReactor := makeState(ctx, t, makeStateArgs{validators: 1})
+
+			defer func() {
+				setReactor.OnStop()
+			}()
+
 			validator := vs[0]
 			validator.Height = testCase.storedHeight
 

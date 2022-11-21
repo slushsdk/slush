@@ -75,7 +75,10 @@ func TestStateProposerSelection0(t *testing.T) {
 	defer cancel()
 	config := configSetup(t)
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs1.Height, cs1.Round
 
 	newRoundCh := subscribe(ctx, t, cs1.eventBus, types.EventQueryNewRound)
@@ -118,7 +121,10 @@ func TestStateProposerSelection2(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config}) // test needs more work for more than 3 validators
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}() // test needs more work for more than 3 validators
 	height := cs1.Height
 	newRoundCh := subscribe(ctx, t, cs1.eventBus, types.EventQueryNewRound)
 
@@ -156,7 +162,10 @@ func TestStateEnterProposeNoPrivValidator(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs, _ := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	cs, _, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	cs.SetPrivValidator(ctx, nil)
 	height, round := cs.Height, cs.Round
 
@@ -179,7 +188,10 @@ func TestStateEnterProposeYesPrivValidator(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs, _ := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	cs, _, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs.Height, cs.Round
 
 	// Listen for propose timeout event
@@ -213,7 +225,10 @@ func TestStateBadProposal(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs1.Height, cs1.Round
 	vs2 := vss[1]
 
@@ -274,7 +289,10 @@ func TestStateOversizedBlock(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	cs1.state.ConsensusParams.Block.MaxBytes = 2000
 	height, round := cs1.Height, cs1.Round
 	vs2 := vss[1]
@@ -337,7 +355,10 @@ func TestStateFullRound1(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	cs, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs.Height, cs.Round
 
 	voteCh := subscribe(ctx, t, cs.eventBus, types.EventQueryVote)
@@ -367,7 +388,10 @@ func TestStateFullRoundNil(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs, _ := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	cs, _, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs.Height, cs.Round
 
 	voteCh := subscribe(ctx, t, cs.eventBus, types.EventQueryVote)
@@ -386,7 +410,10 @@ func TestStateFullRound2(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2 := vss[1]
 	height, round := cs1.Height, cs1.Round
 
@@ -430,7 +457,10 @@ func TestStateLock_NoPOL(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2 := vss[1]
 	height, round := cs1.Height, cs1.Round
 
@@ -574,7 +604,10 @@ func TestStateLock_NoPOL(t *testing.T) {
 
 	// cs1 is locked on a block at this point, so we must generate a new consensus
 	// state to force a new proposal block to be generated.
-	cs2, _ := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	cs2, _, setReactor2 := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor2.OnStop()
+	}()
 	// before we time out into new round, set next proposal block
 	prop, propBlock := decideProposal(ctx, t, cs2, vs2, vs2.Height, vs2.Round+1)
 	require.NotNil(t, propBlock, "Failed to create proposal block with vs2")
@@ -636,7 +669,10 @@ func TestStateLock_POLUpdateLock(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -700,7 +736,10 @@ func TestStateLock_POLUpdateLock(t *testing.T) {
 	round++
 
 	// Generate a new proposal block.
-	cs2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	require.NoError(t, err)
 	propR1, propBlockR1 := decideProposal(ctx, t, cs2, vs2, vs2.Height, vs2.Round)
 	propBlockR1Parts, err := propBlockR1.MakePartSet(partSize)
@@ -743,7 +782,10 @@ func TestStateLock_POLRelock(t *testing.T) {
 	defer cancel()
 	config := configSetup(t)
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -840,7 +882,10 @@ func TestStateLock_PrevoteNilWhenLockedAndMissProposal(t *testing.T) {
 	defer cancel()
 	config := configSetup(t)
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -927,7 +972,10 @@ func TestStateLock_PrevoteNilWhenLockedAndDifferentProposal(t *testing.T) {
 		state.
 	*/
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -986,7 +1034,10 @@ func TestStateLock_PrevoteNilWhenLockedAndDifferentProposal(t *testing.T) {
 	*/
 	incrementRound(vs2, vs3, vs4)
 	round++
-	cs2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor2.OnStop()
+	}()
 	propR1, propBlockR1 := decideProposal(ctx, t, cs2, vs2, vs2.Height, vs2.Round)
 	propBlockR1Parts, err := propBlockR1.MakePartSet(types.BlockPartSizeBytes)
 	require.NoError(t, err)
@@ -1027,7 +1078,10 @@ func TestStateLock_POLDoesNotUnlock(t *testing.T) {
 		state.
 	*/
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1091,7 +1145,10 @@ func TestStateLock_POLDoesNotUnlock(t *testing.T) {
 	*/
 	round++
 	incrementRound(vs2, vs3, vs4)
-	cs2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	prop, propBlock := decideProposal(ctx, t, cs2, vs2, vs2.Height, vs2.Round)
 	propBlockParts, err := propBlock.MakePartSet(types.BlockPartSizeBytes)
 	require.NoError(t, err)
@@ -1125,7 +1182,10 @@ func TestStateLock_POLDoesNotUnlock(t *testing.T) {
 	*/
 	round++
 	incrementRound(vs2, vs3, vs4)
-	cs3 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs3, setReactor := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	prop, propBlock = decideProposal(ctx, t, cs3, vs3, vs3.Height, vs3.Round)
 	propBlockParts, err = propBlock.MakePartSet(types.BlockPartSizeBytes)
 	require.NoError(t, err)
@@ -1158,7 +1218,10 @@ func TestStateLock_MissingProposalWhenPOLSeenDoesNotUpdateLock(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1212,7 +1275,10 @@ func TestStateLock_MissingProposalWhenPOLSeenDoesNotUpdateLock(t *testing.T) {
 	*/
 	incrementRound(vs2, vs3, vs4)
 	round++
-	cs2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor2.OnStop()
+	}()
 	require.NoError(t, err)
 	prop, propBlock := decideProposal(ctx, t, cs2, vs2, vs2.Height, vs2.Round)
 	require.NotNil(t, propBlock, "Failed to create proposal block with vs2")
@@ -1246,7 +1312,10 @@ func TestStateLock_DoesNotLockOnOldProposal(t *testing.T) {
 	defer cancel()
 	config := configSetup(t)
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1322,7 +1391,10 @@ func TestStateLock_POLSafety1(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1363,7 +1435,10 @@ func TestStateLock_POLSafety1(t *testing.T) {
 
 	incrementRound(vs2, vs3, vs4)
 	round++ // moving to the next round
-	cs2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor2.OnStop()
+	}()
 	prop, propBlock := decideProposal(ctx, t, cs2, vs2, vs2.Height, vs2.Round)
 	propBlockParts, err := propBlock.MakePartSet(partSize)
 	require.NoError(t, err)
@@ -1438,7 +1513,10 @@ func TestStateLock_POLSafety2(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1534,7 +1612,10 @@ func TestState_PrevotePOLFromPreviousRound(t *testing.T) {
 	config := configSetup(t)
 	logger := log.NewNopLogger()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, logger: logger})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1598,7 +1679,10 @@ func TestState_PrevotePOLFromPreviousRound(t *testing.T) {
 	incrementRound(vs2, vs3, vs4)
 	round++
 	// Generate a new proposal block.
-	cs2 := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor := newState(ctx, t, logger, cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	cs2.ValidRound = 1
 	propR1, propBlockR1 := decideProposal(ctx, t, cs2, vs2, vs2.Height, round)
 
@@ -1676,7 +1760,10 @@ func TestProposeValidBlock(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1768,7 +1855,10 @@ func TestSetValidBlockOnDelayedPrevote(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1837,7 +1927,10 @@ func TestSetValidBlockOnDelayedProposal(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -1922,7 +2015,10 @@ func TestProcessProposalAccept(t *testing.T) {
 			}
 			m.On("ProcessProposal", mock.Anything, mock.Anything).Return(&abci.ResponseProcessProposal{Status: status}, nil)
 			m.On("PrepareProposal", mock.Anything, mock.Anything).Return(&abci.ResponsePrepareProposal{}, nil).Maybe()
-			cs1, _ := makeState(ctx, t, makeStateArgs{config: config, application: m})
+			cs1, _, setReactor := makeState(ctx, t, makeStateArgs{config: config, application: m})
+			defer func() {
+				setReactor.OnStop()
+			}()
 			height, round := cs1.Height, cs1.Round
 
 			proposalCh := subscribe(ctx, t, cs1.eventBus, types.EventQueryCompleteProposal)
@@ -1985,7 +2081,10 @@ func TestFinalizeBlockCalled(t *testing.T) {
 			m.On("FinalizeBlock", mock.Anything, mock.Anything).Return(r, nil).Maybe()
 			m.On("Commit", mock.Anything).Return(&abci.ResponseCommit{}, nil).Maybe()
 
-			cs1, vss := makeState(ctx, t, makeStateArgs{config: config, application: m})
+			cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, application: m})
+			defer func() {
+				setReactor.OnStop()
+			}()
 			height, round := cs1.Height, cs1.Round
 
 			proposalCh := subscribe(ctx, t, cs1.eventBus, types.EventQueryCompleteProposal)
@@ -2069,7 +2168,10 @@ func TestExtendVoteCalledWhenEnabled(t *testing.T) {
 			if !testCase.enabled {
 				c.ABCI.VoteExtensionsEnableHeight = 0
 			}
-			cs1, vss := makeState(ctx, t, makeStateArgs{config: config, application: m, consensusParams: c})
+			cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, application: m, consensusParams: c})
+			defer func() {
+				setReactor.OnStop()
+			}()
 			height, round := cs1.Height, cs1.Round
 
 			proposalCh := subscribe(ctx, t, cs1.eventBus, types.EventQueryCompleteProposal)
@@ -2148,7 +2250,10 @@ func TestVerifyVoteExtensionNotCalledOnAbsentPrecommit(t *testing.T) {
 		Status: abci.ResponseVerifyVoteExtension_ACCEPT,
 	}, nil)
 	m.On("FinalizeBlock", mock.Anything, mock.Anything).Return(&abci.ResponseFinalizeBlock{}, nil).Maybe()
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, application: m})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, application: m})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs1.Height, cs1.Round
 	cs1.state.ConsensusParams.ABCI.VoteExtensionsEnableHeight = cs1.Height
 
@@ -2237,7 +2342,10 @@ func TestPrepareProposalReceivesVoteExtensions(t *testing.T) {
 	m.On("Commit", mock.Anything).Return(&abci.ResponseCommit{}, nil).Maybe()
 	m.On("FinalizeBlock", mock.Anything, mock.Anything).Return(&abci.ResponseFinalizeBlock{}, nil)
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config, application: m})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, application: m})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs1.Height, cs1.Round
 
 	newRoundCh := subscribe(ctx, t, cs1.eventBus, types.EventQueryNewRound)
@@ -2366,7 +2474,10 @@ func TestVoteExtensionEnableHeight(t *testing.T) {
 			m.On("Commit", mock.Anything).Return(&abci.ResponseCommit{}, nil).Maybe()
 			c := factory.ConsensusParams()
 			c.ABCI.VoteExtensionsEnableHeight = testCase.enableHeight
-			cs1, vss := makeState(ctx, t, makeStateArgs{config: config, application: m, validators: numValidators, consensusParams: c})
+			cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, application: m, validators: numValidators, consensusParams: c})
+			defer func() {
+				setReactor.OnStop()
+			}()
 			cs1.state.ConsensusParams.ABCI.VoteExtensionsEnableHeight = testCase.enableHeight
 			height, round := cs1.Height, cs1.Round
 
@@ -2426,7 +2537,10 @@ func TestWaitingTimeoutOnNilPolka(t *testing.T) {
 	defer cancel()
 	config := configSetup(t)
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -2451,7 +2565,10 @@ func TestWaitingTimeoutProposeOnNewRound(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -2490,7 +2607,11 @@ func TestRoundSkipOnNilPolkaFromHigherRound(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
+
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 
@@ -2530,7 +2651,10 @@ func TestWaitTimeoutProposeOnNilPolkaForTheCurrentRound(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, int32(1)
 
@@ -2560,7 +2684,10 @@ func TestEmitNewValidBlockEventOnCommitWithoutBlock(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, int32(1)
 
@@ -2602,7 +2729,10 @@ func TestCommitFromPreviousRound(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, int32(1)
 
@@ -2663,7 +2793,10 @@ func TestStartNextHeightCorrectlyAfterTimeout(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	cs1.state.ConsensusParams.Timeout.BypassCommitTimeout = false
 	cs1.txNotifier = &fakeTxNotifier{ch: make(chan struct{})}
 
@@ -2729,7 +2862,10 @@ func TestResetTimeoutPrecommitUponNewHeight(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	cs1.state.ConsensusParams.Timeout.BypassCommitTimeout = false
 
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
@@ -2799,7 +2935,10 @@ func TestStateHalt1(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
 	partSize := types.BlockPartSizeBytes
@@ -2873,7 +3012,10 @@ func TestStateOutputsBlockPartsStats(t *testing.T) {
 	defer cancel()
 
 	// create dummy peer
-	cs, _ := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	cs, _, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 1})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	peerID, err := types.NewNodeID(strings.Repeat("A", 2*crypto.AddressSize))
 	require.NoError(t, err)
 
@@ -2920,7 +3062,11 @@ func TestStateOutputVoteStats(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	cs, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor.OnStop()
+	}()
+
 	// create dummy peer
 	peerID, err := types.NewNodeID(strings.Repeat("A", 2*crypto.AddressSize))
 	require.NoError(t, err)
@@ -2961,7 +3107,10 @@ func TestSignSameVoteTwice(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, vss := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	_, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config, validators: 2})
+	defer func() {
+		setReactor.OnStop()
+	}()
 
 	randBytes := pedersen.FeltBytes(32)
 
@@ -3001,7 +3150,10 @@ func TestStateTimestamp_ProposalNotMatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs1.Height, cs1.Round
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 
@@ -3049,7 +3201,10 @@ func TestStateTimestamp_ProposalMatch(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cs1, vss := makeState(ctx, t, makeStateArgs{config: config})
+	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
+	defer func() {
+		setReactor.OnStop()
+	}()
 	height, round := cs1.Height, cs1.Round
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 
