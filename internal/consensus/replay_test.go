@@ -61,7 +61,7 @@ func startNewStateAndWaitForBlock(ctx context.Context, t *testing.T, consensusRe
 	require.NoError(t, err)
 	privValidator := loadPrivValidator(t, consensusReplayConfig)
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
-	cs := newStateWithConfigAndBlockStore(
+	cs, setReactor := newStateWithConfigAndBlockStore(
 		ctx,
 		t,
 		logger,
@@ -71,6 +71,9 @@ func startNewStateAndWaitForBlock(ctx context.Context, t *testing.T, consensusRe
 		kvstore.NewApplication(),
 		blockStore,
 	)
+	defer func() {
+		setReactor.OnStop()
+	}()
 
 	bytes, err := os.ReadFile(cs.config.WalFile())
 	require.NoError(t, err)
@@ -163,7 +166,7 @@ LOOP:
 		state, err := sm.MakeGenesisStateFromFile(consensusReplayConfig.GenesisFile())
 		require.NoError(t, err)
 		privValidator := loadPrivValidator(t, consensusReplayConfig)
-		cs := newStateWithConfigAndBlockStore(
+		cs, setReactor := newStateWithConfigAndBlockStore(
 			rctx,
 			t,
 			logger,
@@ -173,6 +176,9 @@ LOOP:
 			kvstore.NewApplication(),
 			blockStore,
 		)
+		defer func() {
+			setReactor.OnStop()
+		}()
 
 		// start sending transactions
 		ctx, cancel := context.WithCancel(rctx)
@@ -212,8 +218,8 @@ LOOP:
 			if _, ok := err.(ReachedHeightToStopError); ok {
 				break LOOP
 			}
-		case <-time.After(10 * time.Second):
-			t.Fatal("WAL did not panic for 10 seconds (check the log)")
+		case <-time.After(180 * time.Second):
+			t.Fatal("WAL did not panic for 180 seconds (check the log)")
 		}
 	}
 }
@@ -292,7 +298,7 @@ func (w *crashingWAL) Start(ctx context.Context) error { return w.next.Start(ctx
 func (w *crashingWAL) Stop()                           { w.next.Stop() }
 func (w *crashingWAL) Wait()                           { w.next.Wait() }
 
-//------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------
 type simulatorTestSuite struct {
 	GenesisState sm.State
 	Config       *config.Config
@@ -694,20 +700,26 @@ func testHandshakeReplay(
 	if testValidatorsChange {
 		testConfig, err := ResetConfig(t.TempDir(), fmt.Sprintf("%s_%v_m", t.Name(), mode))
 		require.NoError(t, err)
+
 		defer func() { _ = os.RemoveAll(testConfig.RootDir) }()
 		stateDB = dbm.NewMemDB()
 
 		genesisState = sim.GenesisState
+
 		cfg = sim.Config
 		chain = append([]*types.Block{}, sim.Chain...) // copy chain
 		extCommits = sim.ExtCommits
+
 		store = newMockBlockStore(t, cfg, genesisState.ConsensusParams)
 	} else { // test single node
 		testConfig, err := ResetConfig(t.TempDir(), fmt.Sprintf("%s_%v_s", t.Name(), mode))
 		require.NoError(t, err)
+
 		defer func() { _ = os.RemoveAll(testConfig.RootDir) }()
+
 		walBody, err := WALWithNBlocks(ctx, t, logger, numBlocks)
 		require.NoError(t, err)
+
 		walFile := tempWALWithData(t, walBody)
 		cfg.Consensus.SetWalFile(walFile)
 
@@ -717,14 +729,17 @@ func testHandshakeReplay(
 		wal, err := NewWAL(ctx, logger, walFile)
 		require.NoError(t, err)
 		err = wal.Start(ctx)
+
 		require.NoError(t, err)
 		t.Cleanup(func() { cancel(); wal.Wait() })
 		chain, extCommits = makeBlockchainFromWAL(t, wal)
 		pubKey, err := privVal.GetPubKey(ctx)
+
 		require.NoError(t, err)
 		stateDB, genesisState, store = stateAndStore(t, cfg, pubKey, kvstore.ProtocolVersion)
 
 	}
+
 	stateStore := sm.NewStore(stateDB)
 	store.chain = chain
 	store.extCommits = extCommits

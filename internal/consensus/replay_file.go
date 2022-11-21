@@ -145,8 +145,14 @@ func (pb *playback) replayReset(ctx context.Context, count int, newStepSub event
 	pb.cs.Stop()
 	pb.cs.Wait()
 
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	logger, _ := log.NewDefaultLogger("plain", "info")
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+
 	newCS, err := NewState(pb.cs.logger, pb.cs.config, pb.stateStore, pb.cs.blockExec,
-		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, pb.cs.eventBus)
+		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, pb.cs.eventBus, verifierDetails, settlementChan)
 	if err != nil {
 		return err
 	}
@@ -350,10 +356,51 @@ func newConsensusStateForReplay(
 	mempool, evpool := emptyMempool{}, sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, logger, proxyApp, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+
 	consensusState, err := NewState(logger, csConfig, stateStore, blockExec,
-		blockStore, mempool, evpool, eventBus)
+		blockStore, mempool, evpool, eventBus, verifierDetails, settlementChan)
 	if err != nil {
 		return nil, err
 	}
 	return consensusState, nil
+}
+
+func DevnetVerifierDetails() types.VerifierDetails {
+	vd, err := types.LoadVerifierDetails("../../valdata/data/verifier_details.json")
+	if err != nil {
+		panic(err)
+	}
+	return vd
+}
+
+type DummySettlementReactor struct {
+	logger       log.Logger
+	vd           types.VerifierDetails
+	SettlementCh <-chan InvokeData
+	stopChan     chan bool
+}
+
+func (dsr DummySettlementReactor) OnStart() {
+	go func() {
+		dsr.logger.Info("started settlement reactor")
+		for {
+			select {
+			case <-dsr.SettlementCh:
+				//dsr.FormatAndSendCommit(newBlock)
+
+			case <-dsr.stopChan:
+				dsr.logger.Info("Stopping settlement reactor via stopChan")
+				return
+			}
+		}
+
+	}()
+}
+
+func (dsr DummySettlementReactor) OnStop() {
+	dsr.stopChan <- true
 }

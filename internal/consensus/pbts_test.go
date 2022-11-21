@@ -63,6 +63,8 @@ type pbtsTestHarness struct {
 
 	currentHeight int64
 	currentRound  int32
+
+	setReactor DummySettlementReactor
 }
 
 type pbtsTestConfiguration struct {
@@ -115,7 +117,8 @@ func newPBTSTestHarness(ctx context.Context, t *testing.T, tc pbtsTestConfigurat
 		Time:       tc.genesisTime,
 		Validators: validators,
 	})
-	cs := newState(ctx, t, log.NewNopLogger(), state, privVals[0], kvstore.NewApplication())
+	cs, setReactor := newState(ctx, t, log.NewNopLogger(), state, privVals[0], kvstore.NewApplication())
+
 	vss := make([]*validatorStub, validators)
 	for i := 0; i < validators; i++ {
 		vss[i] = newValidatorStub(privVals[i], int32(i))
@@ -143,6 +146,7 @@ func newPBTSTestHarness(ctx context.Context, t *testing.T, tc pbtsTestConfigurat
 		blockCh:               subscribe(ctx, t, cs.eventBus, types.EventQueryNewBlock),
 		ensureVoteCh:          subscribeToVoterBuffered(ctx, t, cs, pubKey.Address()),
 		eventCh:               eventCh,
+		setReactor:            setReactor,
 	}
 }
 
@@ -311,6 +315,7 @@ func (p *pbtsTestHarness) run(ctx context.Context, t *testing.T) resultSet {
 	r2 := p.height2(ctx, t)
 	p.intermediateHeights(ctx, t)
 	r5, _ := p.height5(ctx, t)
+	p.setReactor.OnStop()
 	return resultSet{
 		genesisHeight: r1,
 		height2:       r2,
@@ -443,13 +448,13 @@ func TestTimelyProposal(t *testing.T) {
 
 	cfg := pbtsTestConfiguration{
 		synchronyParams: types.SynchronyParams{
-			Precision:    1 * 10 * time.Millisecond,
-			MessageDelay: 10 * 140 * time.Millisecond,
+			Precision:    100 * 10 * time.Millisecond,
+			MessageDelay: 100 * 140 * time.Millisecond,
 		},
-		timeoutPropose:                    20 * 40 * time.Millisecond,
+		timeoutPropose:                    1 * 40 * time.Millisecond,
 		genesisTime:                       initialTime,
 		height2ProposedBlockOffset:        1 * 15 * time.Millisecond,
-		height2ProposalTimeDeliveryOffset: 20 * 30 * time.Millisecond,
+		height2ProposalTimeDeliveryOffset: 1 * 30 * time.Millisecond,
 	}
 
 	pbtsTest := newPBTSTestHarness(ctx, t, cfg)
