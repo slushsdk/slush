@@ -323,7 +323,6 @@ func makeNode(
 		mp,
 		evPool,
 		eventBus,
-		verifierDetails,
 		settlementCh,
 		consensus.StateMetrics(nodeMetrics.consensus),
 		consensus.SkipStateStoreBootstrap,

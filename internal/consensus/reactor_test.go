@@ -514,7 +514,7 @@ func TestReactorWithEvidence(t *testing.T) {
 		settlementReactor.OnStart()
 
 		cs, err := NewState(logger.With("validator", i, "module", "consensus"),
-			thisConfig.Consensus, stateStore, blockExec, blockStore, mempool, evpool2, eventBus, verifierDetails, settlementChan)
+			thisConfig.Consensus, stateStore, blockExec, blockStore, mempool, evpool2, eventBus, settlementChan)
 		require.NoError(t, err)
 		cs.SetPrivValidator(ctx, pv)
 
