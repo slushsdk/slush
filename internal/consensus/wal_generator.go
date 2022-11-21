@@ -81,7 +81,16 @@ func WALGenerateNBlocks(ctx context.Context, t *testing.T, logger log.Logger, wr
 	mempool := emptyMempool{}
 	evpool := sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, log.NewNopLogger(), proxyApp, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
-	consensusState, err := NewState(logger, cfg.Consensus, stateStore, blockExec, blockStore, mempool, evpool, eventBus)
+
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+	defer func() {
+		settlementReactor.OnStop()
+	}()
+
+	consensusState, err := NewState(logger, cfg.Consensus, stateStore, blockExec, blockStore, mempool, evpool, eventBus, verifierDetails, settlementChan)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +116,7 @@ func WALGenerateNBlocks(ctx context.Context, t *testing.T, logger log.Logger, wr
 	t.Cleanup(consensusState.Wait)
 
 	defer consensusState.Stop()
-	timer := time.NewTimer(time.Minute)
+	timer := time.NewTimer(5 * 1 * time.Minute)
 	defer timer.Stop()
 
 	select {
