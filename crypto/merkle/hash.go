@@ -33,7 +33,7 @@ func leafHash(leaf []byte) []byte {
 func leafHashFelt(leaf []byte) []byte {
 	a := make([]byte, 32)
 	copy(a, leafPrefixFelt)
-	b := crypto.ChecksumFelt(append(a, leaf...))
+	b := crypto.ChecksumFelt(append(a, utils.ByteRounder(32)(leaf)...))
 	return b
 }
 
