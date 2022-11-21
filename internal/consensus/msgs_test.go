@@ -14,6 +14,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
 	"github.com/tendermint/tendermint/internal/test/factory"
 	"github.com/tendermint/tendermint/libs/bits"
@@ -30,11 +31,11 @@ func TestMsgToProto(t *testing.T) {
 
 	psh := types.PartSetHeader{
 		Total: 1,
-		Hash:  tmrand.Bytes(32),
+		Hash:  pedersen.FeltBytes(32),
 	}
 	pbPsh := psh.ToProto()
 	bi := types.BlockID{
-		Hash:          tmrand.Bytes(32),
+		Hash:          pedersen.FeltBytes(32),
 		PartSetHeader: psh,
 	}
 	pbBi := bi.ToProto()
@@ -47,7 +48,7 @@ func TestMsgToProto(t *testing.T) {
 		Proof: merkle.Proof{
 			Total:    1,
 			Index:    1,
-			LeafHash: tmrand.Bytes(32),
+			LeafHash: pedersen.FeltBytes(32),
 			Aunts:    [][]byte{},
 		},
 	}
@@ -220,7 +221,7 @@ func TestWALMsgProto(t *testing.T) {
 		Proof: merkle.Proof{
 			Total:    1,
 			Index:    1,
-			LeafHash: tmrand.Bytes(32),
+			LeafHash: pedersen.FeltBytes(32),
 			Aunts:    [][]byte{},
 		},
 	}
