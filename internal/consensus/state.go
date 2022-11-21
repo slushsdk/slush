@@ -147,9 +147,6 @@ type State struct {
 	// to avoid extra requests to HSM
 	privValidatorPubKey crypto.PubKey
 
-	//Added for stark. Used to communicate with
-	//VerifierDetails types.VerifierDetails
-
 	// state changes may be triggered by: msgs from peers,
 	// msgs from ourself, or by timeouts
 	peerMsgQueue     chan msgInfo
@@ -208,7 +205,6 @@ func NewState(
 	txNotifier txNotifier,
 	evpool evidencePool,
 	eventBus *eventbus.EventBus,
-	verifierDetails types.VerifierDetails,
 	settlementCh chan InvokeData,
 	options ...StateOption,
 ) (*State, error) {
@@ -231,7 +227,6 @@ func NewState(
 		metrics:          NopMetrics(),
 		onStopCh:         make(chan *cstypes.RoundState),
 		SettlementCh:     settlementCh,
-		//VerifierDetails:  verifierDetails,
 	}
 
 	// set function defaults (may be overwritten before calling Start)

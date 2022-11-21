@@ -103,7 +103,7 @@ func TestByzantinePrevoteEquivocation(t *testing.T) {
 			settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
 			settlementReactor.OnStart()
 
-			cs, err := NewState(logger, thisConfig.Consensus, stateStore, blockExec, blockStore, mempool, evpool, eventBus, verifierDetails, settlementChan)
+			cs, err := NewState(logger, thisConfig.Consensus, stateStore, blockExec, blockStore, mempool, evpool, eventBus, settlementChan)
 			require.NoError(t, err)
 			// set private validator
 			pv := privVals[i]

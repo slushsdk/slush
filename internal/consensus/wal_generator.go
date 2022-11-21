@@ -90,7 +90,7 @@ func WALGenerateNBlocks(ctx context.Context, t *testing.T, logger log.Logger, wr
 		settlementReactor.OnStop()
 	}()
 
-	consensusState, err := NewState(logger, cfg.Consensus, stateStore, blockExec, blockStore, mempool, evpool, eventBus, verifierDetails, settlementChan)
+	consensusState, err := NewState(logger, cfg.Consensus, stateStore, blockExec, blockStore, mempool, evpool, eventBus, settlementChan)
 	if err != nil {
 		t.Fatal(err)
 	}

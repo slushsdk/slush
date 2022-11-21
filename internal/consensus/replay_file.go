@@ -152,7 +152,7 @@ func (pb *playback) replayReset(ctx context.Context, count int, newStepSub event
 	settlementReactor.OnStart()
 
 	newCS, err := NewState(pb.cs.logger, pb.cs.config, pb.stateStore, pb.cs.blockExec,
-		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, pb.cs.eventBus, verifierDetails, settlementChan)
+		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, pb.cs.eventBus, settlementChan)
 	if err != nil {
 		return err
 	}
@@ -362,7 +362,7 @@ func newConsensusStateForReplay(
 	settlementReactor.OnStart()
 
 	consensusState, err := NewState(logger, csConfig, stateStore, blockExec,
-		blockStore, mempool, evpool, eventBus, verifierDetails, settlementChan)
+		blockStore, mempool, evpool, eventBus, settlementChan)
 	if err != nil {
 		return nil, nil, err
 	}

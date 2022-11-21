@@ -518,7 +518,6 @@ func newStateWithConfigAndBlockStore(
 		mempool,
 		evpool,
 		eventBus,
-		verifierDetails,
 		settlementChan,
 	)
 	if err != nil {
