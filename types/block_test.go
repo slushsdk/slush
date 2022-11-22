@@ -375,7 +375,7 @@ func TestHeaderHash(t *testing.T) {
 				EvidenceHash:       crypto.Checksum128([]byte("evidence_hash")),
 				ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 			},
-			expectHash: hexBytesFromString(t, "049802D4342C3D77CC99071BBC50FC0C07BFF7E2DFA06BC69187692CB3E6F5B7"),
+			expectHash: hexBytesFromString(t, "02C9A4AC999D3DAFBDAE810AEA08928AA4C0297FDEA6221E69625D99DF0B2459"),
 		},
 		{
 			desc:       "TestCase2: nil header yields nil",
@@ -1475,7 +1475,7 @@ func TestHeaderHashVector(t *testing.T) {
 				EvidenceHash:       emptyBytes,
 				ProposerAddress:    emptyBytes,
 			},
-			expBytes: "0406c3800071299d0ac7d9b13efb16e3f63abc4317ca4d9a77c7f010dd5884e6"},
+			expBytes: "055a89ffed55ed50ee14a19bead7c39a806d4c3c300a3876d3fbf0e0c6481834"},
 	}
 
 	for _, tc := range testCases {
