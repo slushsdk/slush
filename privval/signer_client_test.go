@@ -161,7 +161,7 @@ func TestSignerVote(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
 		hash := pedersen.RandFeltBytes(32)
-		valAddr := stark.GenPrivKey().PubKey().Bytes()
+		valAddr := stark.GenPrivKey().PubKey().Address()
 		want := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
@@ -205,7 +205,7 @@ func TestSignerVoteResetDeadline(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
 		hash := pedersen.RandFeltBytes(32)
-		valAddr := stark.GenPrivKey().PubKey().Bytes()
+		valAddr := stark.GenPrivKey().PubKey().Address()
 		want := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
@@ -259,7 +259,7 @@ func TestSignerVoteKeepAlive(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
 		hash := pedersen.RandFeltBytes(32)
-		valAddr := stark.GenPrivKey().PubKey().Bytes()
+		valAddr := stark.GenPrivKey().PubKey().Address()
 		want := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
@@ -353,7 +353,7 @@ func TestSignerSignVoteErrors(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
 		hash := pedersen.RandFeltBytes(32)
-		valAddr := stark.GenPrivKey().PubKey().Bytes()
+		valAddr := stark.GenPrivKey().PubKey().Address()
 		vote := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
