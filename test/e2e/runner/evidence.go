@@ -171,7 +171,7 @@ func generateLightClientAttackEvidence(
 	header.ValidatorsHash = conflictingVals.Hash()
 
 	// create a commit for the forged header
-	blockID := makeBlockID(header.Hash(), 1000, pedersen.FeltBytes(32))
+	blockID := makeBlockID(header.Hash(), 1000, pedersen.RandFeltBytes(32))
 	voteSet := types.NewExtendedVoteSet(chainID, forgedHeight, 0, tmproto.SignedMsgType(2), conflictingVals)
 
 	ec, err := factory.MakeExtendedCommit(ctx, blockID, forgedHeight, 0, voteSet, pv, forgedTime)
@@ -261,21 +261,21 @@ func makeHeaderRandom(chainID string, height int64) *types.Header {
 		ChainID:            chainID,
 		Height:             height,
 		Time:               time.Now(),
-		LastBlockID:        makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32)),
-		LastCommitHash:     pedersen.FeltBytes(crypto.HashSize),
-		DataHash:           pedersen.FeltBytes(crypto.HashSize),
-		ValidatorsHash:     pedersen.FeltBytes(crypto.HashSize),
-		NextValidatorsHash: pedersen.FeltBytes(crypto.HashSize),
-		ConsensusHash:      pedersen.FeltBytes(crypto.HashSize),
-		AppHash:            pedersen.FeltBytes(crypto.HashSize),
-		LastResultsHash:    pedersen.FeltBytes(crypto.HashSize),
-		EvidenceHash:       pedersen.FeltBytes(crypto.HashSize),
+		LastBlockID:        makeBlockID(pedersen.RandFeltBytes(32), 1000, pedersen.RandFeltBytes(32)),
+		LastCommitHash:     pedersen.RandFeltBytes(crypto.HashSize),
+		DataHash:           pedersen.RandFeltBytes(crypto.HashSize),
+		ValidatorsHash:     pedersen.RandFeltBytes(crypto.HashSize),
+		NextValidatorsHash: pedersen.RandFeltBytes(crypto.HashSize),
+		ConsensusHash:      pedersen.RandFeltBytes(crypto.HashSize),
+		AppHash:            pedersen.RandFeltBytes(crypto.HashSize),
+		LastResultsHash:    pedersen.RandFeltBytes(crypto.HashSize),
+		EvidenceHash:       pedersen.RandFeltBytes(crypto.HashSize),
 		ProposerAddress:    crypto.CRandBytes(crypto.AddressSize),
 	}
 }
 
 func makeRandomBlockID() types.BlockID {
-	return makeBlockID(pedersen.FeltBytes(crypto.HashSize), 100, pedersen.FeltBytes(crypto.HashSize))
+	return makeBlockID(pedersen.RandFeltBytes(crypto.HashSize), 100, pedersen.RandFeltBytes(crypto.HashSize))
 }
 
 func makeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) types.BlockID {

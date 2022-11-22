@@ -3071,7 +3071,7 @@ func TestStateOutputVoteStats(t *testing.T) {
 	peerID, err := types.NewNodeID(strings.Repeat("A", 2*crypto.AddressSize))
 	require.NoError(t, err)
 
-	randBytes := pedersen.FeltBytes(32)
+	randBytes := pedersen.RandFeltBytes(32)
 	blockID := types.BlockID{
 		Hash: randBytes,
 	}
@@ -3112,7 +3112,7 @@ func TestSignSameVoteTwice(t *testing.T) {
 		setReactor.OnStop()
 	}()
 
-	randBytes := pedersen.FeltBytes(32)
+	randBytes := pedersen.RandFeltBytes(32)
 
 	vote := signVote(
 		ctx,

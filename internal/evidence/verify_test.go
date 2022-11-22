@@ -253,7 +253,7 @@ func TestVerifyLightClientAttack_Equivocation(t *testing.T) {
 		Timestamp:           defaultEvidenceTime,
 	}
 
-	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, pedersen.FeltBytes(32))
+	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, pedersen.RandFeltBytes(32))
 	trustedVoteSet := types.NewExtendedVoteSet(evidenceChainID, 10, 1, tmproto.SignedMsgType(2), conflictingVals)
 	trustedExtCommit, err := factory.MakeExtendedCommit(ctx, trustedBlockID, 10, 1,
 		trustedVoteSet, conflictingPrivVals, defaultEvidenceTime)
@@ -275,7 +275,7 @@ func TestVerifyLightClientAttack_Equivocation(t *testing.T) {
 
 	// conflicting header has different next validators hash which should have been correctly derived from
 	// the previous round
-	ev.ConflictingBlock.Header.NextValidatorsHash = pedersen.FeltBytes(crypto.HashSize)
+	ev.ConflictingBlock.Header.NextValidatorsHash = pedersen.RandFeltBytes(crypto.HashSize)
 	assert.Error(t, evidence.VerifyLightClientAttack(ev, trustedSignedHeader, trustedSignedHeader, nil,
 		defaultEvidenceTime.Add(1*time.Minute), 2*time.Hour))
 
@@ -336,7 +336,7 @@ func TestVerifyLightClientAttack_Amnesia(t *testing.T) {
 
 	// we are simulating an amnesia attack where all the validators in the conflictingVals set
 	// except the last validator vote twice. However this time the commits are of different rounds.
-	blockID := makeBlockID(conflictingHeader.Hash(), 1000, pedersen.FeltBytes(32))
+	blockID := makeBlockID(conflictingHeader.Hash(), 1000, pedersen.RandFeltBytes(32))
 	voteSet := types.NewExtendedVoteSet(evidenceChainID, height, 0, tmproto.SignedMsgType(2), conflictingVals)
 	extCommit, err := factory.MakeExtendedCommit(ctx, blockID, height, 0, voteSet, conflictingPrivVals, defaultEvidenceTime)
 	require.NoError(t, err)
@@ -356,7 +356,7 @@ func TestVerifyLightClientAttack_Amnesia(t *testing.T) {
 		Timestamp:           defaultEvidenceTime,
 	}
 
-	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, pedersen.FeltBytes(32))
+	trustedBlockID := makeBlockID(trustedHeader.Hash(), 1000, pedersen.RandFeltBytes(32))
 	trustedVoteSet := types.NewExtendedVoteSet(evidenceChainID, height, 1, tmproto.SignedMsgType(2), conflictingVals)
 	trustedExtCommit, err := factory.MakeExtendedCommit(ctx, trustedBlockID, height, 1,
 		trustedVoteSet, conflictingPrivVals, defaultEvidenceTime)
@@ -416,10 +416,10 @@ func TestVerifyDuplicateVoteEvidence(t *testing.T) {
 	val2 := types.NewMockPV()
 	valSet := types.NewValidatorSet([]*types.Validator{val.ExtractIntoValidator(ctx, 1)})
 
-	blockID := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
-	blockID2 := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
-	blockID3 := makeBlockID(pedersen.FeltBytes(32), 10000, pedersen.FeltBytes(32))
-	blockID4 := makeBlockID(pedersen.FeltBytes(32), 10000, pedersen.FeltBytes(32))
+	blockID := makeBlockID(pedersen.RandFeltBytes(32), 1000, pedersen.RandFeltBytes(32))
+	blockID2 := makeBlockID(pedersen.RandFeltBytes(32), 1000, pedersen.RandFeltBytes(32))
+	blockID3 := makeBlockID(pedersen.RandFeltBytes(32), 10000, pedersen.RandFeltBytes(32))
+	blockID4 := makeBlockID(pedersen.RandFeltBytes(32), 10000, pedersen.RandFeltBytes(32))
 
 	const chainID = "mychain"
 

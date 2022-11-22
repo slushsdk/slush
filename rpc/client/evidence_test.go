@@ -54,16 +54,16 @@ func makeEvidences(
 		Type:             tmproto.PrevoteType,
 		Timestamp:        timestamp,
 		BlockID: types.BlockID{
-			Hash: crypto.ChecksumFelt(pedersen.FeltBytes(32)),
+			Hash: crypto.ChecksumFelt(pedersen.RandFeltBytes(32)),
 			PartSetHeader: types.PartSetHeader{
 				Total: 1000,
-				Hash:  crypto.ChecksumFelt(pedersen.FeltBytes(32)),
+				Hash:  crypto.ChecksumFelt(pedersen.RandFeltBytes(32)),
 			},
 		},
 	}
 
 	vote2 := vote
-	vote2.BlockID.Hash = crypto.ChecksumFelt(pedersen.FeltBytes(32))
+	vote2.BlockID.Hash = crypto.ChecksumFelt(pedersen.RandFeltBytes(32))
 	correct = newEvidence(t, val, &vote, &vote2, chainID, timestamp)
 
 	fakes = make([]*types.DuplicateVoteEvidence, 0)
