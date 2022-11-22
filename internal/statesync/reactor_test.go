@@ -536,7 +536,7 @@ func TestReactor_BlockProviders(t *testing.T) {
 	go func() { wg.Wait(); cancel() }()
 
 	select {
-	case <-time.After(time.Second):
+	case <-time.After(10 * time.Second):
 		// not all of the requests to the dispatcher were responded to
 		// within the timeout
 		t.Fail()
@@ -581,7 +581,7 @@ func TestReactor_StateProviderP2P(t *testing.T) {
 	}
 	require.True(t, rts.reactor.peers.Len() >= 2, "peer network not configured")
 
-	ictx, cancel := context.WithTimeout(ctx, 10*1*time.Second) // SLU-12 1 second original
+	ictx, cancel := context.WithTimeout(ctx, 15*1*time.Second) // SLU-12 1 second original
 	defer cancel()
 
 	rts.reactor.mtx.Lock()
@@ -590,7 +590,7 @@ func TestReactor_StateProviderP2P(t *testing.T) {
 	require.NoError(t, err)
 	rts.reactor.syncer.stateProvider = rts.reactor.stateProvider
 
-	actx, cancel := context.WithTimeout(ctx, 10*1*time.Second) // SLU-12 1 second original
+	actx, cancel := context.WithTimeout(ctx, 15*1*time.Second) // SLU-12 1 second original
 	defer cancel()
 
 	appHash, err := rts.reactor.stateProvider.AppHash(actx, 5)
