@@ -20,7 +20,7 @@ import (
 var (
 	testTimeoutAccept = defaultTimeoutAcceptSeconds * time.Second
 
-	testTimeoutReadWrite    = 100 * time.Millisecond
+	testTimeoutReadWrite    = 10 * 100 * time.Millisecond
 	testTimeoutReadWrite2o3 = 60 * time.Millisecond // 2/3 of the other one
 )
 
