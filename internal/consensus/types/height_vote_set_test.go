@@ -28,7 +28,7 @@ func TestPeerCatchupRounds(t *testing.T) {
 	chainID := cfg.ChainID()
 	hvs := NewExtendedHeightVoteSet(chainID, 1, valSet)
 
-	peer1 := types.NodeID(pedersen.FeltBytes(32))
+	peer1 := types.NodeID(pedersen.RandFeltBytes(32))
 
 	vote999_0 := makeVoteHR(ctx, t, 1, 0, 999, privVals, chainID)
 	added, err := hvs.AddVote(vote999_0, peer1)
@@ -51,7 +51,7 @@ func TestPeerCatchupRounds(t *testing.T) {
 		t.Error("Expected to *not* add vote from peer, too many catchup rounds.")
 	}
 
-	added, err = hvs.AddVote(vote1001_0, types.NodeID(pedersen.FeltBytes(32)))
+	added, err = hvs.AddVote(vote1001_0, types.NodeID(pedersen.RandFeltBytes(32)))
 	if !added || err != nil {
 		t.Error("Expected to successfully add vote from another peer")
 	}
@@ -72,7 +72,7 @@ func makeVoteHR(
 	pubKey, err := privVal.GetPubKey(ctx)
 	require.NoError(t, err)
 
-	randBytes := pedersen.FeltBytes(32)
+	randBytes := pedersen.RandFeltBytes(32)
 
 	vote := &types.Vote{
 		ValidatorAddress: pubKey.Address(),

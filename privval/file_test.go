@@ -47,7 +47,7 @@ func TestResetValidator(t *testing.T) {
 	// test vote
 	height, round := int64(10), int32(1)
 	voteType := tmproto.PrevoteType
-	randBytes := pedersen.FeltBytes(crypto.HashSize)
+	randBytes := pedersen.RandFeltBytes(crypto.HashSize)
 	blockID := types.BlockID{Hash: randBytes, PartSetHeader: types.PartSetHeader{}}
 	vote := newVote(privVal.Key.Address, 0, height, round, voteType, blockID, nil)
 	err := privVal.SignVote(ctx, "mychainid", vote.ToProto())
@@ -150,8 +150,8 @@ func TestSignVote(t *testing.T) {
 
 	privVal, _, _ := newTestFilePV(t)
 
-	randbytes := pedersen.FeltBytes(32)
-	randbytes2 := pedersen.FeltBytes(32)
+	randbytes := pedersen.RandFeltBytes(32)
+	randbytes2 := pedersen.RandFeltBytes(32)
 
 	block1 := types.BlockID{Hash: randbytes,
 		PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
@@ -199,8 +199,8 @@ func TestSignProposal(t *testing.T) {
 
 	privVal, _, _ := newTestFilePV(t)
 
-	randbytes := pedersen.FeltBytes(32)
-	randbytes2 := pedersen.FeltBytes(32)
+	randbytes := pedersen.RandFeltBytes(32)
+	randbytes2 := pedersen.RandFeltBytes(32)
 
 	block1 := types.BlockID{Hash: randbytes,
 		PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
@@ -246,7 +246,7 @@ func TestDifferByTimestamp(t *testing.T) {
 
 	privVal, err := GenFilePV(tempKeyFile.Name(), tempStateFile.Name(), "")
 	require.NoError(t, err)
-	randbytes := pedersen.FeltBytes(32)
+	randbytes := pedersen.RandFeltBytes(32)
 	height, round := int64(10), int32(1)
 	chainID := "mychainid"
 
@@ -285,8 +285,8 @@ func TestVoteExtensionsAreAlwaysSigned(t *testing.T) {
 	assert.NoError(t, err)
 
 	block := types.BlockID{
-		Hash:          pedersen.FeltBytes(32),
-		PartSetHeader: types.PartSetHeader{Total: 5, Hash: pedersen.FeltBytes(32)},
+		Hash:          pedersen.RandFeltBytes(32),
+		PartSetHeader: types.PartSetHeader{Total: 5, Hash: pedersen.RandFeltBytes(32)},
 	}
 
 	height, round := int64(10), int32(1)

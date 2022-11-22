@@ -134,7 +134,7 @@ func ByteRounderFactory(n int) func(byteSlice []byte) []byte {
 	}
 }
 
-func FeltBytes(n int) []byte {
+func RandFeltBytes(n int) []byte {
 	numb, _ := big.NewInt(0).SetString("3618502788666131213697322783095070105623107215331596699973092056135872020480", 10)
 	randNumb, _ := rand.Int(rand.Reader, numb)
 	randBytes := randNumb.Bytes()

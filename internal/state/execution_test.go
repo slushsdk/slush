@@ -176,22 +176,22 @@ func TestFinalizeBlockMisbehavior(t *testing.T) {
 
 	defaultEvidenceTime := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
 	privVal := privVals[state.Validators.Validators[0].Address.String()]
-	blockID := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
+	blockID := makeBlockID(pedersen.RandFeltBytes(32), 1000, pedersen.RandFeltBytes(32))
 	header := &types.Header{
 		Version:            version.Consensus{Block: version.BlockProtocol, App: 1},
 		ChainID:            state.ChainID,
 		Height:             10,
 		Time:               defaultEvidenceTime,
 		LastBlockID:        blockID,
-		LastCommitHash:     pedersen.FeltBytes(crypto.HashSize),
-		DataHash:           pedersen.FeltBytes(crypto.HashSize),
+		LastCommitHash:     pedersen.RandFeltBytes(crypto.HashSize),
+		DataHash:           pedersen.RandFeltBytes(crypto.HashSize),
 		ValidatorsHash:     state.Validators.Hash(),
 		NextValidatorsHash: state.Validators.Hash(),
-		ConsensusHash:      pedersen.FeltBytes(crypto.HashSize),
-		AppHash:            pedersen.FeltBytes(crypto.HashSize),
-		LastResultsHash:    pedersen.FeltBytes(crypto.HashSize),
-		EvidenceHash:       pedersen.FeltBytes(crypto.HashSize),
-		ProposerAddress:    pedersen.FeltBytes(crypto.AddressSize),
+		ConsensusHash:      pedersen.RandFeltBytes(crypto.HashSize),
+		AppHash:            pedersen.RandFeltBytes(crypto.HashSize),
+		LastResultsHash:    pedersen.RandFeltBytes(crypto.HashSize),
+		EvidenceHash:       pedersen.RandFeltBytes(crypto.HashSize),
+		ProposerAddress:    pedersen.RandFeltBytes(crypto.AddressSize),
 	}
 
 	// we don't need to worry about validating the evidence as long as they pass validate basic
@@ -204,10 +204,10 @@ func TestFinalizeBlockMisbehavior(t *testing.T) {
 				Header: header,
 				Commit: &types.Commit{
 					Height:  10,
-					BlockID: makeBlockID(header.Hash(), 100, pedersen.FeltBytes(32)),
+					BlockID: makeBlockID(header.Hash(), 100, pedersen.RandFeltBytes(32)),
 					Signatures: []types.CommitSig{{
 						BlockIDFlag:      types.BlockIDFlagNil,
-						ValidatorAddress: crypto.AddressHash(pedersen.FeltBytes(32)),
+						ValidatorAddress: crypto.AddressHash(pedersen.RandFeltBytes(32)),
 						Timestamp:        defaultEvidenceTime,
 						Signature:        crypto.CRandBytes(types.MaxSignatureSize)}},
 				},

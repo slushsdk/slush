@@ -21,11 +21,11 @@ var (
 )
 
 func RandomAddress() []byte {
-	return pedersen.FeltBytes(crypto.AddressSize)
+	return pedersen.RandFeltBytes(crypto.AddressSize)
 }
 
 func RandomHash() []byte {
-	return pedersen.FeltBytes(crypto.HashSize)
+	return pedersen.RandFeltBytes(crypto.HashSize)
 }
 
 func MakeBlockID() types.BlockID {

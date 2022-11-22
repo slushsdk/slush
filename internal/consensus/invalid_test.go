@@ -125,7 +125,7 @@ func invalidDoPrevoteFunc(
 		valIndex, _ := cs.Validators.GetByAddress(addr)
 
 		// precommit a random block
-		blockHash := bytes.HexBytes(pedersen.FeltBytes(32))
+		blockHash := bytes.HexBytes(pedersen.RandFeltBytes(32))
 		precommit := &types.Vote{
 			ValidatorAddress: addr,
 			ValidatorIndex:   valIndex,
@@ -135,7 +135,7 @@ func invalidDoPrevoteFunc(
 			Type:             tmproto.PrecommitType,
 			BlockID: types.BlockID{
 				Hash:          blockHash,
-				PartSetHeader: types.PartSetHeader{Total: 1, Hash: pedersen.FeltBytes(32)}},
+				PartSetHeader: types.PartSetHeader{Total: 1, Hash: pedersen.RandFeltBytes(32)}},
 		}
 
 		p := precommit.ToProto()

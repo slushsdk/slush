@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
 func TestNew(t *testing.T) {
@@ -119,7 +118,7 @@ func TestCheckFeltRange(t *testing.T) {
 
 	// testing with a random number in the range
 	// no error expected
-	randomNumber := new(big.Int).SetBytes(tmrand.FeltBytes(32))
+	randomNumber, _ := new(big.Int).SetString("3486234875676476345984735823743276473624897698237478", 10)
 	err5 := checkFeltRange(randomNumber)
 	require.NoError(t, err5, "TestCase4: in range check failed, expected no error, got %v", err5)
 }

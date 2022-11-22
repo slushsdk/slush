@@ -42,8 +42,8 @@ func makeTestExtCommit(height int64, timestamp time.Time) *types.ExtendedCommit 
 	return &types.ExtendedCommit{
 		Height: height,
 		BlockID: types.BlockID{
-			Hash:          pedersen.FeltBytes(crypto.HashSize),
-			PartSetHeader: types.PartSetHeader{Hash: pedersen.FeltBytes(crypto.HashSize), Total: 2},
+			Hash:          pedersen.RandFeltBytes(crypto.HashSize),
+			PartSetHeader: types.PartSetHeader{Hash: pedersen.RandFeltBytes(crypto.HashSize), Total: 2},
 		},
 		ExtendedSignatures: extCommitSigs,
 	}

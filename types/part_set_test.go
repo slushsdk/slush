@@ -167,7 +167,7 @@ func TestPartProtoBuf(t *testing.T) {
 	proof := merkle.Proof{
 		Total:    1,
 		Index:    1,
-		LeafHash: pedersen.FeltBytes(32),
+		LeafHash: pedersen.RandFeltBytes(32),
 	}
 	testCases := []struct {
 		msg     string

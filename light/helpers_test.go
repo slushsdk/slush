@@ -64,7 +64,7 @@ func (pkz privKeys) signHeader(t testing.TB, header *types.Header, valSet *types
 
 	blockID := types.BlockID{
 		Hash:          header.Hash(),
-		PartSetHeader: types.PartSetHeader{Total: 1, Hash: pedersen.FeltBytes(crypto.HashSize)},
+		PartSetHeader: types.PartSetHeader{Total: 1, Hash: pedersen.RandFeltBytes(crypto.HashSize)},
 	}
 
 	// Fill in the votes we want.

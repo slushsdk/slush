@@ -86,7 +86,7 @@ func TestSignerClient_SignVote(t *testing.T) {
 	require.NoError(t, err)
 
 	ts := time.Now()
-	hash := pedersen.FeltBytes(32)
+	hash := pedersen.RandFeltBytes(32)
 	valAddr := stark.GenPrivKey().PubKey().Address()
 
 	want := &types.Vote{
@@ -141,7 +141,7 @@ func TestSignerClient_SignProposal(t *testing.T) {
 	require.NoError(t, err)
 
 	ts := time.Now()
-	hash := pedersen.FeltBytes(32)
+	hash := pedersen.RandFeltBytes(32)
 
 	have := &types.Proposal{
 		Type:      tmproto.ProposalType,

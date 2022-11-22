@@ -848,10 +848,10 @@ func makeMockVote(height int64, round, index int32, addr Address,
 
 func randBlockID() BlockID {
 	return BlockID{
-		Hash: pedersen.FeltBytes(crypto.HashSize),
+		Hash: pedersen.RandFeltBytes(crypto.HashSize),
 		PartSetHeader: PartSetHeader{
 			Total: 1,
-			Hash:  pedersen.FeltBytes(crypto.HashSize),
+			Hash:  pedersen.RandFeltBytes(crypto.HashSize),
 		},
 	}
 }

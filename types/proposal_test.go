@@ -62,7 +62,7 @@ func TestProposalVerifySignature(t *testing.T) {
 
 	prop := NewProposal(
 		4, 2, 2,
-		BlockID{pedersen.FeltBytes(32), PartSetHeader{777, pedersen.FeltBytes(32)}}, tmtime.Now())
+		BlockID{pedersen.RandFeltBytes(32), PartSetHeader{777, pedersen.RandFeltBytes(32)}}, tmtime.Now())
 	p := prop.ToProto()
 	signBytes := ProposalSignBytes("test_chain_id", p)
 
@@ -164,7 +164,7 @@ func TestProposalValidateBasic(t *testing.T) {
 			p.Signature = make([]byte, MaxSignatureSize+1)
 		}, true},
 	}
-	blockID := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.RandFeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.RandFeltBytes(32)))
 
 	for _, tc := range testCases {
 		tc := tc
