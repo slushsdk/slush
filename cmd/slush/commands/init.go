@@ -58,7 +58,6 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
 	return initFilesWithConfig(config)
 }
 
