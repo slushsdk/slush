@@ -578,8 +578,6 @@ func ResetTestRootWithChainID(dir, testName string, chainID string) (*Config, er
 	genesisFilePath := filepath.Join(rootDir, conf.Genesis)
 	privKeyFilePath := filepath.Join(rootDir, conf.PrivValidator.Key)
 	privStateFilePath := filepath.Join(rootDir, conf.PrivValidator.State)
-	nodeKeyFilePath := filepath.Join(rootDir, conf.NodeKey)
-	verifierDetailsFilePath := filepath.Join(rootDir, conf.VerifierDetails)
 
 	// Write default config file if missing.
 	if err := writeDefaultConfigFileIfNone(rootDir); err != nil {
@@ -602,13 +600,6 @@ func ResetTestRootWithChainID(dir, testName string, chainID string) (*Config, er
 	if err := writeFile(privStateFilePath, []byte(testPrivValidatorState), 0644); err != nil {
 		return nil, err
 	}
-	if err := writeFile(nodeKeyFilePath, []byte(testNodeKey), 0644); err != nil {
-		return nil, err
-	}
-	if err := writeFile(verifierDetailsFilePath, []byte(testVerifierDetails), 0644); err != nil {
-		return nil, err
-	}
-
 	config := TestConfig().SetRoot(rootDir)
 	config.Instrumentation.Namespace = fmt.Sprintf("%s_%s_%s", testName, chainID, tmrand.Str(16))
 	return config, nil
@@ -717,38 +708,4 @@ var testPrivValidatorState = `{
   "height": "0",
   "round": 0,
   "step": 0
-}`
-
-var nodePrivateKey, nodePublicKey = getKeys()
-var nodePrivateKeyDetails = getKeyTypeAndValue(nodePrivateKey)
-var nodePublicKeyDetails = getKeyTypeAndValue(nodePublicKey)
-var nodeAddress = withQuotationMarks(nodePublicKey.Address().String())
-
-var testNodeKey = `{
-	"id": ` + nodeAddress + `,
-	"priv_key": {
-		"type": ` + nodePrivateKeyDetails.typeTag + `,
-		"value": ` + nodePrivateKeyDetails.value + `
-	}
-}`
-
-var testVerifierDetails = `{
-	"verifier": {
-		"address": ` + nodeAddress + `,
-		"pub_key": {
-			"type": ` + nodePublicKeyDetails.typeTag + `,
-			"value": ` + nodePublicKeyDetails.value + `
-		}
-	},
-	"verifier_set": {
-		"verifiers": [
-			{
-				"address": ` + nodeAddress + `,
-				"pub_key": {
-					"type": ` + nodePublicKeyDetails.typeTag + `,
-					"value": ` + nodePublicKeyDetails.value + `
-				}
-			}
-		]
-	}
 }`
