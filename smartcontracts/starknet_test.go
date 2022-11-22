@@ -36,7 +36,7 @@ func TestInvoke(t *testing.T) {
 
 	os.WriteFile("cairo/seed42pkey", []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
 
-	vd := types.VerifierDetails{VerifierAddress: verifieraddress, AccountPrivKeyPath: "./seed42pkey", AccountAddress: address, NetworkDetails: types.NetworkDetails{Network: "devnet", SeedKeysBool: true}}
+	vd := types.VerifierDetails{VerifierAddress: verifieraddress, AccountPrivateKeyPath: "./seed42pkey", AccountAddress: address, Network: "devnet"}
 	id := consensus.InvokeData{TrustedLightB: trustedLightBlock, UntrustedLightB: untrustedLightBlock, ValidatorSet: validatorSet}
 
 	smartcontracts.InvokePath(vd, id, curtime, "../cairo/migrations")

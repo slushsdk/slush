@@ -31,12 +31,11 @@ func InvokePath(vd types.VerifierDetails, id consensus.InvokeData, currentTime *
 
 	// devnet is different
 	var cmd *exec.Cmd
-	if vd.NetworkDetails.Network == "devnet" {
-		// eg protostar migrate migrations/migration_02.cairo --gateway-url "http://127.0.0.1:5050/" --chain-id 1536727068981429685321 --private-key-path ./seed42pkey --account-address "347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a" --no-confirm
-		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+	if vd.Network == "devnet" {
+		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivateKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
 		cmd.Dir = "./cairo"
 	} else {
-		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--network", vd.NetworkDetails.Network, "--private-key-path", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--network", vd.Network, "--private-key-path", vd.AccountPrivateKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
 		cmd.Dir = "./cairo"
 	}
 
