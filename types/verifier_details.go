@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"os"
 )
@@ -13,15 +14,32 @@ import (
 // VerifierDetails is the onchain details needed for verifying a lightheader.
 // It contains the nodes private key for authentication.
 type VerifierDetails struct {
-	VerifierAddress    *big.Int       `json:"verifierAddress"`
-	AccountPrivKeyPath string         `json:"accountPrivKeyPath"`
-	AccountAddress     *big.Int       `json:"accountAddress"`
-	NetworkDetails     NetworkDetails `json:"networkDetails"`
+	AccountAddress        *big.Int `json:"accountAddress"`
+	AccountPrivateKeyPath string   `json:"accountPrivateKeyPath"`
+	Network               string   `json:"network"`
+	VerifierAddress       *big.Int `json:"verifierAddress"`
 }
 
-type NetworkDetails struct {
-	Network      string `json:"network"`
-	SeedKeysBool bool   `json:"seedKeysBool"`
+func NewVerifierDetails(accountAddress, accountPrivateKeyPath, network, verifierAddress string) (vd VerifierDetails, err error) {
+	accountAddressBigInt, ok := new(big.Int).SetString(accountAddress, 16)
+	if !ok {
+		err = fmt.Errorf(`could not read account address string: "%s", it should be in hex, without leading 0x`, accountAddress)
+		return
+	}
+
+	verifierAddressBigInt, ok := new(big.Int).SetString(verifierAddress, 16)
+	if !ok {
+		err = fmt.Errorf(`could not read verifier address string: "%s", it should be in hex, without leading 0x`, verifierAddress)
+		return
+	}
+
+	vd = VerifierDetails{
+		AccountPrivateKeyPath: accountPrivateKeyPath,
+		AccountAddress:        accountAddressBigInt,
+		Network:               network,
+		VerifierAddress:       verifierAddressBigInt,
+	}
+	return
 }
 
 // SaveAs persists the VerifierDetails to filePath.
