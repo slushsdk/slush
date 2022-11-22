@@ -28,21 +28,21 @@ func hashFromByteSlices(hasher hash.Hash, items [][]byte) []byte {
 			leftChan := make(chan []byte)
 			rightChan := make(chan []byte)
 
-			parallelhashFromByteSlicesFelt := func(hashing hash.Hash, itemsList [][]byte, ch chan []byte) {
-				ch <- hashFromByteSlicesFelt(hashing, itemsList)
+			parallelhashFromByteSlices := func(hashing hash.Hash, itemsList [][]byte, ch chan []byte) {
+				ch <- hashFromByteSlices(hashing, itemsList)
 			}
 
 			leftItems := [][]byte{}
 			leftItems = append(leftItems, items[:k]...)
 
-			go parallelhashFromByteSlicesFelt(hasher, leftItems, leftChan)
-			go parallelhashFromByteSlicesFelt(hasher2, items[k:], rightChan)
+			go parallelhashFromByteSlices(hasher, leftItems, leftChan)
+			go parallelhashFromByteSlices(hasher2, items[k:], rightChan)
 
 			left = <-leftChan
 			right = <-rightChan
 		} else {
-			left = hashFromByteSlicesFelt(hasher, items[:k])
-			right = hashFromByteSlicesFelt(hasher, items[k:])
+			left = hashFromByteSlices(hasher, items[:k])
+			right = hashFromByteSlices(hasher, items[k:])
 		}
 
 		return innerHashOpt(hasher, left, right)
