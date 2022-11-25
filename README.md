@@ -38,7 +38,8 @@ Before installing Starknet Devnet on M1 check [this thread](https://github.com/O
    - `make build`
    - `./build/slush init validator --home ./valdata`
    - `./build/slush start --proxy-app=kvstore --home ./valdata`
-
+4. If restarting this multiple times you might need to remove the validator data before `make build`:
+   - `rm -r ./valdata/config/ ./valdata/data/`
 
 
 ## Roadmap
