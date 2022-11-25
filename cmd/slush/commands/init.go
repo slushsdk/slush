@@ -95,7 +95,13 @@ func initVerifierDetails(conf *config.Config, logger log.Logger) func(accountAdd
 			accountAddress = "347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 			accountPrivateKey = "bdd640fb06671ad11c80317fa3b1799d"
 			conf.AccountPrivateKeyFileName = "seed42pkey"
+		} else if network == "testnet2" && (accountPrivateKey == "0" || accountAddress == "0") {
+			accountAddress = "75cf9b7dcd197ed8adc3ab29b016a58c619fa4914f00f6c8127d1de7b6c0ff8"
+			// accountAddress = "75cF9B7DCd197eD8Adc3Ab29B016a58c619FA4914f00f6c8127D1DE7B6c0ff8"
+			accountPrivateKey = "3c1f694d5beedd1145af50cdd27981bd5032cd2157e004f529ca6c98cbce2ec"
+			conf.AccountPrivateKeyFileName = "testnet2pkey"
 		}
+
 		accountPrivateKeyPath, err := initAccountPrivateKeyFile(conf, logger)(accountPrivateKey)
 		if err != nil {
 			return
