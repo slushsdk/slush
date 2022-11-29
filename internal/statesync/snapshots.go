@@ -11,7 +11,7 @@ import (
 )
 
 // snapshotKey is a snapshot key used for lookups.
-type snapshotKey [iHash.Size]byte
+type snapshotKey [ihash.Size]byte
 
 // snapshot contains data about a snapshot.
 type snapshot struct {
@@ -29,7 +29,7 @@ type snapshot struct {
 // non-deterministic manner. All fields must be equal for the snapshot to be considered the same.
 func (s *snapshot) Key() snapshotKey {
 	// Hash.Write() never returns an error.
-	hasher := iHash.New()
+	hasher := ihash.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", s.Height, s.Format, s.Chunks)))
 	hasher.Write(s.Hash)
 	hasher.Write(s.Metadata)
