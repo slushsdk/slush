@@ -17,36 +17,45 @@ type PedersenHash struct {
 }
 
 func New() hash.Hash {
-	d := new(PedersenHash)
-	return d
+	return new(PedersenHash)
 }
 
-func (p PedersenHash) Sum(b []byte) []byte {
+func (ph *PedersenHash) Sum(b []byte) []byte {
 	if b == nil {
-		return pedersenHash(p.input)
+		return pedersenHash(ph.input)
 	}
+	fmt.Println("Not reading writer obj")
 	return pedersenHash(b)
 }
 
-func (PedersenHash) BlockSize() int {
+func (ph *PedersenHash) BlockSize() int {
 	return 32
 }
 
-func (ph PedersenHash) Size() int {
+func (ph *PedersenHash) Size() int {
 	return len(ph.input)
 }
 
-func (ph PedersenHash) Reset() {
+func (ph *PedersenHash) Reset() {
 	panic("Not implemented")
 }
 
-func (ph PedersenHash) Write(p []byte) (n int, err error) {
-	ph.input = p
-	return len(p), nil
+func (ph *PedersenHash) Write(p []byte) (n int, err error) {
+	ph.input = append(ph.input, p...)
+	return len(ph.input), nil
 }
 
 func pedersenHash(b []byte) []byte {
-	chunks := utils.Split(b, 31)
+	chunks := utils.Split(b, 8)
+
+	lastWordSize := len(chunks[len(chunks)-1])
+	isLastWordFull := lastWordSize == 8
+
+	if !isLastWordFull {
+		remainingBytes := 8 - lastWordSize
+		leadingBytes := make([]byte, remainingBytes)
+		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
+	}
 
 	pedersenInput := make([]*big.Int, len(chunks))
 
