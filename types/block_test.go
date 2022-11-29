@@ -334,7 +334,7 @@ func TestHeaderHash(t *testing.T) {
 			LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 			EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
-		}, hexBytesFromString("F740121F553B5418C3EFBD343C2DBFE9E007BB67B0D020A0741374BAB65242A4")},
+		}, hexBytesFromString("BFFB4E0B5996A14EEE5110976B788667BD5DD30DF98C03E8F98FEC960B045D4F")},
 		{"nil header yields nil", nil, nil},
 		{"nil ValidatorsHash yields nil", &Header{
 			Version:            version.Consensus{Block: 1, App: 2},
@@ -394,7 +394,7 @@ func TestHeaderHash(t *testing.T) {
 						t.Errorf("unknown type %T", f)
 					}
 				}
-				dst, _ := hex.DecodeString("86C7509710A4ECFD79B5E703399FAC56C01722B5F380ED7122FA8746AB18B028")
+				dst, _ := hex.DecodeString("BFFB4E0B5996A14EEE5110976B788667BD5DD30DF98C03E8F98FEC960B045D4F")
 				assert.Equal(t,
 					bytes.HexBytes(dst), tc.header.Hash())
 				// assert.Equal(t,
@@ -471,10 +471,10 @@ func TestBlockMaxDataBytes(t *testing.T) {
 		0: {-10, 1, 0, true, 0},
 		1: {10, 1, 0, true, 0},
 		2: {841, 1, 0, true, 0},
-		3: {842, 1, 0, false, 0},
-		4: {843, 1, 0, false, 1},
-		5: {954, 2, 0, false, 1},
-		6: {1053, 2, 100, false, 0},
+		3: {866, 1, 0, false, 0},
+		4: {867, 1, 0, false, 1},
+		5: {990, 2, 0, false, 1},
+		6: {1089, 2, 100, false, 0},
 	}
 
 	for i, tc := range testCases {
@@ -501,9 +501,9 @@ func TestBlockMaxDataBytesNoEvidence(t *testing.T) {
 	}{
 		0: {-10, 1, true, 0},
 		1: {10, 1, true, 0},
-		2: {841, 1, true, 0},
-		3: {842, 1, false, 0},
-		4: {843, 1, false, 1},
+		2: {865, 1, true, 0},
+		3: {866, 1, false, 0},
+		4: {867, 1, false, 1},
 	}
 
 	for i, tc := range testCases {
