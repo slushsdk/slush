@@ -206,13 +206,13 @@ func CreateSettlementChan() chan consensus.InvokeData {
 
 func CreateSettlementReactor(
 	logger log.Logger,
-	vd types.VerifierDetails,
+	cfg *config.Config,
 	SettlementCh <-chan consensus.InvokeData,
 ) (*settlement.Reactor, error) {
 
 	logger = logger.With("module", "settlement")
 
-	evidenceReactor := settlement.NewReactor(logger, vd, SettlementCh)
+	evidenceReactor := settlement.NewReactor(logger, cfg, SettlementCh)
 
 	return evidenceReactor, nil
 }

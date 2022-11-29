@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -15,17 +14,15 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/smartcontracts"
+	"github.com/tendermint/tendermint/starknet"
 	"github.com/tendermint/tendermint/types"
 )
 
 // MakeInitFilesCommand returns the command to initialize a fresh Tendermint Core instance.
 func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command {
 	var (
-		keyType           = types.DefaultValidatorParams().PubKeyTypes[0]
-		network           string
-		accountPrivateKey string
-		accountAddress    string
+		keyType = types.DefaultValidatorParams().PubKeyTypes[0]
+		network string
 	)
 
 	cmd := &cobra.Command{
@@ -41,7 +38,8 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 			}
 			conf.Mode = args[0]
 
-			err = initVerifierDetails(conf, logger)(accountPrivateKey, accountAddress, network)
+			initStarknetConfig(conf, network)
+			err = initVerifierAddress(conf, logger)
 			if err != nil {
 				return
 			}
@@ -53,73 +51,40 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 	cmd.Flags().StringVar(&network, "network", "devnet",
 		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42, and set seedkeys=1 here.")
 
-	cmd.Flags().StringVar(&accountPrivateKey, "pkey", "0", "Specify privatekey. Not needed if --seedkeys=1. ")
-
-	cmd.Flags().StringVar(&accountAddress, "address", "0", "Specify address. Not needed if --seedkeys=1. ")
-
 	return cmd
 }
 
-func initAccountPrivateKeyFile(conf *config.Config, logger log.Logger) func(accountPrivateKey string) (fileName string, err error) {
-	return func(accountPrivateKey string) (fileName string, err error) {
-		fileName = conf.AccountPrivateKeyFileName
-		filePath := filepath.Join(conf.CairoDir, fileName)
-		if tmos.FileExists(filePath) {
-			logger.Info("Found  account private key", "path", filePath)
-			return
+func initStarknetConfig(conf *config.Config, network string) {
+	switch network {
+	case "testnet":
+		conf.Starknet = &config.StarknetConfig{
+			Network: "alpha-goerli",
+			Wallet:  "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
+			Account: "testnet",
 		}
-		if err = os.WriteFile(filePath, []byte(accountPrivateKey), 0600); err != nil {
-			return
-		}
-		logger.Info("Generated account private key", "path", filePath)
-		return
+
 	}
 }
 
-func getVerifierAddress(logger log.Logger) func(accountAddress, accountPrivateKeyPath, network string) (verifierAddress string, err error) {
-	return func(accountAddress, accountPrivateKeyPath, network string) (verifierAddress string, err error) {
-		verifierAddressBigInt, classHashBigInt, err := smartcontracts.DeclareDeploy(accountAddress, accountPrivateKeyPath, network)
-		if err != nil {
-			return
-		}
-		verifierAddress = verifierAddressBigInt.Text(16)
-		logger.Info("Successfully declared with classhash: ", classHashBigInt.Text(16), "")
-		logger.Info("and deployed contract address:", verifierAddress, "")
+func initVerifierAddress(conf *config.Config, logger log.Logger) (err error) {
+	classHashHex, transactionHashHex, err := starknet.Declare(conf.Starknet, filepath.Join(conf.CairoDir, "build/main.json"))
+	if err != nil {
 		return
 	}
-}
+	logger.Info(fmt.Sprintf("Successfully declared with classHash=%s and transactionHash=%s", classHashHex, transactionHashHex))
 
-func initVerifierDetails(conf *config.Config, logger log.Logger) func(accountAddress, accountPrivateKey, network string) (err error) {
-	return func(accountAddress, accountPrivateKey, network string) (err error) {
-		if network == "devnet" && (accountPrivateKey == "0" || accountAddress == "0") {
-			accountAddress = "347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
-			accountPrivateKey = "bdd640fb06671ad11c80317fa3b1799d"
-			conf.AccountPrivateKeyFileName = "seed42pkey"
-		} else if network == "testnet2" && (accountPrivateKey == "0" || accountAddress == "0") {
-			accountAddress = "75cf9b7dcd197ed8adc3ab29b016a58c619fa4914f00f6c8127d1de7b6c0ff8"
-			// accountAddress = "75cF9B7DCd197eD8Adc3Ab29B016a58c619FA4914f00f6c8127D1DE7B6c0ff8"
-			accountPrivateKey = "3c1f694d5beedd1145af50cdd27981bd5032cd2157e004f529ca6c98cbce2ec"
-			conf.AccountPrivateKeyFileName = "testnet2pkey"
-		}
-
-		accountPrivateKeyPath, err := initAccountPrivateKeyFile(conf, logger)(accountPrivateKey)
-		if err != nil {
-			return
-		}
-
-		verifierAddress, err := getVerifierAddress(logger)(accountAddress, accountPrivateKeyPath, network)
-		if err != nil {
-			return
-		}
-
-		vd, err := types.NewVerifierDetails(accountAddress, accountPrivateKeyPath, network, verifierAddress)
-		if err != nil {
-			return
-		}
-
-		err = vd.SaveAs(conf.VerifierDetailsFile())
+	contractAddressHex, transactionHex, err := starknet.Deploy(conf.Starknet, classHashHex)
+	if err != nil {
 		return
 	}
+	logger.Info(fmt.Sprintf("Successfully deployed with contractAddress=%s and transactionHash=%s", contractAddressHex, transactionHex))
+
+	if err != nil {
+		return
+	}
+
+	conf.VerifierAddress = contractAddressHex
+	return
 }
 
 func initFilesWithConfig(ctx context.Context, conf *config.Config, logger log.Logger, keyType string) error {
