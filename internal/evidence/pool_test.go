@@ -68,8 +68,8 @@ func TestEvidencePoolBasic(t *testing.T) {
 
 	select {
 	case <-evAdded:
-	case <-time.After(5 * time.Second):
-		t.Fatal("evidence was not added to list after 5s")
+	case <-time.After(15 * time.Second):
+		t.Fatal("evidence was not added to list after 9s")
 	}
 
 	next := pool.EvidenceFront()
