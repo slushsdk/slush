@@ -1,25 +1,25 @@
 package settlement
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
 
+	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/internal/consensus"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/smartcontracts"
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/tendermint/starknet"
 )
 
 // Reactor handles light blocks sent for settlement. Slush addition, modelled of evidence reactor.
 type Reactor struct {
 	service.BaseService
-	logger log.Logger
-
-	verifierDetails types.VerifierDetails
-	SettlementCh    <-chan consensus.InvokeData
-	stopChan        chan bool
+	logger       log.Logger
+	cfg          *config.Config
+	SettlementCh <-chan consensus.InvokeData
+	stopChan     chan bool
 }
 
 // NewReactor returns a reference to a new evidence reactor, which implements the
@@ -27,13 +27,13 @@ type Reactor struct {
 // envelopes with EvidenceList messages.
 func NewReactor(
 	logger log.Logger,
-	vd types.VerifierDetails,
+	cfg *config.Config,
 	SettlementCh <-chan consensus.InvokeData,
 ) *Reactor {
 	r := &Reactor{
-		logger:          logger,
-		verifierDetails: vd,
-		SettlementCh:    SettlementCh,
+		logger:       logger,
+		cfg:          cfg,
+		SettlementCh: SettlementCh,
 	}
 
 	r.BaseService = *service.NewBaseService(logger, "Settlement", r)
@@ -71,17 +71,34 @@ func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan consensus.InvokeData) {
 	}
 }
 
-func (r *Reactor) FormatAndSendCommit(id consensus.InvokeData) error {
+func format(id consensus.InvokeData) (jsonString string, err error) {
+	currentTime := big.NewInt((time.Now().UnixNano()))
+	maxClockDrift := big.NewInt(10)
+	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
+
+	cd := consensus.FormatCallData(id.TrustedLightB, id.UntrustedLightB, &id.ValidatorSet, currentTime, maxClockDrift, trustingPeriod)
+	jsonBytes, err := json.Marshal(cd)
+	if err != nil {
+		panic(err)
+	}
+	jsonString = string(jsonBytes)
+	return
+}
+
+func (r *Reactor) FormatAndSendCommit(id consensus.InvokeData) (err error) {
 	logger := r.logger
 	logger.Info("settling commit")
-	currentTime := time.Now()
-	timeBig := big.NewInt((currentTime.UnixNano()))
 
-	stdout, err := smartcontracts.Invoke(r.verifierDetails, id, timeBig)
-	logger.Info(fmt.Sprintf("CAIRO: %s", stdout))
+	jsonString, err := format(id)
 	if err != nil {
-		fmt.Println(err)
-
+		err = fmt.Errorf("failed to format call data: %w", err)
+		return
 	}
-	return err
+	transactionHashHex, err := starknet.InvokeSimplified(r.cfg, jsonString)
+	if err != nil {
+		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
+		return
+	}
+	logger.Info("transaction hash", "hash", transactionHashHex)
+	return
 }

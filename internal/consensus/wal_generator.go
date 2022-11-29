@@ -93,14 +93,13 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool, blockStore)
 
 	settlementChan := make(chan InvokeData, 100)
-	verifierDetails := DevnetVerifierDetails()
-	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 	defer func() {
 		settlementReactor.OnStop()
 	}()
 
-	consensusState := NewState(cfg.Consensus, state.Copy(), blockExec, blockStore, mempool, evpool, verifierDetails, settlementChan)
+	consensusState := NewState(cfg.Consensus, state.Copy(), blockExec, blockStore, mempool, evpool, settlementChan)
 	consensusState.SetLogger(logger)
 	consensusState.SetEventBus(eventBus)
 	if privValidator != nil && privValidator != (*privval.FilePV)(nil) {

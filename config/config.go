@@ -59,7 +59,6 @@ var (
 	defaultAddrBookName = "addrbook.json"
 
 	defaultAccountPrivateKeyFileName = "pkey"
-	defaultVerifierDetailsName       = "verifier_details.json"
 
 	defaultConfigFilePath   = filepath.Join(defaultConfigDir, defaultConfigFileName)
 	defaultGenesisJSONPath  = filepath.Join(defaultConfigDir, defaultGenesisJSONName)
@@ -71,8 +70,6 @@ var (
 
 	minSubscriptionBufferSize     = 100
 	defaultSubscriptionBufferSize = 200
-
-	defaultVerifierDetailsPath = filepath.Join(defaultDataDir, defaultVerifierDetailsName)
 )
 
 // Config defines the top level configuration for a Tendermint node
@@ -90,6 +87,8 @@ type Config struct {
 	TxIndex         *TxIndexConfig         `mapstructure:"tx-index"`
 	Instrumentation *InstrumentationConfig `mapstructure:"instrumentation"`
 	PrivValidator   *PrivValidatorConfig   `mapstructure:"priv-validator"`
+
+	Starknet *StarknetConfig `mapstructure:"starknet"`
 }
 
 // DefaultConfig returns a default configuration for a Tendermint node
@@ -105,6 +104,7 @@ func DefaultConfig() *Config {
 		TxIndex:         DefaultTxIndexConfig(),
 		Instrumentation: DefaultInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
+		Starknet:        DefaultStarknetConfig(),
 	}
 }
 
@@ -128,6 +128,7 @@ func TestConfig() *Config {
 		TxIndex:         TestTxIndexConfig(),
 		Instrumentation: TestInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
+		Starknet:        DefaultStarknetConfig(),
 	}
 }
 
@@ -170,6 +171,9 @@ func (cfg *Config) ValidateBasic() error {
 	if err := cfg.Instrumentation.ValidateBasic(); err != nil {
 		return fmt.Errorf("error in [instrumentation] section: %w", err)
 	}
+	if err := cfg.Starknet.ValidateBasic(); err != nil {
+		return fmt.Errorf("error in [starknet] section: %w", err)
+	}
 	return nil
 }
 
@@ -180,6 +184,8 @@ func (cfg *Config) ValidateBasic() error {
 type BaseConfig struct { //nolint: maligned
 	// chainID is unexposed and immutable but here for convenience
 	chainID string
+
+	VerifierAddress string
 
 	// The root directory for all data.
 	// This should be set in viper so it can unmarshal into this struct
@@ -246,9 +252,6 @@ type BaseConfig struct { //nolint: maligned
 	// A text file containing the private key in hex format without 0x prefix
 	AccountPrivateKeyFileName string `mapstructure:"account-priv-key-file"`
 
-	// A JSON file containing the verifier contract's address
-	VerifierDetails string `mapstructure:"verifier-details-file"`
-
 	// Mechanism to connect to the ABCI application: socket | grpc
 	ABCI string `mapstructure:"abci"`
 
@@ -265,7 +268,6 @@ func DefaultBaseConfig() BaseConfig {
 		Genesis:                   defaultGenesisJSONPath,
 		NodeKey:                   defaultNodeKeyPath,
 		AccountPrivateKeyFileName: defaultAccountPrivateKeyFileName,
-		VerifierDetails:           defaultVerifierDetailsPath,
 		Mode:                      defaultMode,
 		Moniker:                   defaultMoniker,
 		ProxyApp:                  "tcp://127.0.0.1:26658",
@@ -300,20 +302,6 @@ func (cfg BaseConfig) GenesisFile() string {
 // NodeKeyFile returns the full path to the node_key.json file
 func (cfg BaseConfig) NodeKeyFile() string {
 	return rootify(cfg.NodeKey, cfg.RootDir)
-}
-
-// VerifierAddressFile returns the full path to the node_key.json file
-func (cfg BaseConfig) VerifierDetailsFile() string {
-	return rootify(cfg.VerifierDetails, cfg.RootDir)
-}
-
-// LoadVerifierDetails loads VerofierDetails located in filePath.
-func (cfg BaseConfig) LoadVerifierDetails() (types.VerifierDetails, error) {
-	vd, err := types.LoadVerifierDetails(cfg.VerifierDetailsFile())
-	if err != nil {
-		return types.VerifierDetails{}, err
-	}
-	return vd, nil
 }
 
 // LoadNodeKey loads NodeKey located in filePath.
@@ -1419,4 +1407,55 @@ func getDefaultMoniker() string {
 		moniker = "anonymous"
 	}
 	return moniker
+}
+
+// -----------------------------------------------------------------------------
+// StarknetConfig for network details
+type StarknetConfig struct {
+	Account          string `mapstructure:"account"`
+	AccountDir       string `mapstructure:"wallets-dir"`
+	FeederGatewayURL string `mapstructure:"feeder-gateway-url"`
+	GatewayURL       string `mapstructure:"gateway-url"`
+	Network          string `mapstructure:"network"`
+	Wallet           string `mapstructure:"wallet"`
+}
+
+// DefaultStarknetConfig returns a default configuration for starknet
+func DefaultStarknetConfig() *StarknetConfig {
+	return &StarknetConfig{
+		Account:          "devnet",
+		AccountDir:       ".starknet_accounts",
+		FeederGatewayURL: "http://127.0.0.1:5050/",
+		GatewayURL:       "http://127.0.0.1:5050/",
+		Network:          "alpha-goerli",
+		Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
+	}
+}
+
+// TestStarknetConfig returns a default configuration for starknet
+func TestStarknetConfig() *StarknetConfig {
+	return DefaultStarknetConfig()
+}
+
+// ValidateBasic performs basic validation.
+func (cfg *StarknetConfig) ValidateBasic() error {
+	if cfg.Account == "" {
+		return errors.New("account cannot be empty")
+	}
+	if cfg.AccountDir == "" {
+		return errors.New("account dir cannot be empty")
+	}
+	if cfg.Network == "" {
+		return errors.New("network cannot be empty")
+	}
+	if cfg.Wallet == "" {
+		return errors.New("wallet cannot be empty")
+	}
+
+	return nil
+}
+
+// StateFile returns the full path to the priv_validator_state.json file
+func (cfg *Config) GetAccountDir() string {
+	return cfg.Starknet.AccountDir
 }

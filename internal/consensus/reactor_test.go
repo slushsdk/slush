@@ -375,11 +375,10 @@ func TestReactorWithEvidence(t *testing.T) {
 		blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
 
 		settlementChan := make(chan InvokeData, 100)
-		verifierDetails := DevnetVerifierDetails()
-		settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+		settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 		settlementReactor.OnStart()
 
-		cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool2, verifierDetails, settlementChan)
+		cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool2, settlementChan)
 		cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 		cs.SetPrivValidator(pv)
 
