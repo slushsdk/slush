@@ -1,14 +1,18 @@
 package utils
 
-func Split(buf []byte, lim int) [][]byte {
-	var chunk []byte
-	chunks := make([][]byte, 0, len(buf)/lim+1)
-	for len(buf) >= lim {
-		chunk, buf = buf[:lim], buf[lim:]
-		chunks = append(chunks, chunk)
+func Split(slice []byte, chunkSize int) [][]byte {
+	var chunks [][]byte
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
 	}
-	if len(buf) > 0 {
-		chunks = append(chunks, buf[:len(buf)])
-	}
+
 	return chunks
 }
