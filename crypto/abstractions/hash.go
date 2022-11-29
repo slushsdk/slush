@@ -1,25 +1,17 @@
-package crypto
+package abstractions
 
-type iHash struct {
-	Size int64
+import (
+	sha256 "crypto/sha256"
+	"hash"
+)
+
+const Size = sha256.Size
+
+func New() hash.Hash {
+	return sha256.New()
 }
 
-func (hash iHash) New() iHash {
-	return iHash{0}
-}
-
-func (hash iHash) Write(b []byte) iHash {
-	return iHash{0}
-}
-
-func (hash iHash) Sum() {
-	//return iHash{0}
-}
-
-func (hash iHash) Sum256(b []byte) {
-	//return iHash{0}
-}
-
-func (hahs iHash) Reset() iHash {
-	return iHash{0}
+func Sum256(b []byte) [32]byte {
+	r := sha256.Sum256(b)
+	return r
 }
