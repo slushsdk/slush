@@ -87,7 +87,7 @@ func HashCanonicalVote(canVote tmproto.CanonicalVote) []byte {
 	roundByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Round))
 
-	blockIDHash := canVote.BlockID.Hasher()
+	blockIDHash := BlockIDHasher(*canVote.GetBlockID())
 
 	timestampHash := HashTime(canVote.Timestamp)
 
