@@ -799,7 +799,7 @@ func DefaultP2PConfig() *P2PConfig {
 		PexReactor:              true,
 		AllowDuplicateIP:        false,
 		HandshakeTimeout:        20 * time.Second,
-		DialTimeout:             3 * time.Second,
+		DialTimeout:             3 * 3 * time.Second,
 		TestDialFail:            false,
 		QueueType:               "priority",
 		UseLegacy:               false,
@@ -1165,9 +1165,9 @@ func DefaultConsensusConfig() *ConsensusConfig {
 		TimeoutCommit:               1000 * time.Millisecond,
 		SkipTimeoutCommit:           false,
 		CreateEmptyBlocks:           true,
-		CreateEmptyBlocksInterval:   0 * time.Second,
-		PeerGossipSleepDuration:     100 * time.Millisecond,
-		PeerQueryMaj23SleepDuration: 2000 * time.Millisecond,
+		CreateEmptyBlocksInterval:   (1 + 0) * time.Second,
+		PeerGossipSleepDuration:     10 * 100 * time.Millisecond,
+		PeerQueryMaj23SleepDuration: 10 * 2000 * time.Millisecond,
 		DoubleSignCheckHeight:       int64(0),
 	}
 }
@@ -1175,16 +1175,16 @@ func DefaultConsensusConfig() *ConsensusConfig {
 // TestConsensusConfig returns a configuration for testing the consensus service
 func TestConsensusConfig() *ConsensusConfig {
 	cfg := DefaultConsensusConfig()
-	cfg.TimeoutPropose = 40 * time.Millisecond
+	cfg.TimeoutPropose = 40 * time.Millisecond //Maybe add a 10* from here to ...
 	cfg.TimeoutProposeDelta = 1 * time.Millisecond
 	cfg.TimeoutPrevote = 10 * time.Millisecond
 	cfg.TimeoutPrevoteDelta = 1 * time.Millisecond
 	cfg.TimeoutPrecommit = 10 * time.Millisecond
 	cfg.TimeoutPrecommitDelta = 1 * time.Millisecond
-	cfg.TimeoutCommit = 10 * time.Millisecond
+	cfg.TimeoutCommit = 10 * time.Millisecond /// .. to here? Todo: Slush
 	cfg.SkipTimeoutCommit = true
-	cfg.PeerGossipSleepDuration = 5 * time.Millisecond
-	cfg.PeerQueryMaj23SleepDuration = 250 * time.Millisecond
+	cfg.PeerGossipSleepDuration = 10 * 5 * time.Millisecond
+	cfg.PeerQueryMaj23SleepDuration = 10 * 250 * time.Millisecond
 	cfg.DoubleSignCheckHeight = int64(0)
 	return cfg
 }
@@ -1273,12 +1273,14 @@ func (cfg *ConsensusConfig) ValidateBasic() error {
 	return nil
 }
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // TxIndexConfig
 // Remember that Event has the following structure:
 // type: [
-//  key: value,
-//  ...
+//
+//	key: value,
+//	...
+//
 // ]
 //
 // CompositeKeys are constructed by `type.key`
