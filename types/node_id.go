@@ -15,7 +15,7 @@ import (
 const NodeIDByteLength = crypto.AddressSize
 
 // reNodeID is a regexp for valid node IDs.
-var reNodeID = regexp.MustCompile(`^[0-9a-f]{40}$`)
+var reNodeID = regexp.MustCompile(`^[0-9a-fA-F]{` + fmt.Sprint(2*NodeIDByteLength) + `}$`)
 
 // NodeID is a hex-encoded crypto.Address. It must be lowercased
 // (for uniqueness) and of length 2*NodeIDByteLength.

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/types"
 )
@@ -22,7 +22,7 @@ var (
 		MaxSendBytes:        1000,
 	}
 
-	selfKey  crypto.PrivKey = ed25519.GenPrivKeyFromSecret([]byte{0xf9, 0x1b, 0x08, 0xaa, 0x38, 0xee, 0x34, 0xdd})
+	selfKey  crypto.PrivKey = stark.GenPrivKeyFromSecret([]byte{0xf9, 0x1b, 0x08, 0xaa, 0x38, 0xee, 0x34, 0xdd})
 	selfID                  = types.NodeIDFromPubKey(selfKey.PubKey())
 	selfInfo                = types.NodeInfo{
 		NodeID:     selfID,
@@ -32,7 +32,7 @@ var (
 		Channels:   []byte{0x01, 0x02},
 	}
 
-	peerKey  crypto.PrivKey = ed25519.GenPrivKeyFromSecret([]byte{0x84, 0xd7, 0x01, 0xbf, 0x83, 0x20, 0x1c, 0xfe})
+	peerKey  crypto.PrivKey = stark.GenPrivKeyFromSecret([]byte{0x84, 0xd7, 0x01, 0xbf, 0x83, 0x20, 0x1c, 0xfe})
 	peerID                  = types.NodeIDFromPubKey(peerKey.PubKey())
 	peerInfo                = types.NodeInfo{
 		NodeID:     peerID,

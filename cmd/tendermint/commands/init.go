@@ -30,8 +30,8 @@ var (
 )
 
 func init() {
-	InitFilesCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeEd25519,
-		"Key type to generate privval file with. Options: ed25519, secp256k1")
+	InitFilesCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
+		"Key type to generate privval file with. Options: stark, ed25519, secp256k1")
 }
 
 func initFiles(cmd *cobra.Command, args []string) error {
