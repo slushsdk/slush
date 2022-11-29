@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/internal/p2p/p2ptest"
 	"github.com/tendermint/tendermint/internal/p2p/pex"
@@ -818,5 +818,5 @@ func newNodeID(t *testing.T, id string) types.NodeID {
 }
 
 func randomNodeID(t *testing.T) types.NodeID {
-	return types.NodeIDFromPubKey(ed25519.GenPrivKey().PubKey())
+	return types.NodeIDFromPubKey(stark.GenPrivKey().PubKey())
 }
