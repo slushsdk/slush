@@ -9,7 +9,7 @@ import (
 // HashFromByteSlices computes a Merkle tree where the leaves are the byte slice,
 // in the provided order. It follows RFC-6962.
 func HashFromByteSlices(items [][]byte) []byte {
-	return hashFromByteSlices(sha256.New(), items)
+	return hashFromByteSlices(iHash.New(), items)
 }
 
 func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
