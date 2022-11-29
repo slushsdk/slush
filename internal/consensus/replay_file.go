@@ -146,9 +146,8 @@ func (pb *playback) replayReset(ctx context.Context, count int, newStepSub event
 	pb.cs.Wait()
 
 	settlementChan := make(chan InvokeData, 100)
-	verifierDetails := DevnetVerifierDetails()
 	logger, _ := log.NewDefaultLogger("plain", "info")
-	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	newCS, err := NewState(pb.cs.logger, pb.cs.config, pb.stateStore, pb.cs.blockExec,
@@ -357,8 +356,7 @@ func newConsensusStateForReplay(
 	blockExec := sm.NewBlockExecutor(stateStore, logger, proxyApp, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 
 	settlementChan := make(chan InvokeData, 100)
-	verifierDetails := DevnetVerifierDetails()
-	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	consensusState, err := NewState(logger, csConfig, stateStore, blockExec,
@@ -369,17 +367,8 @@ func newConsensusStateForReplay(
 	return consensusState, &settlementReactor, nil
 }
 
-func DevnetVerifierDetails() types.VerifierDetails {
-	vd, err := types.LoadVerifierDetails("../../valdata/data/verifier_details.json")
-	if err != nil {
-		panic(err)
-	}
-	return vd
-}
-
 type DummySettlementReactor struct {
 	logger       log.Logger
-	vd           types.VerifierDetails
 	SettlementCh <-chan InvokeData
 	stopChan     chan bool
 }

@@ -96,11 +96,6 @@ func newDefaultNode(
 		)
 	}
 
-	verifierDetails, err := cfg.LoadVerifierDetails()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
-	}
-
 	pval, err := makeDefaultPrivval(cfg)
 	if err != nil {
 		return nil, err
@@ -115,7 +110,6 @@ func newDefaultNode(
 		cfg,
 		pval,
 		nodeKey,
-		verifierDetails,
 		appClient,
 		defaultGenesisDocProviderFunc(cfg),
 		config.DefaultDBProvider,
@@ -129,7 +123,6 @@ func makeNode(
 	cfg *config.Config,
 	filePrivval *privval.FilePV,
 	nodeKey types.NodeKey,
-	verifierDetails types.VerifierDetails,
 	client abciclient.Client,
 	genesisDocProvider genesisDocProvider,
 	dbProvider config.DBProvider,
@@ -273,7 +266,7 @@ func makeNode(
 	node.evPool = evPool
 
 	settlementCh := CreateSettlementChan()
-	settlementReactor, _ := CreateSettlementReactor(logger, verifierDetails, settlementCh)
+	settlementReactor, _ := CreateSettlementReactor(logger, cfg, settlementCh)
 	node.services = append(node.services, settlementReactor)
 
 	mpReactor, mp := createMempoolReactor(logger, cfg, proxyApp, stateStore, nodeMetrics.mempool,
