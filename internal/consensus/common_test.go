@@ -446,12 +446,11 @@ func newStateWithConfigAndBlockStore(
 	}
 
 	settlementChan := make(chan InvokeData, 100)
-	verifierDetails := DevnetVerifierDetails()
-	settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
-	cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool, verifierDetails, settlementChan)
+	cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool, settlementChan)
 	cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 	cs.SetPrivValidator(pv)
 

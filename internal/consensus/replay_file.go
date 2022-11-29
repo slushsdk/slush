@@ -133,13 +133,12 @@ func (pb *playback) replayReset(count int, newStepSub types.Subscription) error 
 	pb.cs.Wait()
 
 	settlementChan := make(chan InvokeData, 100)
-	verifierDetails := DevnetVerifierDetails()
 	logger, _ := log.NewDefaultLogger("plain", "info", false)
-	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	newCS := NewState(pb.cs.config, pb.genesisState.Copy(), pb.cs.blockExec,
-		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, verifierDetails, settlementChan)
+		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, settlementChan)
 	newCS.SetEventBus(pb.cs.eventBus)
 	newCS.startForReplay()
 
@@ -341,29 +340,19 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool, blockStore)
 
 	settlementChan := make(chan InvokeData, 100)
-	verifierDetails := DevnetVerifierDetails()
 
 	consensusState := NewState(csConfig, state.Copy(), blockExec,
-		blockStore, mempool, evpool, verifierDetails, settlementChan)
+		blockStore, mempool, evpool, settlementChan)
 
-	settlementReactor := DummySettlementReactor{logger: consensusState.Logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: consensusState.Logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	consensusState.SetEventBus(eventBus)
 	return consensusState, settlementReactor
 }
 
-func DevnetVerifierDetails() types.VerifierDetails {
-	vd, err := types.LoadVerifierDetails("../../valdata/data/verifier_details.json")
-	if err != nil {
-		panic(err)
-	}
-	return vd
-}
-
 type DummySettlementReactor struct {
 	logger       log.Logger
-	vd           types.VerifierDetails
 	SettlementCh <-chan InvokeData
 	stopChan     chan bool
 }

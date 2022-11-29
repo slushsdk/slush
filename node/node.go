@@ -102,11 +102,6 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 		)
 	}
 
-	verifierDetails, err := cfg.LoadVerifierDetails()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load or gen verifier details: %w", err)
-	}
-
 	var pval *privval.FilePV
 	if cfg.Mode == config.ModeValidator {
 		pval, err = privval.LoadOrGenFilePV(cfg.PrivValidator.KeyFile(), cfg.PrivValidator.StateFile())
@@ -123,7 +118,6 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 		cfg,
 		pval,
 		nodeKey,
-		verifierDetails,
 		appClient,
 		defaultGenesisDocProviderFunc(cfg),
 		config.DefaultDBProvider,
@@ -135,7 +129,6 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 func makeNode(cfg *config.Config,
 	privValidator types.PrivValidator,
 	nodeKey types.NodeKey,
-	verifierDetails types.VerifierDetails,
 	clientCreator abciclient.Creator,
 	genesisDocProvider genesisDocProvider,
 	dbProvider config.DBProvider,
@@ -320,7 +313,7 @@ func makeNode(cfg *config.Config,
 	)
 
 	settlementCh := CreateSettlementChan()
-	settlementReactor, err := CreateSettlementReactor(logger, verifierDetails, settlementCh)
+	settlementReactor, err := CreateSettlementReactor(logger, cfg, settlementCh)
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 
@@ -329,7 +322,7 @@ func makeNode(cfg *config.Config,
 
 	csReactorShim, csReactor, csState := createConsensusReactor(
 		cfg, state, blockExec, blockStore, mp, evPool,
-		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus, settlementCh, verifierDetails,
+		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus, settlementCh,
 		peerManager, router, consensusLogger,
 	)
 

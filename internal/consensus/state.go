@@ -165,7 +165,6 @@ func NewState(
 	blockStore sm.BlockStore,
 	txNotifier txNotifier,
 	evpool evidencePool,
-	verifierDetails types.VerifierDetails,
 	settlementCh chan InvokeData,
 	options ...StateOption,
 ) *State {

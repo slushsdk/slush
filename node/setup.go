@@ -395,7 +395,6 @@ func createConsensusReactor(
 	waitSync bool,
 	eventBus *types.EventBus,
 	settlementChan chan consensus.InvokeData,
-	verifierDetails types.VerifierDetails,
 	peerManager *p2p.PeerManager,
 	router *p2p.Router,
 	logger log.Logger,
@@ -408,7 +407,6 @@ func createConsensusReactor(
 		blockStore,
 		mp,
 		evidencePool,
-		verifierDetails,
 		settlementChan,
 		consensus.StateMetrics(csMetrics),
 	)
@@ -478,13 +476,13 @@ func CreateSettlementChan() chan consensus.InvokeData {
 
 func CreateSettlementReactor(
 	logger log.Logger,
-	vd types.VerifierDetails,
+	cfg *config.Config,
 	SettlementCh <-chan consensus.InvokeData,
 ) (*settlement.Reactor, error) {
 
 	logger = logger.With("module", "settlement")
 
-	evidenceReactor := settlement.NewReactor(logger, vd, SettlementCh)
+	evidenceReactor := settlement.NewReactor(logger, cfg, SettlementCh)
 
 	return evidenceReactor, nil
 }

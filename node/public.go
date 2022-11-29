@@ -50,12 +50,10 @@ func New(conf *config.Config,
 		if err != nil {
 			return nil, err
 		}
-		vd := types.VerifierDetails{}
 		return makeNode(
 			conf,
 			pval,
 			nodeKey,
-			vd,
 			cf,
 			genProvider,
 			config.DefaultDBProvider,
