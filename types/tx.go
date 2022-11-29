@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 
@@ -18,7 +17,7 @@ import (
 type Tx []byte
 
 // Key produces a fixed-length key for use in indexing.
-func (tx Tx) Key() TxKey { return sha256.Sum256(tx) }
+func (tx Tx) Key() TxKey { return iHash.Sum256(tx) }
 
 // Hash computes the TMHASH hash of the wire encoded transaction.
 func (tx Tx) Hash() []byte { return tmhash.Sum(tx) }

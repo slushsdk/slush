@@ -2,7 +2,6 @@
 package app
 
 import (
-	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -179,7 +178,7 @@ func hashItems(items map[string]string, height uint64) []byte {
 	}
 	sort.Strings(keys)
 
-	hasher := sha256.New()
+	hasher := iHash.New()
 	var b [8]byte
 	binary.BigEndian.PutUint64(b[:], height)
 	_, _ = hasher.Write(b[:])
