@@ -8,7 +8,7 @@ import (
 	rand "crypto/rand"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/abstractions"
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/internal/jsontypes"
@@ -56,9 +56,13 @@ func (pv PrivKey) PubKey() crypto.PubKey {
 }
 
 func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
+	hasher := ihash.New()
+	hasher.Write(msg)
+	hash := hasher.Sum(nil)
+
 	pv := privKey.MakeFull()
 
-	r, s, err := SignECDSA(&pv, msg, abstractions.New)
+	r, s, err := SignECDSA(&pv, hash, ihash.New)
 	if err != nil {
 		panic(err)
 	}
@@ -153,13 +157,16 @@ func (p PubKey) MakeFull() PublicKey {
 }
 
 func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
+	hasher := ihash.New()
+	hasher.Write(msg)
+	hash := hasher.Sum(nil)
 
 	r, s, err := deserializeSig(sig)
 	if err != nil {
 		return false
 	}
 	pb := p.MakeFull()
-	return Verify(&pb, msg, r, s)
+	return Verify(&pb, hash, r, s)
 }
 
 func (p PubKey) Equals(pb crypto.PubKey) bool {
