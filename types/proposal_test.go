@@ -146,7 +146,7 @@ func TestProposalValidateBasic(t *testing.T) {
 			p.Signature = make([]byte, MaxSignatureSize+1)
 		}, true},
 	}
-	blockID := makeBlockID(tmhash.Sum([]byte("blockhash")), math.MaxInt32, tmhash.Sum([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
 
 	for _, tc := range testCases {
 		tc := tc

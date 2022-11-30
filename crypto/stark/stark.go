@@ -8,7 +8,6 @@ import (
 	rand "crypto/rand"
 
 	"github.com/tendermint/tendermint/crypto"
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/internal/jsontypes"
@@ -61,7 +60,7 @@ func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
 
 	pv := privKey.MakeFull()
 
-	r, s, err := SignECDSA(&pv, hash, ihash.New)
+	r, s, err := SignECDSA(&pv, hash, crypto.New)
 	if err != nil {
 		panic(err)
 	}

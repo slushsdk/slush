@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/sr25519"
@@ -186,8 +187,6 @@ func (params ConsensusParams) ValidateConsensusParams() error {
 // This allows the ConsensusParams to evolve more without breaking the block
 // protocol. No need for a Merkle tree here, just a small struct to hash.
 func (params ConsensusParams) HashConsensusParams() []byte {
-	hasher := tmhash.New()
-
 	hp := tmproto.HashedParams{
 		BlockMaxBytes: params.Block.MaxBytes,
 		BlockMaxGas:   params.Block.MaxGas,
@@ -198,11 +197,9 @@ func (params ConsensusParams) HashConsensusParams() []byte {
 		panic(err)
 	}
 
-	_, err = hasher.Write(bz)
-	if err != nil {
-		panic(err)
-	}
-	return hasher.Sum(nil)
+	sum := crypto.Sum256(bz)
+
+	return sum[:]
 }
 
 func (params *ConsensusParams) Equals(params2 *ConsensusParams) bool {

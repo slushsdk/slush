@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // ErrTxInCache is returned to the client if we saw tx earlier
 var ErrTxInCache = errors.New("tx already exists in cache")
 
 // TxKey is the fixed length array key used as an index.
-type TxKey [ihash.Size]byte
+type TxKey [crypto.HashSize]byte
 
 // ErrTxTooLarge defines an error when a transaction is too big to be sent in a
 // message to other peers.

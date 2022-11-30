@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -17,7 +19,7 @@ import (
 type Tx []byte
 
 // Key produces a fixed-length key for use in indexing.
-func (tx Tx) Key() TxKey { return ihash.Sum256(tx) }
+func (tx Tx) Key() TxKey { return crypto.Sum256(tx) }
 
 // Hash computes the TMHASH hash of the wire encoded transaction.
 func (tx Tx) Hash() []byte { return tmhash.Sum(tx) }
