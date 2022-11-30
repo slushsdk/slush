@@ -7,6 +7,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/abstractions"
 )
 
 // TODO: make these have a large predefined capacity
@@ -23,24 +24,27 @@ func emptyHash() []byte {
 
 // returns tmhash(felt(0x00) || leaf)
 func leafHash(leaf []byte) []byte {
-	return tmhash.Sum(append(leafPrefix, leaf...))
+	return crypto.Checksum(append(leafPrefix, abstractions.ByteRounder(leaf)...))
 }
 
 // returns tmhash(felt(0x00) || leaf)
 func leafHashOpt(s hash.Hash, leaf []byte) []byte {
 	s.Reset()
 	s.Write(leafPrefix)
-	s.Write(leaf)
+	s.Write(abstractions.ByteRounder(leaf))
 	return s.Sum(nil)
 }
 
 // returns tmhash(0x01 || left || right)
 func innerHash(left []byte, right []byte) []byte {
-	data := make([]byte, len(innerPrefix)+len(left)+len(right))
+	roundedLeft := abstractions.ByteRounder(left)
+	roundedRight := abstractions.ByteRounder(right)
+
+	data := make([]byte, len(innerPrefix)+len(roundedLeft)+len(roundedRight))
 	n := copy(data, innerPrefix)
-	n += copy(data[n:], left)
-	copy(data[n:], right)
-	return tmhash.Sum(data)
+	n += copy(data[n:], roundedLeft)
+	copy(data[n:], roundedRight)
+	return crypto.Checksum(data)[:]
 }
 
 func innerHashOpt(s hash.Hash, left []byte, right []byte) []byte {
