@@ -92,13 +92,11 @@ func (vote *Vote) CommitSig() CommitSig {
 // See CanonicalizeVote
 func VoteSignBytes(chainID string, vote *tmproto.Vote) []byte {
 	pb := CanonicalizeVote(chainID, vote)
-	// bz, err := protoio.MarshalDelimited(&pb)
-	// if err != nil {
-	// 	panic(err)
-	// }
+
 	bz := HashCanonicalVoteNoTime(pb)
-	timeb := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeb, uint64(vote.GetTimestamp().UnixNano()))
+	//note here we use 32 so we will be able to hash votesignbytes as a felt_array in Cairo
+	timeb := make([]byte, 32)
+	binary.BigEndian.PutUint64(timeb[24:32], uint64(vote.GetTimestamp().UnixNano()))
 	return append(timeb, bz...)
 
 }
