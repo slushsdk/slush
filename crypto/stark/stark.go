@@ -2,6 +2,7 @@ package stark
 
 import (
 	real_bytes "bytes"
+	"fmt"
 	"math/big"
 
 	rand "crypto/rand"
@@ -9,6 +10,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
+	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
 )
 
@@ -20,6 +22,11 @@ const (
 	PrivKeySize = 32
 	PubKeySize  = 32
 )
+
+func init() {
+	jsontypes.MustRegister(PubKey{})
+	jsontypes.MustRegister(PrivKey{})
+}
 
 var curve = weierstrass.Stark()
 
@@ -67,7 +74,8 @@ func (PrivKey) TypeTag() string { return PrivKeyName }
 func (PrivKey) Type() string { return KeyType }
 
 func (pv PrivKey) Bytes() []byte {
-	return pv.pv.X.Bytes()
+
+	return pv.pv.D.Bytes()
 }
 
 func (pv PrivKey) PubKey() crypto.PubKey {
@@ -88,7 +96,7 @@ func (privKey PrivKey) Equals(p crypto.PrivKey) bool {
 		return false
 	}
 
-	return real_bytes.Equal(privKey.pv.X.Bytes(), p.Bytes())
+	return real_bytes.Equal(privKey.Bytes(), p.Bytes())
 }
 
 type PubKey struct{ pb *PublicKey }
@@ -103,30 +111,91 @@ func pubKeyFromPrivate(pv *PrivKey) PubKey {
 	}
 }
 
+//We modify MarshalCompressed so that we fit into 32 bytes, we can do this with 252 bits.
 func (p PubKey) MarshalCompressed() []byte {
-	return weierstrass.MarshalCompressed(p.pb.Curve, p.pb.X, p.pb.Y)
+	if p.IsNil() {
+		panic("can't marshall nil key")
+	}
+	curve := p.pb.Curve
+	x := *p.pb.X
+	y := p.pb.Y
+
+	byteLen := (curve.Params().BitSize + 7) / 8
+	compressed := make([]byte, byteLen)
+	x.FillBytes(compressed)
+	if compressed[0]&byte(128) == 128 {
+		fmt.Sprintln("marshalling failed, 0th bit not empty.")
+		panic("marshalling failed, 0th bit not empty.")
+
+	} else {
+		compressed[0] = byte(compressed[0] | byte(y.Bit(0)*128))
+	}
+	return compressed
 }
 
 func UnmarshalCompressed(curve weierstrass.Curve, data []byte) PubKey {
-	x, y := weierstrass.UnmarshalCompressed(curve, data)
+
+	x := new(big.Int)
+	y := new(big.Int)
+
+	byteLen := (curve.Params().BitSize + 7) / 8
+	if len(data) != byteLen {
+		// notest
+		panic("marshalling failed, wrong byte len")
+
+	}
+	ybit := data[0] & 128
+	data[0] = data[0] & 127
+	p := curve.Params().P
+	x = new(big.Int).SetBytes(data[:])
+	if x.Cmp(p) >= 0 {
+		// notest
+		panic("unmarshalling failed, x is greater than p")
+
+	}
+	if x.Cmp(big.NewInt(0)) == 0 {
+		panic("x is 0")
+	}
+	// y² = x³ - 3x + b (mod p).
+	y = curve.Params().Short(x)
+	y = y.ModSqrt(y, p)
+	if y == nil {
+		// notest
+		panic("unmarshalling failed, y does not exist")
+
+	}
+	fmt.Print(data[0], data[0]&byte(128))
+	if byte(y.Bit(0)) != ybit {
+		// notest
+		y.Neg(y).Mod(y, p)
+	}
+	if !curve.IsOnCurve(x, y) {
+		// notest
+		panic("marshalling failed, x, y not on curve")
+
+	}
+
 	pb := PublicKey{weierstrass.Stark(), x, y}
 
-	p := PubKey{&pb}
-	return p
+	rp := PubKey{&pb}
+	return rp
 }
 
 func (p PubKey) Address() Address {
-	b := p.pb.X.Bytes()
-	bs := make([]byte, 32-len(b))
-	br := append(bs, b...)
+	br := p.MarshalCompressed()
 	return br
+}
+
+func (p PubKey) IsNil() bool {
+	if p.pb == nil {
+		return true
+	}
+	return false
 }
 
 func (p PubKey) Bytes() []byte {
 
-	b := p.pb.X.Bytes()
-	bs := make([]byte, 32-len(b))
-	br := append(bs, b...)
+	br := p.MarshalCompressed()
 	return br
 }
 
@@ -142,7 +211,7 @@ func (p PubKey) Equals(pb crypto.PubKey) bool {
 	}
 
 	if otherEd, ok := pb.(PubKey); ok {
-		return real_bytes.Equal(p.pb.X.Bytes(), otherEd.Bytes())
+		return real_bytes.Equal(p.Bytes(), otherEd.Bytes())
 	}
 	return false
 

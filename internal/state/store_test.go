@@ -9,8 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
+
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/test/factory"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -199,7 +200,7 @@ func TestPruneStates(t *testing.T) {
 
 			// Generate a bunch of state data. Validators change for heights ending with 3, and
 			// parameters when ending with 5.
-			validator := &types.Validator{Address: tmrand.Bytes(crypto.AddressSize), VotingPower: 100, PubKey: pk}
+			validator := &types.Validator{Address: stark.GenPrivKey().PubKey().Bytes(), VotingPower: 100, PubKey: pk}
 			validatorSet := &types.ValidatorSet{
 				Validators: []*types.Validator{validator},
 				Proposer:   validator,
