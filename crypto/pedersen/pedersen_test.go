@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/pedersen/pedersenFelt"
+	"github.com/tendermint/tendermint/crypto/pedersen/pedersenInt128"
 )
 
 // the purpose of this test is primarily to ensure that the randomness
@@ -31,7 +33,7 @@ func TestDigest(t *testing.T) {
 }
 
 func TestPedersenHash(t *testing.T) {
-	hasher := pedersen.New()
+	hasher := pedersenInt128.New()
 	data := []byte("ABC€")
 
 	hasher.Write(data)
@@ -39,7 +41,7 @@ func TestPedersenHash(t *testing.T) {
 	var resultFixedLen [32]byte
 	copy(resultFixedLen[:], result)
 
-	require.Equal(t, resultFixedLen, pedersen.Sum256(data))
+	require.Equal(t, resultFixedLen, pedersenInt128.Sum256(data))
 
 	resultInt := new(big.Int).SetBytes(result)
 	expected, _ := new(big.Int).SetString("2760604002641969939589959074508015067181730793437535659828168196846743269396", 10)
@@ -48,7 +50,7 @@ func TestPedersenHash(t *testing.T) {
 
 //Also run in Cairo.
 func TestPedersenIntArray(t *testing.T) {
-	hasher := pedersen.New()
+	hasher := pedersenInt128.New()
 
 	hasher.Write(pedersen.ByteRounder([]byte{101}))
 	hasher.Write(pedersen.ByteRounder([]byte{102}))
@@ -62,7 +64,7 @@ func TestPedersenIntArray(t *testing.T) {
 }
 
 func TestPedersenIntArray2(t *testing.T) {
-	hasher := pedersen.New()
+	hasher := pedersenInt128.New()
 
 	hasher.Write(pedersen.ByteRounder(big.NewInt(116).Bytes()))
 	hasher.Write(pedersen.ByteRounder(big.NewInt(7310314358442582377).Bytes()))
@@ -72,7 +74,7 @@ func TestPedersenIntArray2(t *testing.T) {
 
 	resultInt := new(big.Int).SetBytes(result)
 
-	hasher2 := pedersen.New()
+	hasher2 := pedersenInt128.New()
 	hasher2.Write(append(make([]byte, 7), []byte("test-chain-IrF74Y")...))
 	fmt.Println([]byte("test-chain-IrF74Y"))
 	expected := big.NewInt(0).SetBytes(hasher2.Sum(nil))
@@ -84,7 +86,7 @@ func TestPedersenIntArray2(t *testing.T) {
 
 //Also run in Cairo.
 func TestPedersenHashFeltArray(t *testing.T) {
-	hasher := pedersen.New()
+	hasher := pedersenFelt.New()
 
 	//we write the zeros for padding to simulate hashing a felt
 
@@ -101,25 +103,25 @@ func TestPedersenHashFeltArray(t *testing.T) {
 
 func TestDoublePedersenHash(t *testing.T) {
 
-	hasher := pedersen.New()
+	hasher := pedersenInt128.New()
 
 	data := []byte("ABC€")
 
 	hasher.Write(data)
 	result := hasher.Sum(nil)
 
-	secondHasher := pedersen.New()
+	secondHasher := pedersenInt128.New()
 	secondHasher.Write(result)
 	secondResult := secondHasher.Sum(nil)
 
 	var secondResultFixedLen [32]byte
 	copy(secondResultFixedLen[:], secondResult)
 
-	intermediateRes1 := pedersen.Sum256(data)
+	intermediateRes1 := pedersenInt128.Sum256(data)
 
 	var intermediateRes2 []byte
 	intermediateRes2 = intermediateRes1[:]
-	finalRes := pedersen.Sum256(intermediateRes2)
+	finalRes := pedersenInt128.Sum256(intermediateRes2)
 
 	require.Equal(t, secondResultFixedLen, finalRes)
 
