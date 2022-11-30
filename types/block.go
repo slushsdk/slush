@@ -11,7 +11,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/crypto"
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmsync "github.com/tendermint/tendermint/internal/libs/sync"
@@ -462,29 +462,25 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	}
 
 	chainIDB := []byte(h.ChainID)
-	hasherForChainID := ihash.New()
-	hasherForChainID.Write(chainIDB)
 
 	heightB := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightB, uint64(h.Height))
-	hasherForHeight := ihash.New()
-	hasherForHeight.Write(heightB)
 
 	return merkle.HashFromByteSlices([][]byte{
-		ihash.ByteRounder(hbz),
-		hasherForChainID.Sum(nil),
-		hasherForHeight.Sum(nil),
-		ihash.ByteRounder(pbt),
-		ihash.ByteRounder(bzbi),
-		ihash.ByteRounder([]byte(h.LastCommitHash)),
-		ihash.ByteRounder(h.DataHash),
-		ihash.ByteRounder([]byte(h.ValidatorsHash)),
-		ihash.ByteRounder([]byte(h.NextValidatorsHash)),
-		ihash.ByteRounder([]byte(h.ConsensusHash)),
-		ihash.ByteRounder([]byte(h.AppHash)),
-		ihash.ByteRounder([]byte(h.LastResultsHash)),
-		ihash.ByteRounder([]byte(h.EvidenceHash)),
-		ihash.ByteRounder([]byte(h.ProposerAddress)),
+		abstractions.ByteRounder(hbz),
+		crypto.Checksum(chainIDB),
+		crypto.Checksum(heightB),
+		abstractions.ByteRounder(pbt),
+		abstractions.ByteRounder(bzbi),
+		abstractions.ByteRounder([]byte(h.LastCommitHash)),
+		abstractions.ByteRounder(h.DataHash),
+		abstractions.ByteRounder([]byte(h.ValidatorsHash)),
+		abstractions.ByteRounder([]byte(h.NextValidatorsHash)),
+		abstractions.ByteRounder([]byte(h.ConsensusHash)),
+		abstractions.ByteRounder([]byte(h.AppHash)),
+		abstractions.ByteRounder([]byte(h.LastResultsHash)),
+		abstractions.ByteRounder([]byte(h.EvidenceHash)),
+		abstractions.ByteRounder([]byte(h.ProposerAddress)),
 	})
 }
 

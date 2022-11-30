@@ -3,13 +3,17 @@ package merkle
 import (
 	"hash"
 
+	"github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // TODO: make these have a large predefined capacity
+// we need Byterounder so that when splitting up into felts, it splits cleanly along variable lines.
 var (
-	leafPrefix  = []byte{0}
-	innerPrefix = []byte{1}
+	leafPrefix  = abstractions.ByteRounder([]byte{0})
+	innerPrefix = abstractions.ByteRounder([]byte{1})
 )
 
 // returns tmhash(<empty>)
@@ -17,7 +21,7 @@ func emptyHash() []byte {
 	return tmhash.Sum([]byte{})
 }
 
-// returns tmhash(0x00 || leaf)
+// returns tmhash(ByteRounder(0x00) || leaf)
 func leafHash(leaf []byte) []byte {
 	return tmhash.Sum(append(leafPrefix, leaf...))
 }
