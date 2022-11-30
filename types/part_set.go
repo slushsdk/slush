@@ -170,6 +170,7 @@ func NewPartSetFromData(data []byte, partSize uint32) *PartSet {
 	partsBytes := make([][]byte, total)
 	partsBitArray := bits.NewBitArray(int(total))
 	for i := uint32(0); i < total; i++ {
+		fmt.Println("line 179", i)
 		part := &Part{
 			Index: i,
 			Bytes: data[i*partSize : tmmath.MinInt(len(data), int((i+1)*partSize))],
@@ -181,6 +182,8 @@ func NewPartSetFromData(data []byte, partSize uint32) *PartSet {
 	// Compute merkle proofs
 	root, proofs := merkle.ProofsFromByteSlices(partsBytes)
 	for i := uint32(0); i < total; i++ {
+		fmt.Println("line 191", i)
+
 		parts[i].Proof = *proofs[i]
 	}
 	return &PartSet{
