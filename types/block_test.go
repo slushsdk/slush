@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/stark"
+
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -652,17 +654,17 @@ func TestBlockProtoBuf(t *testing.T) {
 	h := mrand.Int63()
 	c1 := randCommit(time.Now())
 	b1 := MakeBlock(h, []Tx{Tx([]byte{1})}, &Commit{Signatures: []CommitSig{}}, []Evidence{})
-	b1.ProposerAddress = tmrand.Bytes(crypto.AddressSize)
+	b1.ProposerAddress = stark.GenPrivKey().PubKey().Bytes()
 
 	b2 := MakeBlock(h, []Tx{Tx([]byte{1})}, c1, []Evidence{})
-	b2.ProposerAddress = tmrand.Bytes(crypto.AddressSize)
+	b2.ProposerAddress = stark.GenPrivKey().PubKey().Bytes()
 	evidenceTime := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
 	evi := NewMockDuplicateVoteEvidence(h, evidenceTime, "block-test-chain")
 	b2.Evidence = EvidenceData{Evidence: EvidenceList{evi}}
 	b2.EvidenceHash = b2.Evidence.Hash()
 
 	b3 := MakeBlock(h, []Tx{}, c1, []Evidence{})
-	b3.ProposerAddress = tmrand.Bytes(crypto.AddressSize)
+	b3.ProposerAddress = stark.GenPrivKey().PubKey().Bytes()
 	testCases := []struct {
 		msg      string
 		b1       *Block
@@ -759,8 +761,8 @@ func MakeRandHeader() Header {
 	chainID := "test"
 	t := time.Now()
 	height := mrand.Int63()
-	randBytes := tmrand.Bytes(tmhash.Size)
-	randAddress := tmrand.Bytes(crypto.AddressSize)
+	randBytes := tmrand.Bytes(crypto.HashSize)
+	randAddress := stark.GenPrivKey().PubKey().Bytes()
 	h := Header{
 		Version:            version.Consensus{Block: version.BlockProtocol, App: 1},
 		ChainID:            chainID,

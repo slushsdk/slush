@@ -10,8 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/libs/log"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
+
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -158,8 +161,8 @@ func TestSignerProposal(t *testing.T) {
 func TestSignerVote(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
-		hash := tmrand.Bytes(tmhash.Size)
-		valAddr := tmrand.Bytes(crypto.AddressSize)
+		hash := tmrand.Bytes(crypto.HashSize)
+		valAddr := stark.GenPrivKey().PubKey().Bytes()
 		want := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
@@ -202,8 +205,8 @@ func TestSignerVote(t *testing.T) {
 func TestSignerVoteResetDeadline(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
-		hash := tmrand.Bytes(tmhash.Size)
-		valAddr := tmrand.Bytes(crypto.AddressSize)
+		hash := tmrand.Bytes(crypto.HashSize)
+		valAddr := stark.GenPrivKey().PubKey().Bytes()
 		want := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
@@ -256,8 +259,8 @@ func TestSignerVoteResetDeadline(t *testing.T) {
 func TestSignerVoteKeepAlive(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
-		hash := tmrand.Bytes(tmhash.Size)
-		valAddr := tmrand.Bytes(crypto.AddressSize)
+		hash := tmrand.Bytes(crypto.HashSize)
+		valAddr := stark.GenPrivKey().PubKey().Bytes()
 		want := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,
@@ -350,8 +353,8 @@ func TestSignerSignProposalErrors(t *testing.T) {
 func TestSignerSignVoteErrors(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
-		hash := tmrand.Bytes(tmhash.Size)
-		valAddr := tmrand.Bytes(crypto.AddressSize)
+		hash := tmrand.Bytes(crypto.HashSize)
+		valAddr := stark.GenPrivKey().PubKey().Bytes()
 		vote := &types.Vote{
 			Type:             tmproto.PrecommitType,
 			Height:           1,

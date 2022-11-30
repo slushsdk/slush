@@ -16,9 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -170,7 +169,7 @@ func BenchmarkValidatorSetCopy(b *testing.B) {
 	b.StopTimer()
 	vset := NewValidatorSet([]*Validator{})
 	for i := 0; i < 1000; i++ {
-		privKey := ed25519.GenPrivKey()
+		privKey := stark.GenPrivKey()
 		pubKey := privKey.PubKey()
 		val := NewValidator(pubKey, 10)
 		err := vset.UpdateWithChangeSet([]*Validator{val})
@@ -312,7 +311,7 @@ func TestProposerSelection3(t *testing.T) {
 	proposerOrder := make([]*Validator, 4)
 	for i := 0; i < 4; i++ {
 		// need to give all validators to have keys
-		pk := ed25519.GenPrivKey().PubKey()
+		pk := stark.GenPrivKey().PubKey()
 		vset.Validators[i].PubKey = pk
 		proposerOrder[i] = vset.GetProposer()
 		vset.IncrementProposerPriority(1)
@@ -369,9 +368,9 @@ func newValidator(address []byte, power int64) *Validator {
 }
 
 func randPubKey() crypto.PubKey {
-	pubKey := make(ed25519.PubKey, ed25519.PubKeySize)
-	copy(pubKey, tmrand.Bytes(32))
-	return ed25519.PubKey(tmrand.Bytes(32))
+	pubkey := stark.GenPrivKey().PubKey()
+
+	return pubkey
 }
 
 func randModuloValidator(totalVotingPower int64) *Validator {
@@ -1456,7 +1455,7 @@ func TestValidatorSetProtoBuf(t *testing.T) {
 	}
 }
 
-//---------------------
+// ---------------------
 // Sort validators by priority and address
 type validatorsByPriority []*Validator
 
@@ -1497,9 +1496,8 @@ func (tvals testValsByVotingPower) Swap(i, j int) {
 	tvals[i], tvals[j] = tvals[j], tvals[i]
 }
 
-//-------------------------------------
+// -------------------------------------
 // Benchmark tests
-//
 func BenchmarkUpdates(b *testing.B) {
 	const (
 		n = 100
@@ -1527,7 +1525,7 @@ func BenchmarkUpdates(b *testing.B) {
 	}
 }
 
-func BenchmarkValidatorSet_VerifyCommit_Ed25519(b *testing.B) {
+func BenchmarkValidatorSet_VerifyCommit_stark(b *testing.B) { // nolint
 	for _, n := range []int{1, 8, 64, 1024} {
 		n := n
 		var (
@@ -1551,7 +1549,8 @@ func BenchmarkValidatorSet_VerifyCommit_Ed25519(b *testing.B) {
 	}
 }
 
-func BenchmarkValidatorSet_VerifyCommitLight_Ed25519(b *testing.B) {
+func BenchmarkValidatorSet_VerifyCommitLight_stark(b *testing.B) { // nolint
+
 	for _, n := range []int{1, 8, 64, 1024} {
 		n := n
 		var (
@@ -1575,7 +1574,8 @@ func BenchmarkValidatorSet_VerifyCommitLight_Ed25519(b *testing.B) {
 	}
 }
 
-func BenchmarkValidatorSet_VerifyCommitLightTrusting_Ed25519(b *testing.B) {
+func BenchmarkValidatorSet_VerifyCommitLightTrusting_stark(b *testing.B) {
+
 	for _, n := range []int{1, 8, 64, 1024} {
 		n := n
 		var (
@@ -1612,8 +1612,8 @@ func deterministicValidatorSet() (*ValidatorSet, []PrivValidator) {
 	)
 
 	for i := 0; i < 10; i++ {
-		// val, privValidator := DeterministicValidator(ed25519.PrivKey([]byte(deterministicKeys[i])))
-		val, privValidator := deterministicValidator(ed25519.GenPrivKeyFromSecret([]byte(fmt.Sprintf("key: %x", i))))
+		// val, privValidator := DeterministicValidator(stark.PrivKey([]byte(deterministicKeys[i])))
+		val, privValidator := deterministicValidator(stark.GenPrivKeyFromSecret([]byte(fmt.Sprintf("key: %x", i))))
 		valz[i] = val
 		privValidators[i] = privValidator
 	}

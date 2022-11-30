@@ -350,7 +350,7 @@ func makeSecretConnPair(tb testing.TB) (fooSecConn, barSecConn *SecretConnection
 			remotePubBytes := fooSecConn.RemotePubKey()
 			if !remotePubBytes.Equals(barPubKey) {
 				err = fmt.Errorf("unexpected fooSecConn.RemotePubKey.  Expected %v, got %v",
-					barPubKey, fooSecConn.RemotePubKey())
+					barPubKey, remotePubBytes)
 				tb.Error(err)
 				return nil, true, err
 			}

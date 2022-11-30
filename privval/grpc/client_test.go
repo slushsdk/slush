@@ -13,8 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
+
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
@@ -90,8 +92,8 @@ func TestSignerClient_SignVote(t *testing.T) {
 	require.NoError(t, err)
 
 	ts := time.Now()
-	hash := tmrand.Bytes(tmhash.Size)
-	valAddr := tmrand.Bytes(crypto.AddressSize)
+	hash := tmrand.Bytes(crypto.HashSize)
+	valAddr := stark.GenPrivKey().PubKey().Bytes()
 
 	want := &types.Vote{
 		Type:             tmproto.PrecommitType,
