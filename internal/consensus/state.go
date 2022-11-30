@@ -947,7 +947,6 @@ func (cs *State) handleMsg(mi msgInfo) {
 			"err", err,
 		)
 	}
-	// fmt.Println("line 1098 handleMsg over  ")
 
 }
 
@@ -1048,7 +1047,6 @@ func (cs *State) enterNewRound(height int64, round int32) {
 			"step", cs.Step)
 		return
 	}
-	// fmt.Println("line 1204 ")
 
 	if now := tmtime.Now(); cs.StartTime.After(now) {
 		logger.Debug("need to set a buffer and log message here for sanity", "start_time", cs.StartTime, "now", now)
@@ -1061,7 +1059,6 @@ func (cs *State) enterNewRound(height int64, round int32) {
 
 	// increment validators if necessary
 	validators := cs.Validators
-	// fmt.Println("line 1216 ")
 
 	if cs.Round < round {
 		validators = validators.Copy()
@@ -1087,12 +1084,9 @@ func (cs *State) enterNewRound(height int64, round int32) {
 	cs.Votes.SetRound(tmmath.SafeAddInt32(round, 1)) // also track next round (round+1) to allow round-skipping
 	cs.TriggeredTimeoutPrecommit = false
 
-	// fmt.Println("line 1246 ")
-
 	if err := cs.eventBus.PublishEventNewRound(cs.NewRoundEvent()); err != nil {
 		cs.Logger.Error("failed publishing new round", "err", err)
 	}
-	// fmt.Println("line 1251 ")
 
 	// Wait for txs to be available in the mempool
 	// before we enterPropose in round 0. If the last block changed the app hash,
@@ -1430,7 +1424,6 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		cs.updateRoundStep(round, cstypes.RoundStepPrecommit)
 		cs.newStep()
 	}()
-	// fmt.Println("line 1723")
 
 	// check for a polka
 	blockID, ok := cs.Votes.Prevotes(round).TwoThirdsMajority()
@@ -1442,12 +1435,10 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		} else {
 			logger.Debug("precommit step; no +2/3 prevotes during enterPrecommit; precommitting nil")
 		}
-		// fmt.Println("line 1720 ", cs.Height)
 
 		cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
-	// fmt.Println("line 1740")
 
 	// At this point +2/3 prevoted for a particular block or nil.
 	if err := cs.eventBus.PublishEventPolka(cs.RoundStateEvent()); err != nil {
@@ -1514,7 +1505,6 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		cs.signAddVote(tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
-	// fmt.Println("line 1813")
 
 	// There was a polka in this round for a block we don't have.
 	// Fetch that block, unlock, and precommit nil.
@@ -1596,7 +1586,6 @@ func (cs *State) enterCommit(height int64, commitRound int32) {
 		cs.CommitRound = commitRound
 		cs.CommitTime = tmtime.Now()
 		cs.newStep()
-		// fmt.Println("line 1892", cs.Height, height, ctx)
 
 		// Maybe finalize immediately.
 		cs.tryFinalizeCommit(height)
@@ -2031,7 +2020,6 @@ func (cs *State) handleCompleteProposal(blockHeight int64) {
 func (cs *State) tryAddVote(vote *types.Vote, peerID types.NodeID) (bool, error) {
 	added, err := cs.addVote(vote, peerID)
 	if err != nil {
-		// fmt.Println("line 2284" + fmt.Sprint(cs.LastCommit.HasAll()))
 
 		// If the vote height is off, we'll just ignore it,
 		// But if it's a conflicting sig, add it to the cs.evpool.
@@ -2083,7 +2071,6 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 	// A precommit for the previous height?
 	// These come in while we wait timeoutCommit
 	if vote.Height+1 == cs.Height && vote.Type == tmproto.PrecommitType {
-		// fmt.Println("line 2350" + fmt.Sprint(cs.LastCommit.HasAll()))
 
 		if cs.Step != cstypes.RoundStepNewHeight {
 			// Late precommit at prior height is ignored
@@ -2102,7 +2089,6 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 		}
 
 		cs.evsw.FireEvent(types.EventVoteValue, vote)
-		// fmt.Println("line 2367" + fmt.Sprint(cs.LastCommit.HasAll()))
 		// if we can skip timeoutCommit and have all the votes now,
 		if cs.config.SkipTimeoutCommit && cs.LastCommit.HasAll() {
 			// go straight to new round (skip timeout commit)
@@ -2119,7 +2105,6 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 		cs.Logger.Debug("vote ignored and not added", "vote_height", vote.Height, "cs_height", cs.Height, "peer", peerID)
 		return
 	}
-	// fmt.Println("line 2388 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round))
 
 	height := cs.Height
 	added, err = cs.Votes.AddVote(vote, peerID)
@@ -2132,11 +2117,9 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 		return added, err
 	}
 	cs.evsw.FireEvent(types.EventVoteValue, vote)
-	// fmt.Println("line 2481 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round, vote.Type))
 
 	switch vote.Type {
 	case tmproto.PrevoteType:
-		// fmt.Println("line 2485 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round))
 
 		prevotes := cs.Votes.Prevotes(vote.Round)
 		cs.Logger.Debug("added vote to prevote", "vote", vote, "prevotes", prevotes.StringShort())
@@ -2193,7 +2176,6 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 				}
 			}
 		}
-		// fmt.Println("line 2522 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round))
 
 		// If +2/3 prevotes for *anything* for future round:
 		switch {
@@ -2217,7 +2199,6 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 		}
 
 	case tmproto.PrecommitType:
-		// fmt.Println("line 2570 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round))
 
 		precommits := cs.Votes.Precommits(vote.Round)
 		cs.Logger.Debug("added vote to precommit",
@@ -2228,7 +2209,6 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 			"data", precommits.LogString())
 
 		blockID, ok := precommits.TwoThirdsMajority()
-		// fmt.Println("line 2574 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round, ok))
 
 		if ok {
 			// Executed as TwoThirdsMajority could be from a higher round
@@ -2247,14 +2227,10 @@ func (cs *State) addVote(vote *types.Vote, peerID types.NodeID) (added bool, err
 			cs.enterNewRound(height, vote.Round)
 			cs.enterPrecommitWait(height, vote.Round)
 		}
-		// fmt.Println("line 2577 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round))
 
 	default:
 		panic(fmt.Sprintf("unexpected vote type %v", vote.Type))
 	}
-	// fmt.Println("line 2564 " + fmt.Sprint(vote.Height, cs.Height, vote.Height, cs.Height, vote.Round, cs.Round))
-
-	// fmt.Println("line 2565 ")
 
 	return added, err
 }

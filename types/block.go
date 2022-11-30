@@ -461,14 +461,19 @@ func (h *Header) Hash() tmbytes.HexBytes {
 		bzbi = BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 	}
 
-	heightB := make([]byte, 8)
 	chainIDB := []byte(h.ChainID)
+	hasherForChainID := ihash.New()
+	hasherForChainID.Write(chainIDB)
+
+	heightB := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightB, uint64(h.Height))
+	hasherForHeight := ihash.New()
+	hasherForHeight.Write(heightB)
 
 	return merkle.HashFromByteSlices([][]byte{
 		ihash.ByteRounder(hbz),
-		ihash.ByteRounder(chainIDB),
-		heightB,
+		hasherForChainID.Sum(nil),
+		hasherForHeight.Sum(nil),
 		ihash.ByteRounder(pbt),
 		ihash.ByteRounder(bzbi),
 		ihash.ByteRounder([]byte(h.LastCommitHash)),
