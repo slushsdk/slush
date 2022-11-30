@@ -94,6 +94,7 @@ func (dve *DuplicateVoteEvidence) ABCI() []abci.Evidence {
 
 // Bytes returns the proto-encoded evidence as a byte array.
 func (dve *DuplicateVoteEvidence) Bytes() []byte {
+	//Slush Todo: we have to remove this encoding
 	pbe := dve.ToProto()
 	bz, err := pbe.Marshal()
 	if err != nil {
@@ -350,9 +351,9 @@ func (l *LightClientAttackEvidence) Hash() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
 	n := binary.PutVarint(buf, l.CommonHeight)
 	bz := make([]byte, tmhash.Size+n)
-	copy(bz[:tmhash.Size-1], l.ConflictingBlock.Hash().Bytes())
-	copy(bz[tmhash.Size:], buf)
-	return tmhash.Sum(bz)
+	copy(bz[:crypto.HashSize-1], l.ConflictingBlock.Hash().Bytes())
+	copy(bz[crypto.HashSize:], buf)
+	return crypto.CheckSum(bz)
 }
 
 // Height returns the last height at which the primary provider and witness provider had the same header.
