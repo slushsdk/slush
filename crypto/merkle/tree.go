@@ -1,7 +1,6 @@
 package merkle
 
 import (
-	"crypto/sha256"
 	"hash"
 	"math/bits"
 
@@ -69,7 +68,7 @@ func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
 // implementation for so little benefit.
 func HashFromByteSlicesIterative(input [][]byte) []byte {
 	items := make([][]byte, len(input))
-	sha := sha256.New()
+	sha := ihash.New()
 	for i, leaf := range input {
 		items[i] = leafHash(leaf)
 	}

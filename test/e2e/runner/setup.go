@@ -199,7 +199,7 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 	switch testnet.KeyType {
 	case "", types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1, types.ABCIPubKeyTypeStark:
 		genesis.ConsensusParams.Validator.PubKeyTypes =
-			append(genesis.ConsensusParams.Validator.PubKeyTypes, types.ABCIPubKeyTypeSecp256k1)
+			append(genesis.ConsensusParams.Validator.PubKeyTypes, types.ABCIPubKeyTypeStark)
 	default:
 		return genesis, errors.New("unsupported KeyType")
 	}
