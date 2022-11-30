@@ -17,7 +17,13 @@ type PedersenHash struct {
 //This appends the hash to b. Notable, we
 func (ph *PedersenHash) Sum(b []byte) []byte {
 
-	return append(b, ByteRounder(pedersenHashInt128Array(ph.input))...)
+	return append(b, ByteRounder(PedersenHashInt128Array(ph.input))...)
+}
+
+//This appends the hash to b. Notable, we
+func (ph *PedersenHash) SumFelt(b []byte) []byte {
+
+	return append(b, ByteRounder(PedersenHashFeltArray(ph.input))...)
 }
 
 //We want to pass in 128 bit numbers from pedersen, so we want to round the byte array to be that long.
@@ -59,11 +65,11 @@ func (ph *PedersenHash) Write(p []byte) (n int, err error) {
 	return len(ph.input), nil
 }
 
-func pedersenHashInt128(b [16]byte) []byte {
+func PedersenHashInt128(b [16]byte) []byte {
 	return Digest(big.NewInt(0).SetBytes(b[:]), big.NewInt(0)).Bytes()
 }
 
-func pedersenHashInt128Array(b []byte) []byte {
+func PedersenHashInt128Array(b []byte) []byte {
 	chunks := utils.Split(b, 16)
 
 	if len(chunks) == 0 {
@@ -89,11 +95,11 @@ func pedersenHashInt128Array(b []byte) []byte {
 	return pedersenOutputBytes
 }
 
-func pedersenHashFelt(b [32]byte) []byte {
+func PedersenHashFelt(b [32]byte) []byte {
 	return (Digest(big.NewInt(0).SetBytes(b[:]), big.NewInt(0)).Bytes())
 }
 
-func pedersenHashFeltArray(b []byte) []byte {
+func PedersenHashFeltArray(b []byte) []byte {
 	chunks := utils.Split(b, 32)
 
 	if len(chunks) == 0 {
