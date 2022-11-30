@@ -8,13 +8,13 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/stark"
 )
 
 func TestABCIPubKey(t *testing.T) {
-	pkEd := ed25519.GenPrivKey().PubKey()
-	err := testABCIPubKey(t, pkEd, ABCIPubKeyTypeEd25519)
+	pkEd := stark.GenPrivKey().PubKey()
+	err := testABCIPubKey(t, pkEd, ABCIPubKeyTypeStark)
 	assert.NoError(t, err)
 }
 
@@ -28,7 +28,7 @@ func testABCIPubKey(t *testing.T, pk crypto.PubKey, typeStr string) error {
 }
 
 func TestABCIValidators(t *testing.T) {
-	pkEd := ed25519.GenPrivKey().PubKey()
+	pkEd := stark.GenPrivKey().PubKey()
 
 	// correct validator
 	tmValExpected := NewValidator(pkEd, 10)
@@ -53,7 +53,7 @@ func TestABCIValidators(t *testing.T) {
 }
 
 func TestABCIValidatorWithoutPubKey(t *testing.T) {
-	pkEd := ed25519.GenPrivKey().PubKey()
+	pkEd := stark.GenPrivKey().PubKey()
 
 	abciVal := TM2PB.Validator(NewValidator(pkEd, 10))
 

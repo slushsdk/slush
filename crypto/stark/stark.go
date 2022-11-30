@@ -2,12 +2,14 @@ package stark
 
 import (
 	real_bytes "bytes"
+	"errors"
 	"fmt"
 	"math/big"
 
 	rand "crypto/rand"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/internal/jsontypes"
@@ -30,14 +32,54 @@ func init() {
 
 var curve = weierstrass.Stark()
 
-type PrivKey struct{ pv *PrivateKey }
+type PrivKey []byte //struct { pv *PrivateKey }
 
 func GenPrivKey() PrivKey {
 	pv, err := GenerateKey(curve, rand.Reader)
 	if err != nil {
 		panic(err)
 	}
-	return PrivKey{pv: pv}
+	return PrivKey(pv.D.Bytes())
+}
+
+func (PrivKey) TypeTag() string { return PrivKeyName }
+
+func (PrivKey) Type() string { return KeyType }
+
+func (pv PrivKey) Bytes() []byte {
+
+	return []byte(pv)
+}
+
+func (pv PrivKey) PubKey() crypto.PubKey {
+	return pubKeyFromPrivate(&pv)
+
+}
+
+func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
+	pv := privKey.MakeFull()
+
+	r, s, err := SignECDSA(&pv, msg, abstractions.New)
+	if err != nil {
+		panic(err)
+	}
+	return serializeSig(r, s), nil
+}
+
+func (privKey PrivKey) Equals(p crypto.PrivKey) bool {
+	if p.Type() != KeyType {
+		return false
+	}
+
+	return real_bytes.Equal(privKey.Bytes(), p.Bytes())
+}
+
+func (pv PrivKey) MakeFull() PrivateKey {
+	pvt := new(PrivateKey)
+	pvt.PublicKey.Curve = weierstrass.Stark()
+	pvt.D = big.NewInt(0).SetBytes(pv.Bytes())
+	pvt.PublicKey.X, pvt.PublicKey.Y = pvt.PublicKey.Curve.ScalarBaseMult(pv.Bytes())
+	return *pvt
 }
 
 func randFieldElementFromSecret(
@@ -63,62 +105,108 @@ func GenPrivKeyFromSecret(bs []byte) *PrivKey {
 	k, _ := randFieldElementFromSecret(c, bs)
 
 	pvt := new(PrivateKey)
-	pvt.PublicKey.Curve = c
+	// pvt.PublicKey.Curve = c
 	pvt.D = k
-	pvt.PublicKey.X, pvt.PublicKey.Y = c.ScalarBaseMult(k.Bytes())
-	return &PrivKey{pvt}
+	// pvt.PublicKey.X, pvt.PublicKey.Y = c.ScalarBaseMult(k.Bytes())
+	pv := PrivKey(pvt.D.Bytes())
+	return &pv
 }
 
-func (PrivKey) TypeTag() string { return PrivKeyName }
+/////////////////////////////////////////////////////////
 
-func (PrivKey) Type() string { return KeyType }
-
-func (pv PrivKey) Bytes() []byte {
-
-	return pv.pv.D.Bytes()
-}
-
-func (pv PrivKey) PubKey() crypto.PubKey {
-	return pubKeyFromPrivate(&pv)
-
-}
-
-func (privKey PrivKey) Sign(msg []byte) ([]byte, error) {
-	r, s, err := Sign(rand.Reader, privKey.pv, msg)
-	if err != nil {
-		panic(err)
-	}
-	return serializeSig(r, s), nil
-}
-
-func (privKey PrivKey) Equals(p crypto.PrivKey) bool {
-	if p.Type() != KeyType {
-		return false
-	}
-
-	return real_bytes.Equal(privKey.Bytes(), p.Bytes())
-}
-
-type PubKey struct{ pb *PublicKey }
+type PubKey []byte //struct{ pb *PublicKey }
 
 func (PubKey) TypeTag() string { return PubKeyName }
+
+func (p PubKey) Type() string {
+	return KeyType
+}
 
 type Address = bytes.HexBytes
 
 func pubKeyFromPrivate(pv *PrivKey) PubKey {
-	return PubKey{
-		pb: &pv.pv.PublicKey,
+	pvFull := pv.MakeFull()
+	pb := (&(pvFull)).Public()
+	return pb.MarshalCompressedStark()
+}
+
+func (p PubKey) Address() Address {
+
+	return []byte(p)
+}
+
+func (p PubKey) IsNil() bool {
+	if p == nil {
+		return true
 	}
+	return false
+}
+
+func (p PubKey) Bytes() []byte {
+	return []byte(p)
+}
+
+func (p PubKey) MakeFull() PublicKey {
+	pb := UnmarshalCompressedStark(curve, []byte(p))
+	return pb
+}
+
+func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
+
+	r, s, err := deserializeSig(sig)
+	if err != nil {
+		return false
+	}
+	pb := p.MakeFull()
+	return Verify(&pb, msg, r, s)
+}
+
+func (p PubKey) Equals(pb crypto.PubKey) bool {
+
+	if pb.Type() != KeyType {
+		return false
+	}
+
+	if otherEd, ok := pb.(PubKey); ok {
+		return real_bytes.Equal(p.Bytes(), otherEd.Bytes())
+	}
+	return false
+
+}
+
+func serializeSig(r *big.Int, s *big.Int) []byte {
+	rBytes := r.Bytes()
+	sBytes := s.Bytes()
+	sigBytes := make([]byte, 64)
+	// 0 pad the byte arrays from the left if they aren't big enough.
+	copy(sigBytes[32-len(rBytes):32], rBytes)
+	copy(sigBytes[64-len(sBytes):64], sBytes)
+	return sigBytes
+}
+
+func deserializeSig(sig []byte) (r *big.Int, s *big.Int, err error) {
+	if len(sig) != 64 {
+		return nil, nil, errors.New("Invalid signature length")
+	}
+
+	chunked := utils.Split(sig, 32)
+
+	rBytes := chunked[0]
+	sBytes := chunked[1]
+
+	r = new(big.Int).SetBytes(rBytes)
+	s = new(big.Int).SetBytes(sBytes)
+	return r, s, nil
 }
 
 //We modify MarshalCompressed so that we fit into 32 bytes, we can do this with 252 bits.
-func (p PubKey) MarshalCompressed() []byte {
+func (p PublicKey) MarshalCompressedStark() PubKey {
 	if p.IsNil() {
 		panic("can't marshall nil key")
 	}
-	curve := p.pb.Curve
-	x := *p.pb.X
-	y := p.pb.Y
+	curve := p.Curve
+	x := *p.X
+	y := p.Y
 
 	byteLen := (curve.Params().BitSize + 7) / 8
 	compressed := make([]byte, byteLen)
@@ -133,7 +221,7 @@ func (p PubKey) MarshalCompressed() []byte {
 	return compressed
 }
 
-func UnmarshalCompressed(curve weierstrass.Curve, data []byte) PubKey {
+func UnmarshalCompressedStark(curve weierstrass.Curve, data []byte) PublicKey {
 
 	x := new(big.Int)
 	y := new(big.Int)
@@ -144,10 +232,12 @@ func UnmarshalCompressed(curve weierstrass.Curve, data []byte) PubKey {
 		panic("marshalling failed, wrong byte len")
 
 	}
-	ybit := data[0] & 128
-	data[0] = data[0] & 127
+	ybit := data[0] & byte(128)
+	newData := make([]byte, 0)
+	newData = []byte{data[0] & byte(127)}
+	newData = append(newData, data[1:]...)
 	p := curve.Params().P
-	x = new(big.Int).SetBytes(data[:])
+	x = new(big.Int).SetBytes(newData[:])
 	if x.Cmp(p) >= 0 {
 		// notest
 		panic("unmarshalling failed, x is greater than p")
@@ -164,8 +254,7 @@ func UnmarshalCompressed(curve weierstrass.Curve, data []byte) PubKey {
 		panic("unmarshalling failed, y does not exist")
 
 	}
-	fmt.Print(data[0], data[0]&byte(128))
-	if byte(y.Bit(0)) != ybit {
+	if byte(y.Bit(0)*128) != ybit {
 		// notest
 		y.Neg(y).Mod(y, p)
 	}
@@ -177,71 +266,5 @@ func UnmarshalCompressed(curve weierstrass.Curve, data []byte) PubKey {
 
 	pb := PublicKey{weierstrass.Stark(), x, y}
 
-	rp := PubKey{&pb}
-	return rp
-}
-
-func (p PubKey) Address() Address {
-	br := p.MarshalCompressed()
-	return br
-}
-
-func (p PubKey) IsNil() bool {
-	if p.pb == nil {
-		return true
-	}
-	return false
-}
-
-func (p PubKey) Bytes() []byte {
-
-	br := p.MarshalCompressed()
-	return br
-}
-
-func (p PubKey) VerifySignature(msg []byte, sig []byte) bool {
-	r, s := deserializeSig(sig)
-	return Verify(p.pb, msg, r, s)
-}
-
-func (p PubKey) Equals(pb crypto.PubKey) bool {
-
-	if pb.Type() != KeyType {
-		return false
-	}
-
-	if otherEd, ok := pb.(PubKey); ok {
-		return real_bytes.Equal(p.Bytes(), otherEd.Bytes())
-	}
-	return false
-
-}
-
-func (p PubKey) Type() string {
-	return KeyType
-}
-
-func serializeSig(r *big.Int, s *big.Int) []byte {
-	rBytes := r.Bytes()
-	sBytes := s.Bytes()
-	sigBytes := make([]byte, 64)
-	// 0 pad the byte arrays from the left if they aren't big enough.
-	copy(sigBytes[32-len(rBytes):32], rBytes)
-	copy(sigBytes[64-len(sBytes):64], sBytes)
-	return sigBytes
-}
-
-func deserializeSig(sig []byte) (r *big.Int, s *big.Int) {
-	if len(sig) != 64 {
-		panic("Invalid signature length")
-	}
-
-	chunked := utils.Split(sig, 32)
-
-	rBytes := chunked[0]
-	sBytes := chunked[1]
-
-	r = new(big.Int).SetBytes(rBytes)
-	s = new(big.Int).SetBytes(sBytes)
-	return r, s
+	return pb
 }

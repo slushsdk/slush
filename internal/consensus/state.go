@@ -947,7 +947,7 @@ func (cs *State) handleMsg(mi msgInfo) {
 			"err", err,
 		)
 	}
-	fmt.Println("line 1098 handleMsg over  ")
+	// fmt.Println("line 1098 handleMsg over  ")
 
 }
 
@@ -1430,7 +1430,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		cs.updateRoundStep(round, cstypes.RoundStepPrecommit)
 		cs.newStep()
 	}()
-	fmt.Println("line 1723")
+	// fmt.Println("line 1723")
 
 	// check for a polka
 	blockID, ok := cs.Votes.Prevotes(round).TwoThirdsMajority()
@@ -1442,12 +1442,12 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		} else {
 			logger.Debug("precommit step; no +2/3 prevotes during enterPrecommit; precommitting nil")
 		}
-		fmt.Println("line 1720 ", cs.Height)
+		// fmt.Println("line 1720 ", cs.Height)
 
 		cs.signAddVote(tmproto.PrecommitType, nil, types.PartSetHeader{})
 		return
 	}
-	fmt.Println("line 1740")
+	// fmt.Println("line 1740")
 
 	// At this point +2/3 prevoted for a particular block or nil.
 	if err := cs.eventBus.PublishEventPolka(cs.RoundStateEvent()); err != nil {
@@ -1514,7 +1514,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		cs.signAddVote(tmproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
 		return
 	}
-	fmt.Println("line 1813")
+	// fmt.Println("line 1813")
 
 	// There was a polka in this round for a block we don't have.
 	// Fetch that block, unlock, and precommit nil.
@@ -1596,7 +1596,7 @@ func (cs *State) enterCommit(height int64, commitRound int32) {
 		cs.CommitRound = commitRound
 		cs.CommitTime = tmtime.Now()
 		cs.newStep()
-		fmt.Println("line 1892", cs.Height, height, ctx)
+		// fmt.Println("line 1892", cs.Height, height, ctx)
 
 		// Maybe finalize immediately.
 		cs.tryFinalizeCommit(height)
@@ -2031,7 +2031,7 @@ func (cs *State) handleCompleteProposal(blockHeight int64) {
 func (cs *State) tryAddVote(vote *types.Vote, peerID types.NodeID) (bool, error) {
 	added, err := cs.addVote(vote, peerID)
 	if err != nil {
-		fmt.Println("line 2284" + fmt.Sprint(cs.LastCommit.HasAll()))
+		// fmt.Println("line 2284" + fmt.Sprint(cs.LastCommit.HasAll()))
 
 		// If the vote height is off, we'll just ignore it,
 		// But if it's a conflicting sig, add it to the cs.evpool.
