@@ -93,7 +93,7 @@ func TestSignerClient_SignVote(t *testing.T) {
 
 	ts := time.Now()
 	hash := tmrand.Bytes(crypto.HashSize)
-	valAddr := stark.GenPrivKey().PubKey().Bytes()
+	valAddr := stark.GenPrivKey().PubKey().Address()
 
 	want := &types.Vote{
 		Type:             tmproto.PrecommitType,

@@ -199,7 +199,7 @@ func TestPruneStates(t *testing.T) {
 
 			// Generate a bunch of state data. Validators change for heights ending with 3, and
 			// parameters when ending with 5.
-			validator := &types.Validator{Address: stark.GenPrivKey().PubKey().Bytes(), VotingPower: 100, PubKey: pk}
+			validator := &types.Validator{Address: stark.GenPrivKey().PubKey().Address(), VotingPower: 100, PubKey: pk}
 			validatorSet := &types.ValidatorSet{
 				Validators: []*types.Validator{validator},
 				Proposer:   validator,

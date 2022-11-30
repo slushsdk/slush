@@ -120,7 +120,7 @@ func TestBlockStoreSaveLoadBlock(t *testing.T) {
 		Height:          1,
 		ChainID:         "block_test",
 		Time:            tmtime.Now(),
-		ProposerAddress: stark.GenPrivKey().PubKey().Bytes(),
+		ProposerAddress: stark.GenPrivKey().PubKey().Address(),
 	}
 
 	// End of setup, test data
@@ -458,7 +458,7 @@ func TestLoadBlockMeta(t *testing.T) {
 	// 3. A good blockMeta serialized and saved to the DB should be retrievable
 	meta := &types.BlockMeta{Header: types.Header{
 		Version: version.Consensus{
-			Block: version.BlockProtocol, App: 0}, Height: 1, ProposerAddress: stark.GenPrivKey().PubKey().Bytes()}}
+			Block: version.BlockProtocol, App: 0}, Height: 1, ProposerAddress: stark.GenPrivKey().PubKey().Address()}}
 	pbm := meta.ToProto()
 	err = db.Set(blockMetaKey(height), mustEncode(pbm))
 	require.NoError(t, err)

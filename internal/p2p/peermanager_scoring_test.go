@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/stark"
 	dbm "github.com/tendermint/tm-db"
 
@@ -24,7 +25,7 @@ func TestPeerScoring(t *testing.T) {
 	defer peerManager.Close()
 
 	// create a fake node
-	id := types.NodeID(strings.Repeat("a1", 32))
+	id := types.NodeID(strings.Repeat("a1", crypto.AddressSize))
 	added, err := peerManager.Add(NodeAddress{NodeID: id, Protocol: "memory"})
 	require.NoError(t, err)
 	require.True(t, added)
