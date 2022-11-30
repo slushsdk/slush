@@ -1,7 +1,10 @@
 package crypto
 
 import (
+	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
 )
 
@@ -16,7 +19,19 @@ const (
 type Address = bytes.HexBytes
 
 func AddressHash(bz []byte) Address {
-	return Address(tmhash.SumTruncated(bz))
+	h := ihash.Sum256(bz)
+	size := AddressSize
+	if size <= 32 {
+		return Address(h[:size])
+	}
+
+	return Address(h[:32])
+}
+
+// Checksum returns the SHA256 of the bz.
+func Checksum(bz []byte) []byte {
+	h := ihash.Sum256(bz)
+	return h[:]
 }
 
 type PubKey interface {

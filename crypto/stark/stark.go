@@ -3,7 +3,6 @@ package stark
 import (
 	real_bytes "bytes"
 	"errors"
-	"fmt"
 	"math/big"
 
 	rand "crypto/rand"
@@ -22,7 +21,7 @@ const (
 
 	KeyType     = "stark"
 	PrivKeySize = 32
-	PubKeySize  = 32
+	PubKeySize  = 64
 )
 
 func init() {
@@ -131,8 +130,10 @@ func pubKeyFromPrivate(pv *PrivKey) PubKey {
 }
 
 func (p PubKey) Address() Address {
-
-	return []byte(p)
+	if len(p) != PubKeySize {
+		panic("pubkey is incorrect size")
+	}
+	return crypto.AddressHash(p)
 }
 
 func (p PubKey) IsNil() bool {
@@ -208,61 +209,29 @@ func (p PublicKey) MarshalCompressedStark() PubKey {
 	x := *p.X
 	y := p.Y
 
-	byteLen := (curve.Params().BitSize + 7) / 8
-	compressed := make([]byte, byteLen)
-	x.FillBytes(compressed)
-	if compressed[0]&byte(128) == 128 {
-		fmt.Sprintln("marshalling failed, 0th bit not empty.")
-		panic("marshalling failed, 0th bit not empty.")
+	byteLen := 2 * (curve.Params().BitSize + 7) / 8
+	compressedX := make([]byte, byteLen/2)
+	compressedY := make([]byte, byteLen/2)
 
-	} else {
-		compressed[0] = byte(compressed[0] | byte(y.Bit(0)*128))
-	}
+	x.FillBytes(compressedX)
+	y.FillBytes(compressedY)
+
+	compressed := append(compressedX, compressedY...)
+
 	return compressed
 }
 
 func UnmarshalCompressedStark(curve weierstrass.Curve, data []byte) PublicKey {
 
-	x := new(big.Int)
-	y := new(big.Int)
-
-	byteLen := (curve.Params().BitSize + 7) / 8
+	byteLen := 2 * (curve.Params().BitSize + 7) / 8
 	if len(data) != byteLen {
 		// notest
 		panic("marshalling failed, wrong byte len")
 
 	}
-	ybit := data[0] & byte(128)
-	newData := make([]byte, 0)
-	newData = []byte{data[0] & byte(127)}
-	newData = append(newData, data[1:]...)
-	p := curve.Params().P
-	x = new(big.Int).SetBytes(newData[:])
-	if x.Cmp(p) >= 0 {
-		// notest
-		panic("unmarshalling failed, x is greater than p")
 
-	}
-	if x.Cmp(big.NewInt(0)) == 0 {
-		panic("x is 0")
-	}
-	// y² = x³ - 3x + b (mod p).
-	y = curve.Params().Short(x)
-	y = y.ModSqrt(y, p)
-	if y == nil {
-		// notest
-		panic("unmarshalling failed, y does not exist")
-
-	}
-	if byte(y.Bit(0)*128) != ybit {
-		// notest
-		y.Neg(y).Mod(y, p)
-	}
-	if !curve.IsOnCurve(x, y) {
-		// notest
-		panic("marshalling failed, x, y not on curve")
-
-	}
+	x := new(big.Int).SetBytes(data[:32])
+	y := new(big.Int).SetBytes(data[32:])
 
 	pb := PublicKey{weierstrass.Stark(), x, y}
 

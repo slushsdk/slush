@@ -1,6 +1,8 @@
 package p2p_test
 
 import (
+	"context"
+	"fmt"
 	"net"
 	"strings"
 	"testing"
@@ -13,6 +15,8 @@ import (
 
 func TestNewNodeID(t *testing.T) {
 	// Most tests are in TestNodeID_Validate, this just checks that it's validated.
+	pb := stark.GenPrivKey().PubKey()
+
 	testcases := []struct {
 		input  string
 		expect types.NodeID
@@ -20,8 +24,8 @@ func TestNewNodeID(t *testing.T) {
 	}{
 		{"", "", false},
 		{"foo", "", false},
-		{"0000111122223333444455556666777788889999000011112222333344445555", "0000111122223333444455556666777788889999000011112222333344445555", true},
-		{"0000111122223333444455556666777788889999000011112222333344445555", "0000111122223333444455556666777788889999000011112222333344445555", true},
+		{strings.ToLower(fmt.Sprint(pb.Address())), types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))), true},
+		{strings.ToLower(fmt.Sprint(pb.Address())), types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))), true},
 		{"00112233445566778899aabbccddeeff0011223", "", false},
 		{"00112233445566778899aabbccddeeff0011223g", "", false},
 	}
@@ -42,7 +46,7 @@ func TestNewNodeID(t *testing.T) {
 func TestNewNodeIDFromPubKey(t *testing.T) {
 	privKey := stark.GenPrivKeyFromSecret([]byte("foo"))
 	nodeID := types.NodeIDFromPubKey(privKey.PubKey())
-	require.Equal(t, types.NodeID("04971f25338ee9b36dc7d27619ae92e18a0fa29616e50869d79ffc1de6d47a70"), nodeID)
+	require.Equal(t, types.NodeID("29e1d898670ee24a2d1e0f6a2f56d88c1e2506ece652efb2e08e90ef4a24c1e0"), nodeID)
 	require.NoError(t, nodeID.Validate())
 }
 
@@ -73,13 +77,14 @@ func TestNodeID_Bytes(t *testing.T) {
 }
 
 func TestNodeID_Validate(t *testing.T) {
+	pb := stark.GenPrivKey().PubKey()
 	testcases := []struct {
 		nodeID types.NodeID
 		ok     bool
 	}{
 		{"", false},
 		{"00", false},
-		{"0000111122223333444455556666777788889999000011112222333344445555", true},
+		{types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))), true},
 		{"00112233445566778899aabbccddeeff001122334", false},
 		{"00112233445566778899aabbccddeeffgg001122", false},
 		{"000011112222333344445555666677778888999900001111222233334444555", false},
@@ -98,7 +103,8 @@ func TestNodeID_Validate(t *testing.T) {
 }
 
 func TestParseNodeAddress(t *testing.T) {
-	user := "0000111122223333444455556666777788889999000011112222333344445555"
+	pb := stark.GenPrivKey().PubKey()
+	user := strings.ToLower(fmt.Sprint(pb.Address()))
 	id := types.NodeID(user)
 
 	testcases := []struct {
@@ -201,7 +207,8 @@ func TestParseNodeAddress(t *testing.T) {
 }
 
 func TestNodeAddress_Resolve(t *testing.T) {
-	id := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	pb := stark.GenPrivKey().PubKey()
+	id := types.NodeID(strings.ToLower(fmt.Sprint(pb.Address())))
 
 	testcases := []struct {
 		address p2p.NodeAddress
@@ -285,7 +292,8 @@ func TestNodeAddress_Resolve(t *testing.T) {
 }
 
 func TestNodeAddress_String(t *testing.T) {
-	id := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	pb := stark.GenPrivKey().PubKey()
+	id := (types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))))
 	user := string(id)
 	testcases := []struct {
 		address p2p.NodeAddress
@@ -332,11 +340,11 @@ func TestNodeAddress_String(t *testing.T) {
 		{p2p.NodeAddress{Protocol: "tcp", Hostname: "host"}, "tcp://host"},
 		{
 			p2p.NodeAddress{Protocol: "memory", NodeID: id, Path: "path"},
-			"memory://0000111122223333444455556666777788889999000011112222333344445555@/path",
+			"memory://" + strings.ToLower(fmt.Sprint(pb.Address())) + "@/path",
 		},
 		{
 			p2p.NodeAddress{Protocol: "memory", NodeID: id, Port: 80},
-			"memory:0000111122223333444455556666777788889999000011112222333344445555",
+			"memory:" + strings.ToLower(fmt.Sprint(pb.Address())),
 		},
 	}
 	for _, tc := range testcases {
@@ -348,7 +356,8 @@ func TestNodeAddress_String(t *testing.T) {
 }
 
 func TestNodeAddress_Validate(t *testing.T) {
-	id := types.NodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	pb := stark.GenPrivKey().PubKey()
+	id := (types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))))
 	testcases := []struct {
 		address p2p.NodeAddress
 		ok      bool

@@ -23,7 +23,13 @@ func TestSign(t *testing.T) {
 func TestGetPublicKey(t *testing.T) {
 	pv := stark.GenPrivKey()
 	pb := pv.PubKey()
-	require.Equal(t, len(pb.Bytes()), 32)
+	require.Equal(t, len(pb.Bytes()), 64)
+}
+
+func TestAddress(t *testing.T) {
+	pv := stark.GenPrivKey()
+	pb := pv.PubKey()
+	require.Equal(t, len(pb.Address()), 32)
 }
 
 func TestSignAndVerify(t *testing.T) {
