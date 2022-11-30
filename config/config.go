@@ -57,6 +57,11 @@ var (
 	defaultNodeKeyName  = "node_key.json"
 	defaultAddrBookName = "addrbook.json"
 
+	defaultVerifierAddressName = "verifier_address.json"
+	defaultVerifierAbiName     = "verifier_abi.json" //Todo: this might have to change
+	defaultAccountPrivKeyName  = "verifier_privkey.json"
+	defaultAccountAddressName  = "verifier_address.json"
+
 	defaultConfigFilePath   = filepath.Join(defaultConfigDir, defaultConfigFileName)
 	defaultGenesisJSONPath  = filepath.Join(defaultConfigDir, defaultGenesisJSONName)
 	defaultPrivValKeyPath   = filepath.Join(defaultConfigDir, defaultPrivValKeyName)
@@ -67,6 +72,11 @@ var (
 
 	minSubscriptionBufferSize     = 100
 	defaultSubscriptionBufferSize = 200
+
+	defaultVerifierAddressPath = filepath.Join(defaultDataDir, defaultVerifierAddressName)
+	defaultVerifierAbiPath     = filepath.Join(defaultDataDir, defaultVerifierAbiName)
+	defaultAccountPrivKeyPath  = filepath.Join(defaultDataDir, defaultAccountPrivKeyName)
+	defaultAccountAddressPath  = filepath.Join(defaultDataDir, defaultAccountAddressName)
 )
 
 // Config defines the top level configuration for a Tendermint node
@@ -233,6 +243,18 @@ type BaseConfig struct { //nolint: maligned
 	// A JSON file containing the private key to use for p2p authenticated encryption
 	NodeKey string `mapstructure:"node-key-file"`
 
+	// A JSON file containing the verifier contract's address
+	VerifierAddress string `mapstructure:"verifier-address-file"`
+
+	// A JSON file containing the verifier contract's abi
+	VerifierAbi string `mapstructure:"verifier-abi-file"`
+
+	// A JSON file containing the verifier contract's address
+	AccountAddress string `mapstructure:"account-address-file"`
+
+	// A JSON file containing the private key to use for onchain verification of the light client
+	AccountPrivKey string `mapstructure:"account-privkey-file"`
+
 	// Mechanism to connect to the ABCI application: socket | grpc
 	ABCI string `mapstructure:"abci"`
 
@@ -246,17 +268,21 @@ type BaseConfig struct { //nolint: maligned
 // DefaultBaseConfig returns a default base configuration for a Tendermint node
 func DefaultBaseConfig() BaseConfig {
 	return BaseConfig{
-		Genesis:     defaultGenesisJSONPath,
-		NodeKey:     defaultNodeKeyPath,
-		Mode:        defaultMode,
-		Moniker:     defaultMoniker,
-		ProxyApp:    "tcp://127.0.0.1:26658",
-		ABCI:        "socket",
-		LogLevel:    DefaultLogLevel,
-		LogFormat:   log.LogFormatPlain,
-		FilterPeers: false,
-		DBBackend:   "goleveldb",
-		DBPath:      "data",
+		Genesis:         defaultGenesisJSONPath,
+		NodeKey:         defaultNodeKeyPath,
+		VerifierAddress: defaultVerifierAddressPath,
+		VerifierAbi:     defaultVerifierAbiPath,
+		AccountPrivKey:  defaultAccountPrivKeyPath,
+		AccountAddress:  defaultAccountAddressPath,
+		Mode:            defaultMode,
+		Moniker:         defaultMoniker,
+		ProxyApp:        "tcp://127.0.0.1:26658",
+		ABCI:            "socket",
+		LogLevel:        DefaultLogLevel,
+		LogFormat:       log.LogFormatPlain,
+		FilterPeers:     false,
+		DBBackend:       "goleveldb",
+		DBPath:          "data",
 	}
 }
 
@@ -284,6 +310,26 @@ func (cfg BaseConfig) NodeKeyFile() string {
 	return rootify(cfg.NodeKey, cfg.RootDir)
 }
 
+// VerifierAddressFile returns the full path to the node_key.json file
+func (cfg BaseConfig) VerifierAddressFile() string {
+	return rootify(cfg.VerifierAddress, cfg.RootDir)
+}
+
+// VerifierAbiFile returns the full path to the node_key.json file
+func (cfg BaseConfig) VerifierAbiFile() string {
+	return rootify(cfg.VerifierAbi, cfg.RootDir)
+}
+
+// AccountPrivKeyFile returns the full path to the node_key.json file
+func (cfg BaseConfig) AccountPrivKeyFile() string {
+	return rootify(cfg.AccountPrivKey, cfg.RootDir)
+}
+
+// AccountAddressFile returns the full path to the node_key.json file
+func (cfg BaseConfig) AccountAddressFile() string {
+	return rootify(cfg.AccountAddress, cfg.RootDir)
+}
+
 // LoadNodeKey loads NodeKey located in filePath.
 func (cfg BaseConfig) LoadNodeKeyID() (types.NodeID, error) {
 	jsonBytes, err := ioutil.ReadFile(cfg.NodeKeyFile())
@@ -302,6 +348,26 @@ func (cfg BaseConfig) LoadNodeKeyID() (types.NodeID, error) {
 // LoadOrGenNodeKey attempts to load the NodeKey from the given filePath. If
 // the file does not exist, it generates and saves a new NodeKey.
 func (cfg BaseConfig) LoadOrGenNodeKeyID() (types.NodeID, error) {
+	if tmos.FileExists(cfg.NodeKeyFile()) {
+		nodeKey, err := cfg.LoadNodeKeyID()
+		if err != nil {
+			return "", err
+		}
+		return nodeKey, nil
+	}
+
+	nodeKey := types.GenNodeKey()
+
+	if err := nodeKey.SaveAs(cfg.NodeKeyFile()); err != nil {
+		return "", err
+	}
+
+	return nodeKey.ID, nil
+}
+
+// LoadOrGenNodeKey attempts to load the NodeKey from the given filePath. If
+// the file does not exist, it generates and saves a new NodeKey.
+func (cfg BaseConfig) LoadVerifierDetails() (types.NodeID, error) {
 	if tmos.FileExists(cfg.NodeKeyFile()) {
 		nodeKey, err := cfg.LoadNodeKeyID()
 		if err != nil {

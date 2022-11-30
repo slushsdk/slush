@@ -36,8 +36,6 @@ func main() {
 		debug.DebugCmd,
 		cli.NewCompletionCmd(rootCmd, true),
 	)
-	//Deploy cairo contract
-
 	// NOTE:
 	// Users wishing to:
 	//	* Use an external signer for their validators

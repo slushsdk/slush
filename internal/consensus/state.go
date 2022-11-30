@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"runtime/debug"
 	"sort"
 	"time"
@@ -35,6 +34,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/tendermint/tendermint/smartcontracts"
 	"github.com/tendermint/tendermint/types"
 )
 
@@ -113,9 +113,7 @@ type State struct {
 	privValidatorPubKey crypto.PubKey
 
 	//Added for stark. Used to communicate with
-	verifierContractAddress     crypto.PubKey
-	verifierContractAbiLocation string
-	walletPrivateKey            crypto.PrivKey
+	verifierDetails types.VerifierDetails
 
 	// state changes may be triggered by: msgs from peers,
 	// msgs from ourself, or by timeouts
@@ -1794,12 +1792,12 @@ func (cs *State) finalizeCommit(height int64) {
 
 func (cs *State) FormatAndSendCommit() error {
 	logger := cs.logger.With("height", cs.Height)
-	// trustedLightB, err := cs.getLightBlock()
+	// trustedLightB, err := cs.getLightBlock(Height)
 	// if err != nil {
 	// 	return err
 	// }
 
-	// untrustedLightB, err := cs.getLightBlock()
+	// untrustedLightB, err := cs.getLightBlock(Height)
 	// if err != nil {
 	// 	return err
 	// }
@@ -1812,14 +1810,11 @@ func (cs *State) FormatAndSendCommit() error {
 	// trustedLightBFormat := FormatLightBlock(trustedLightB)
 	// untrustedLightBFormat := FormatLightBlock(untrustedLightB)
 	// validatorsFormat := FormatVals(validators)
-	cmd := exec.Command("starknet", "invoke", "--address", "0x0133e47cb63dc572bb8296cdc401cc08639cb712201f80eed4b6e95b0b20ba0b", "--abi", "../../tendermint-cairo/build/main_abi.json", "--function", "externalVerifyAdjacent", "--inputs")
 
-	stdout, err := cmd.CombinedOutput()
-
+	stdout, err := smartcontracts.Invoke(cs.verifierDetails)
 	if err != nil {
 		return err
 	}
-
 	logger.Info(string(stdout))
 
 	return nil

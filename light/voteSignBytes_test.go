@@ -78,7 +78,7 @@ func TestFormatLightBlock(t *testing.T) {
 		time = TimestampData(nanos =` + fmt.Sprint(trustedtimeNano) + `),  
 		last_block_id = BlockIDData(hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastBlockID.Hash)) + `, 
 		part_set_header = PartSetHeaderData(total = ` + fmt.Sprint((trustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Total)) + `,
-		 hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Hash)) + `)),
+		hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastBlockID.PartSetHeader.Hash)) + `)),
 		last_commit_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.LastCommitHash)) + `,
 		data_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.DataHash)) + `,
 		validators_hash = ` + fmt.Sprint(big.NewInt(0).SetBytes(trustedLightB.SignedHeader.Header.ValidatorsHash)) + `,
@@ -398,4 +398,32 @@ func TestDeployTX(t *testing.T) {
 	cmd := exec.Command("starknet", "invoke", "--address", "0x0133e47cb63dc572bb8296cdc401cc08639cb712201f80eed4b6e95b0b20ba0b", "--abi", "../../tendermint-cairo/build/main_abi.json", "--function", "externalVerifyAdjacent", "--inputs", "2", "3", "5", "6")
 	stdout, err := cmd.CombinedOutput()
 	fmt.Println(string(stdout), err)
+}
+
+func TestDeclareDeploy(t *testing.T) {
+	//Deploy cairo contract
+	cmd := exec.Command("starknet", "declare", "--contract", "../../tendermint-cairo/build/main.json")
+
+	stdout, err := cmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Println(string(stdout))
+		fmt.Println("Failed to declare Cairo contracts", err)
+		return
+	}
+
+	fmt.Println(string(stdout))
+
+	//Deploy cairo contract
+	deploycmd := exec.Command("starknet", "deploy", "--address", "0x0133e47cb63dc572bb8296cdc401cc08639cb712201f80eed4b6e95b0b20ba0b", "--abi", "../../tendermint-cairo/build/main_abi.json", "--function", "externalVerifyAdjacent", "--inputs")
+
+	deploystdout, err := deploycmd.CombinedOutput()
+
+	if err != nil {
+		fmt.Println(string(deploystdout))
+		fmt.Println("Failed to deploy Cairo contracts", err)
+		return
+	}
+
+	fmt.Println(string(deploystdout))
 }

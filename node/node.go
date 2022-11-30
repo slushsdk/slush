@@ -100,6 +100,11 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 		)
 	}
 
+	verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
+	}
+
 	var pval *privval.FilePV
 	if cfg.Mode == config.ModeValidator {
 		pval, err = privval.LoadOrGenFilePV(cfg.PrivValidator.KeyFile(), cfg.PrivValidator.StateFile())
@@ -112,7 +117,8 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 
 	appClient, _ := proxy.DefaultClientCreator(cfg.ProxyApp, cfg.ABCI, cfg.DBDir())
 
-	return makeNode(cfg,
+	return makeNode(
+		cfg,
 		pval,
 		nodeKey,
 		appClient,
@@ -122,10 +128,15 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 	)
 }
 
+func AddVerifierDetails(state consensus.State, vd types.VerifierDetails) {
+	state.verifierDetails = vd
+}
+
 // makeNode returns a new, ready to go, Tendermint Node.
 func makeNode(cfg *config.Config,
 	privValidator types.PrivValidator,
 	nodeKey types.NodeKey,
+	verifierDetails types.VerifierDetails,
 	clientCreator abciclient.Creator,
 	genesisDocProvider genesisDocProvider,
 	dbProvider config.DBProvider,
@@ -284,6 +295,7 @@ func makeNode(cfg *config.Config,
 	mpReactorShim, mpReactor, mp, err := createMempoolReactor(
 		cfg, proxyApp, state, nodeMetrics.mempool, peerManager, router, logger,
 	)
+	AddVerifierDetails(csState, verifierDetails)
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 
