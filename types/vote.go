@@ -99,7 +99,7 @@ func VoteSignBytes(chainID string, vote *tmproto.Vote) []byte {
 	bz := HashCanonicalVoteNoTime(pb)
 	timeb := make([]byte, 8)
 	binary.BigEndian.PutUint64(timeb, uint64(vote.GetTimestamp().UnixNano()))
-
+	fmt.Println("hello line 158", append(timeb, bz...))
 	return append(timeb, bz...)
 
 }
