@@ -92,7 +92,7 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 	if canVote.BlockID == nil {
 		blockIDHash = []byte{}
 	} else {
-		blockIDHash = BlockIDHasher(*canVote.GetBlockID())
+		blockIDHash = HashBlockID(*canVote.GetBlockID())
 	}
 
 	//timestampHash := HashTime(canVote.Timestamp)
@@ -144,13 +144,13 @@ func HashTime(timeStamp time.Time) []byte {
 
 }
 
-func BlockIDHasher(m tmproto.CanonicalBlockID) []byte {
+func HashBlockID(m tmproto.CanonicalBlockID) []byte {
 
-	return crypto.Checksum(append(m.GetHash(), CPSetHeaderHasher(m.GetPartSetHeader())...))
+	return crypto.Checksum(append(m.GetHash(), HashCPSetHeader(m.GetPartSetHeader())...))
 
 }
 
-func CPSetHeaderHasher(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
+func HashCPSetHeader(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
 	//The organising principle is for hashes we put it directly into the hasher,
 	// for other formats we hash them seperately first
 

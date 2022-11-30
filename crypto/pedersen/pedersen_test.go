@@ -1,6 +1,7 @@
 package pedersen_test
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -42,6 +43,59 @@ func TestPedersenHash(t *testing.T) {
 
 	resultInt := new(big.Int).SetBytes(result)
 	expected, _ := new(big.Int).SetString("2760604002641969939589959074508015067181730793437535659828168196846743269396", 10)
+	require.True(t, resultInt.Cmp(expected) == 0)
+}
+
+//Also run in Cairo.
+func TestPedersenIntArray(t *testing.T) {
+	hasher := pedersen.New()
+
+	hasher.Write(pedersen.ByteRounder([]byte{101}))
+	hasher.Write(pedersen.ByteRounder([]byte{102}))
+	hasher.Write(pedersen.ByteRounder([]byte{103}))
+
+	result := hasher.Sum(nil)
+
+	resultInt := new(big.Int).SetBytes(result)
+	expected, _ := new(big.Int).SetString("1994640893838454634213538779823238090002580381689518562403970955531880917799", 10)
+	require.True(t, resultInt.Cmp(expected) == 0)
+}
+
+func TestPedersenIntArray2(t *testing.T) {
+	hasher := pedersen.New()
+
+	hasher.Write(pedersen.ByteRounder(big.NewInt(8387236823862306913).Bytes()))
+	hasher.Write(pedersen.ByteRounder(big.NewInt(7597059414893672244).Bytes()))
+	hasher.Write(pedersen.ByteRounder(big.NewInt(89).Bytes()))
+
+	result := hasher.Sum(nil)
+
+	resultInt := new(big.Int).SetBytes(result)
+
+	hasher2 := pedersen.New()
+	hasher2.Write(append(make([]byte, 7), []byte("test-chain-IrF74Y")...))
+	fmt.Println([]byte("test-chain-IrF74Y"))
+	expected := big.NewInt(0).SetBytes(hasher2.Sum(nil))
+
+	fmt.Println(expected)
+	fmt.Println(resultInt)
+	require.True(t, resultInt.Cmp(expected) == 0)
+}
+
+//Also run in Cairo.
+func TestPedersenHashFeltArray(t *testing.T) {
+	hasher := pedersen.New()
+
+	//we write the zeros for padding to simulate hashing a felt
+
+	hasher.Write(append(make([]byte, 24), pedersen.ByteRounder(([]byte{104}))...))
+	hasher.Write(append(make([]byte, 24), pedersen.ByteRounder(([]byte{105}))...))
+
+	result := hasher.Sum(nil)
+
+	resultInt := new(big.Int).SetBytes(result)
+	fmt.Println(resultInt)
+	expected, _ := new(big.Int).SetString("2646498606925522204838679506445363388192401594606070690927100495992848444995", 10)
 	require.True(t, resultInt.Cmp(expected) == 0)
 }
 
