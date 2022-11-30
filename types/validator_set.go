@@ -347,7 +347,7 @@ func (vals *ValidatorSet) findProposer() *Validator {
 func (vals *ValidatorSet) Hash() []byte {
 	bzs := make([][]byte, len(vals.Validators))
 	for i, val := range vals.Validators {
-		bzs[i] = val.Bytes()
+		bzs[i] = val.Hash()
 	}
 	return merkle.HashFromByteSlices(bzs)
 }
