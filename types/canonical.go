@@ -77,15 +77,20 @@ func CanonicalTime(t time.Time) string {
 
 func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 
-	var voteArray []byte
 	typeByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(typeByte, uint64(canVote.Type))
+	hasherForType := ihash.New()
+	hasherForType.Write(typeByte)
 
 	heightByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
+	hasherForHeight := ihash.New()
+	hasherForHeight.Write(heightByte)
 
 	roundByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
+	hasherForRound := ihash.New()
+	hasherForRound.Write(roundByte)
 
 	var blockIDHash []byte
 	if canVote.BlockID == nil {
@@ -97,7 +102,11 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 	//timestampHash := HashTime(canVote.Timestamp)
 
 	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainID))
-	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, chainIDByte}, make([]byte, 0))
+	hasherForChainID := ihash.New()
+	hasherForChainID.Write(chainIDByte)
+
+	var voteArray []byte
+	voteArray = bytes.Join([][]byte{hasherForType.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), blockIDHash, hasherForChainID.Sum(nil)}, make([]byte, 0))
 	hasher := ihash.New()
 	hasher.Write(voteArray)
 	r := hasher.Sum(nil)
@@ -107,19 +116,26 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 
 func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 
-	var voteArray []byte
-
 	extensionByte := ihash.ByteRounder(canVote.Extension)
+	hasherForExtension := ihash.New()
+	hasherForExtension.Write(extensionByte)
 
 	heightByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
+	hasherForHeight := ihash.New()
+	hasherForHeight.Write(heightByte)
 
 	roundByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
+	hasherForRound := ihash.New()
+	hasherForRound.Write(roundByte)
 
 	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainId))
+	hasherForChainID := ihash.New()
+	hasherForChainID.Write(chainIDByte)
 
-	voteArray = bytes.Join([][]byte{extensionByte, heightByte, roundByte, chainIDByte}, make([]byte, 0))
+	var voteArray []byte
+	voteArray = bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
 	hasher := ihash.New()
 	hasher.Write(voteArray)
 	r := hasher.Sum(nil)
@@ -147,11 +163,16 @@ func BlockIDHasher(m tmproto.CanonicalBlockID) []byte {
 }
 
 func CPSetHeaderHasher(canPartSetHeader tmproto.CanonicalPartSetHeader) []byte {
+	//The organising principle is for hashes we put it directly into the hasher,
+	// for other formats we hash them seperately first
+
+	totalb := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(totalb, uint64(canPartSetHeader.Total))
+	hasherForTotal := ihash.New()
+	hasherForTotal.Write(totalb)
 
 	hasher := ihash.New()
-	b := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(b, uint64(canPartSetHeader.Total))
-	hasher.Write(b)
+	hasher.Write(hasherForTotal.Sum(nil))
 	hasher.Write(canPartSetHeader.Hash)
 
 	r := hasher.Sum(nil)

@@ -24,6 +24,6 @@ func ByteRounder(ba []byte) []byte {
 	//we add len
 	rem := len(ba) % 8
 	rem = (8 - rem) % 8
-	return append(ba, make([]byte, rem)...)
+	return append(make([]byte, rem), ba...)
 
 }

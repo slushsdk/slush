@@ -168,7 +168,6 @@ func signVotes(
 	header types.PartSetHeader,
 	vss ...*validatorStub) []*types.Vote {
 	votes := make([]*types.Vote, len(vss))
-	// fmt.Println("line 185 STARTING signVotes")
 
 	for i, vs := range vss {
 		votes[i] = signVote(vs, cfg, voteType, hash, header)
@@ -257,7 +256,6 @@ func decideProposal(
 
 func addVotes(to *State, votes ...*types.Vote) {
 	for _, vote := range votes {
-		// fmt.Println("line 276 Adding vote" + fmt.Sprint(i) + "__________________________________________________")
 
 		to.peerMsgQueue <- msgInfo{Msg: &VoteMessage{vote}}
 	}
