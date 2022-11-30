@@ -121,6 +121,7 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 		cfg,
 		pval,
 		nodeKey,
+		verifierDetails,
 		appClient,
 		defaultGenesisDocProviderFunc(cfg),
 		config.DefaultDBProvider,
@@ -128,8 +129,8 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 	)
 }
 
-func AddVerifierDetails(state consensus.State, vd types.VerifierDetails) {
-	state.verifierDetails = vd
+func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
+	state.VerifierDetails = vd
 }
 
 // makeNode returns a new, ready to go, Tendermint Node.

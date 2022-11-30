@@ -5,7 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"runtime/debug"
 	"sort"
@@ -113,7 +115,7 @@ type State struct {
 	privValidatorPubKey crypto.PubKey
 
 	//Added for stark. Used to communicate with
-	verifierDetails types.VerifierDetails
+	VerifierDetails types.VerifierDetails
 
 	// state changes may be triggered by: msgs from peers,
 	// msgs from ourself, or by timeouts
@@ -1792,26 +1794,20 @@ func (cs *State) finalizeCommit(height int64) {
 
 func (cs *State) FormatAndSendCommit() error {
 	logger := cs.logger.With("height", cs.Height)
-	// trustedLightB, err := cs.getLightBlock(Height)
-	// if err != nil {
-	// 	return err
-	// }
+	trustedLightB, err := cs.getLightBlock(cs.Height - 1)
+	if err != nil {
+		return err
+	}
 
-	// untrustedLightB, err := cs.getLightBlock(Height)
-	// if err != nil {
-	// 	return err
-	// }
+	untrustedLightB, err := cs.getLightBlock(cs.Height)
+	if err != nil {
+		return err
+	}
 
-	// validators, err := cs.stateStore.LoadValidators(cs.Height)
-	// if err != nil {
-	// 	return err
-	// }
+	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
+	FormatExternal(trustedLightB, untrustedLightB, trustedLightB.ValidatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
 
-	// trustedLightBFormat := FormatLightBlock(trustedLightB)
-	// untrustedLightBFormat := FormatLightBlock(untrustedLightB)
-	// validatorsFormat := FormatVals(validators)
-
-	stdout, err := smartcontracts.Invoke(cs.verifierDetails)
+	stdout, err := smartcontracts.Invoke(cs.VerifierDetails)
 	if err != nil {
 		return err
 	}
@@ -1820,14 +1816,14 @@ func (cs *State) FormatAndSendCommit() error {
 	return nil
 }
 
-func (cs *State) getLightBlock() (types.LightBlock, error) {
-	signedHeader, err := getSignedHeader(cs.blockStore, cs.Height)
+func (cs *State) getLightBlock(height int64) (types.LightBlock, error) {
+	signedHeader, err := getSignedHeader(cs.blockStore, height)
 
 	if err != nil {
 		return types.LightBlock{}, err
 	}
 
-	validators, err := cs.stateStore.LoadValidators(cs.Height)
+	validators, err := cs.stateStore.LoadValidators(height)
 	if err != nil {
 		return types.LightBlock{}, err
 	}
