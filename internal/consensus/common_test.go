@@ -39,8 +39,9 @@ import (
 const (
 	testSubscriber = "test-client"
 
+	multiplier = 250
 	// genesis, chain_id, priv_val
-	ensureTimeout = 5 * time.Millisecond * 200
+	ensureTimeout = multiplier * time.Millisecond * 200
 )
 
 // A cleanupFunc cleans up any config / test files created for a particular
@@ -504,14 +505,14 @@ func ensureNoNewEvent(ch <-chan tmpubsub.Message, timeout time.Duration,
 func ensureNoNewEventOnChannel(ch <-chan tmpubsub.Message) {
 	ensureNoNewEvent(
 		ch,
-		ensureTimeout,
+		1/100*ensureTimeout,
 		"We should be stuck waiting, not receiving new event on the channel")
 }
 
 func ensureNoNewRoundStep(stepCh <-chan tmpubsub.Message) {
 	ensureNoNewEvent(
 		stepCh,
-		ensureTimeout,
+		1/multiplier*ensureTimeout,
 		"We should be stuck waiting, not receiving NewRoundStep event")
 }
 
