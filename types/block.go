@@ -5,6 +5,7 @@ import (
 	encoding_binary "encoding/binary"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -458,13 +459,46 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	if h.LastBlockID.IsNil() {
 		bzbi = make([]byte, 8)
 	} else {
-		bzbi = BlockIDHasher(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
+		bzbi = HashBlockID(*CanonicalizeBlockID(h.LastBlockID.ToProto()))
 	}
 
-	chainIDB := []byte(h.ChainID)
+	chainIDB := abstractions.ByteRounder([]byte(h.ChainID))
 
 	heightB := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(heightB, uint64(h.Height))
+
+	fmt.Println(
+		big.NewInt(0).SetBytes(abstractions.ByteRounder(hbz)), "\n",
+		big.NewInt(0).SetBytes(crypto.Checksum(chainIDB)), "\n",
+		big.NewInt(0).SetBytes(crypto.Checksum(heightB)), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder(pbt)), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder(bzbi)), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.LastCommitHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder(h.DataHash)), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.ValidatorsHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.NextValidatorsHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.ConsensusHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.AppHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.LastResultsHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.EvidenceHash))), "\n",
+		big.NewInt(0).SetBytes(abstractions.ByteRounder([]byte(h.ProposerAddress))))
+
+	fmt.Println(big.NewInt(0).SetBytes(merkle.HashFromByteSlices([][]byte{
+		abstractions.ByteRounder(hbz),
+		crypto.Checksum(chainIDB),
+		crypto.Checksum(heightB),
+		abstractions.ByteRounder(pbt),
+		abstractions.ByteRounder(bzbi),
+		abstractions.ByteRounder([]byte(h.LastCommitHash)),
+		abstractions.ByteRounder(h.DataHash),
+		abstractions.ByteRounder([]byte(h.ValidatorsHash)),
+		abstractions.ByteRounder([]byte(h.NextValidatorsHash)),
+		abstractions.ByteRounder([]byte(h.ConsensusHash)),
+		abstractions.ByteRounder([]byte(h.AppHash)),
+		abstractions.ByteRounder([]byte(h.LastResultsHash)),
+		abstractions.ByteRounder([]byte(h.EvidenceHash)),
+		abstractions.ByteRounder([]byte(h.ProposerAddress)),
+	})))
 
 	return merkle.HashFromByteSlices([][]byte{
 		abstractions.ByteRounder(hbz),

@@ -2,6 +2,8 @@ package merkle
 
 import (
 	"encoding/hex"
+	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +18,18 @@ type testItem []byte
 
 func (tI testItem) Hash() []byte {
 	return []byte(tI)
+}
+
+func TestCompareCairo(t *testing.T) {
+
+	a0 := append(make([]byte, 31), []byte{05}...)
+	a1 := append(make([]byte, 31), []byte{10}...)
+	a2 := append(make([]byte, 31), []byte{15}...)
+	a3 := append(make([]byte, 31), []byte{20}...)
+
+	a := [][]byte{a0, a1, a2, a3}
+	b := big.NewInt(0).SetBytes(HashFromByteSlices(a))
+	fmt.Println(b)
 }
 
 func TestHashFromByteSlices(t *testing.T) {
