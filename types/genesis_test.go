@@ -63,6 +63,17 @@ func TestGenesisBad(t *testing.T) {
 
 func TestGenesisGood(t *testing.T) {
 	// test a good one by raw json
+
+	var pv = stark.GenPrivKey()
+
+	var pb = pv.PubKey()
+	var pbb, _ = json.Marshal(pb)
+	var pbJSON = string(pbb)
+
+	var pbname = "\"" + pb.TypeTag() + "\""
+
+	var name = "\"" + pb.Type() + "\""
+
 	genDocBytes := []byte(
 		`{
 			"genesis_time": "0001-01-01T00:00:00Z",
@@ -70,7 +81,7 @@ func TestGenesisGood(t *testing.T) {
 			"initial_height": "1000",
 			"consensus_params": null,
 			"validators": [{
-				"pub_key":{"type":"tendermint/PubKeyStark","value":"AT/+8f10f86d337f7d1b98b43027e0b99164adaa06b03801c9686fc4643875ee25a7="},
+				"pub_key":{"type":` + pbname + `,"value":` + pbJSON + `},
 				"power":"10",
 				"name":""
 			}],
@@ -78,9 +89,6 @@ func TestGenesisGood(t *testing.T) {
 			"app_state":{"account_owner": "Bob"}
 		}`,
 	)
-	pb2 := stark.GenPrivKey().PubKey()
-	pbb, _ := jsontypes.Marshal(pb2)
-	fmt.Println(string(pbb), "hello")
 
 	_, err := GenesisDocFromJSON(genDocBytes)
 	assert.NoError(t, err, "expected no error for good genDoc json")
