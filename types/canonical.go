@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	encoding_binary "encoding/binary"
+	"fmt"
 	time "time"
 
 	ihash "github.com/tendermint/tendermint/crypto/abstractions"
@@ -97,7 +98,7 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 	//timestampHash := HashTime(canVote.Timestamp)
 
 	chainIDByte := ihash.ByteRounder([]byte(canVote.ChainID))
-
+	fmt.Println("hello line 114", canVote.Type, canVote.Height, canVote.Round, canVote.BlockID, canVote.ChainID, canVote.Timestamp)
 	voteArray = bytes.Join([][]byte{typeByte, heightByte, roundByte, blockIDHash, chainIDByte}, make([]byte, 0))
 	hasher := ihash.New()
 	hasher.Write(voteArray)

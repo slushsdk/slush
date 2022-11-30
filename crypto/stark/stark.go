@@ -240,7 +240,11 @@ func UnmarshalCompressedStark(curve weierstrass.Curve, data []byte) PublicKey {
 	x := new(big.Int).SetBytes(data[:32])
 	y := new(big.Int).SetBytes(data[32:])
 
-	pb := PublicKey{weierstrass.Stark(), x, y}
+	if !curve.IsOnCurve(x, y) {
+		return PublicKey{}
+	}
+
+	pb := PublicKey{curve, x, y}
 
 	return pb
 }
