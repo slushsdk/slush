@@ -1,4 +1,4 @@
-//nolint: gosec
+// nolint: gosec
 package e2e
 
 import (
@@ -16,6 +16,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/tendermint/crypto/stark"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"github.com/tendermint/tendermint/types"
 )
@@ -139,7 +140,7 @@ func LoadTestnet(file string) (*Testnet, error) {
 		ValidatorUpdates: map[int64]map[*Node]int64{},
 		Nodes:            []*Node{},
 		Evidence:         manifest.Evidence,
-		KeyType:          "ed25519",
+		KeyType:          "stark",
 		LogLevel:         manifest.LogLevel,
 		TxSize:           manifest.TxSize,
 		ABCIProtocol:     manifest.ABCIProtocol,
@@ -170,7 +171,7 @@ func LoadTestnet(file string) (*Testnet, error) {
 			Name:             name,
 			Testnet:          testnet,
 			PrivvalKey:       keyGen.Generate(manifest.KeyType),
-			NodeKey:          keyGen.Generate("ed25519"),
+			NodeKey:          keyGen.Generate("stark"),
 			IP:               ipGen.Next(),
 			ProxyPort:        proxyPortGen.Next(),
 			Mode:             ModeValidator,
@@ -304,7 +305,7 @@ func (t Testnet) Validate() error {
 		return errors.New("network has no nodes")
 	}
 	switch t.KeyType {
-	case "", types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1:
+	case "", types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1, types.ABCIPubKeyTypeStark:
 	default:
 		return errors.New("unsupported KeyType")
 	}
@@ -501,8 +502,11 @@ func (g *keyGenerator) Generate(keyType string) crypto.PrivKey {
 	switch keyType {
 	case "secp256k1":
 		return secp256k1.GenPrivKeySecp256k1(seed)
-	case "", "ed25519":
+	case "ed25519":
 		return ed25519.GenPrivKeyFromSecret(seed)
+	case "", "stark":
+		return stark.GenPrivKeyFromSecret(seed)
+
 	default:
 		panic("KeyType not supported") // should not make it this far
 	}

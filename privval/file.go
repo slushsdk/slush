@@ -3,24 +3,22 @@ package privval
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"time"
-
-	"github.com/gogo/protobuf/proto"
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/internal/jsontypes"
-	"github.com/tendermint/tendermint/internal/libs/protoio"
 	"github.com/tendermint/tendermint/internal/libs/tempfile"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmos "github.com/tendermint/tendermint/libs/os"
-	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/types"
 )
@@ -416,24 +414,16 @@ func (pv *FilePV) saveSigned(height int64, round int32, step int8,
 
 //-----------------------------------------------------------------------------------------
 
-// returns the timestamp from the lastSignBytes.
-// returns true if the only difference in the votes is their timestamp.
+// Returns the timestamp from the lastSignBytes.
+// Returns true if the only difference in the votes is their timestamp.
+// Performs these checks on the canonical votes (excluding the vote extension
+// and vote extension signatures).
 func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.Time, bool) {
-	var lastVote, newVote tmproto.CanonicalVote
-	if err := protoio.UnmarshalDelimited(lastSignBytes, &lastVote); err != nil {
-		panic(fmt.Sprintf("LastSignBytes cannot be unmarshalled into vote: %v", err))
-	}
-	if err := protoio.UnmarshalDelimited(newSignBytes, &newVote); err != nil {
-		panic(fmt.Sprintf("signBytes cannot be unmarshalled into vote: %v", err))
-	}
 
-	lastTime := lastVote.Timestamp
-	// set the times to the same value and check equality
-	now := tmtime.Now()
-	lastVote.Timestamp = now
-	newVote.Timestamp = now
+	lastTime := lastSignBytes[:8]
+	lastTimeUnix := time.Unix(0, int64(binary.BigEndian.Uint64(lastTime))).UTC()
 
-	return lastTime, proto.Equal(&newVote, &lastVote)
+	return lastTimeUnix, bytes.Equal(lastSignBytes[8:], newSignBytes[8:])
 }
 
 // returns the timestamp from the lastSignBytes.

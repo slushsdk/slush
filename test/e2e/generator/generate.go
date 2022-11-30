@@ -64,7 +64,7 @@ var (
 	}
 	evidence = uniformChoice{0, 1, 10}
 	ipv6     = uniformChoice{false, true}
-	keyType  = uniformChoice{types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1}
+	keyType  = uniformChoice{types.ABCIPubKeyTypeEd25519, types.ABCIPubKeyTypeSecp256k1, types.ABCIPubKeyTypeStark}
 )
 
 // Generate generates random testnets using the given RNG.

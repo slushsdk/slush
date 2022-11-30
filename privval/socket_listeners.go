@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 )
 
 const (
@@ -43,7 +43,7 @@ var _ net.Listener = (*TCPListener)(nil)
 type TCPListener struct {
 	*net.TCPListener
 
-	secretConnKey ed25519.PrivKey
+	secretConnKey stark.PrivKey
 
 	timeoutAccept    time.Duration
 	timeoutReadWrite time.Duration
@@ -51,7 +51,7 @@ type TCPListener struct {
 
 // NewTCPListener returns a listener that accepts authenticated encrypted connections
 // using the given secretConnKey and the default timeout values.
-func NewTCPListener(ln net.Listener, secretConnKey ed25519.PrivKey) *TCPListener {
+func NewTCPListener(ln net.Listener, secretConnKey stark.PrivKey) *TCPListener {
 	return &TCPListener{
 		TCPListener:      ln.(*net.TCPListener),
 		secretConnKey:    secretConnKey,
