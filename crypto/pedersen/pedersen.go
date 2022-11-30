@@ -94,16 +94,16 @@ func pedersenHashFelt(b [32]byte) []byte {
 }
 
 func pedersenHashFeltArray(b []byte) []byte {
-	chunks := utils.Split(b, 16)
+	chunks := utils.Split(b, 32)
 
 	if len(chunks) == 0 {
 		return Digest(big.NewInt(0), big.NewInt(0)).Bytes()
 	}
 	lastWordSize := len(chunks[len(chunks)-1])
-	isLastWordFull := lastWordSize == 16
+	isLastWordFull := lastWordSize == 32
 
 	if !isLastWordFull {
-		remainingBytes := 16 - lastWordSize
+		remainingBytes := 32 - lastWordSize
 		leadingBytes := make([]byte, remainingBytes)
 		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
 	}
