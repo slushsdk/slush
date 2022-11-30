@@ -1,4 +1,4 @@
-package abstractions_test
+package pedersen_test
 
 import (
 	"fmt"
@@ -6,15 +6,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 )
 
-type snapshotKey [ihash.Size]byte
+type snapshotKey [pedersen.Size]byte
 
 // the purpose of this test is primarily to ensure that the randomness
 // generation won't error.
 func TestHasher(t *testing.T) {
-	hasher := ihash.New()
+	hasher := pedersen.New()
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 10, 10)))
 	hasher.Write([]byte(fmt.Sprintf("%v:%v:%v", 10, 50, 10)))
 
@@ -29,7 +29,7 @@ func TestHasher(t *testing.T) {
 func TestByteRounder(t *testing.T) {
 	ba := []byte("asdv")
 	n := big.NewInt(0).SetBytes(ba)
-	m := big.NewInt(0).SetBytes(ihash.ByteRounder(ba))
+	m := big.NewInt(0).SetBytes(pedersen.ByteRounder(ba))
 
 	require.Equal(t, n.Cmp(m), 0)
 }

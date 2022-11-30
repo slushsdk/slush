@@ -349,11 +349,13 @@ func (l *LightClientAttackEvidence) ConflictingHeaderIsInvalid(trustedHeader *He
 // validators and timestamp
 func (l *LightClientAttackEvidence) Hash() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
-	n := binary.PutVarint(buf, l.CommonHeight)
-	bz := make([]byte, tmhash.Size+n)
+	binary.BigEndian.PutVarint(buf, l.CommonHeight)
+	commonHeightHash := crypto.Checksum(buf)
+
+	bz := make([]byte, 2*tmhash.Size)
 	copy(bz[:crypto.HashSize-1], l.ConflictingBlock.Hash().Bytes())
-	copy(bz[crypto.HashSize:], buf)
-	return crypto.CheckSum(bz)
+	copy(bz[crypto.HashSize:], commonHeightHash)
+	return crypto.CheckSumFelt(bz)
 }
 
 // Height returns the last height at which the primary provider and witness provider had the same header.

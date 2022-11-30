@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/bits"
@@ -377,11 +377,11 @@ func TestHeaderHash(t *testing.T) {
 					case int64:
 						fB := make([]byte, 8)
 						encoding_binary.BigEndian.PutUint64(fB, uint64(f))
-						byteSlices = append(byteSlices, ihash.ByteRounder(fB))
+						byteSlices = append(byteSlices, pedersen.ByteRounder(fB))
 					case bytes.HexBytes:
-						byteSlices = append(byteSlices, ihash.ByteRounder(f))
+						byteSlices = append(byteSlices, pedersen.ByteRounder(f))
 					case string:
-						byteSlices = append(byteSlices, ihash.ByteRounder([]byte(f)))
+						byteSlices = append(byteSlices, pedersen.ByteRounder([]byte(f)))
 					case time.Time:
 						bz := HashTime(f)
 

@@ -15,7 +15,7 @@ import (
 type VerifierDetails struct {
 	verifierAddress     *big.Int
 	verifierAbiLocation string
-	accountPrivKey      *big.Int
+	AccountPrivKeyPath  string
 	accountAddress      *big.Int
 }
 
@@ -32,6 +32,11 @@ func (vd *VerifierDetails) UnmarshalJSON(data []byte) error {
 }
 
 // Returns the verifier's Address
+func NewVerifierDetails(verifierAddress *big.Int, verifierAddressPath string, AccountPrivKeyPath string, accountAddress *big.Int) VerifierDetails {
+	return VerifierDetails{verifierAddress, verifierAddressPath, AccountPrivKeyPath, accountAddress}
+}
+
+// Returns the verifier's Address
 func (vd VerifierDetails) VerifierAddress() *big.Int {
 	return vd.verifierAddress
 }
@@ -42,8 +47,8 @@ func (vd VerifierDetails) VerifierAbiLocation() string {
 }
 
 // Returns the account's privkey
-func (vd VerifierDetails) AccountPrivKey() *big.Int {
-	return vd.accountPrivKey
+func (vd VerifierDetails) AccountPrivKey() string {
+	return vd.AccountPrivKeyPath
 }
 
 // Returns the account's Address
@@ -74,7 +79,7 @@ func (vd VerifierDetails) SaveAs(verifierAddressPath string, verifierAbiPath str
 	if err != nil {
 		return err
 	}
-	jsonBytes, err = json.Marshal(vd.accountPrivKey)
+	jsonBytes, err = json.Marshal(vd.AccountPrivKeyPath)
 	if err != nil {
 		return err
 	}
@@ -121,16 +126,6 @@ func LoadVerifierDetails(verifierAddressPath string, verifierAbiPath string, acc
 		return VerifierDetails{}, err
 	}
 
-	jsonBytes, err = os.ReadFile(accountPrivKeyPath)
-	if err != nil {
-		return VerifierDetails{}, err
-	}
-	accountPrivKey := big.NewInt(0)
-	err = json.Unmarshal(jsonBytes, &accountPrivKey)
-	if err != nil {
-		return VerifierDetails{}, err
-	}
-
 	jsonBytes, err = os.ReadFile(accountAddressPath)
 	if err != nil {
 		return VerifierDetails{}, err
@@ -141,6 +136,6 @@ func LoadVerifierDetails(verifierAddressPath string, verifierAbiPath string, acc
 		return VerifierDetails{}, err
 	}
 
-	veriferDetails := VerifierDetails{verifierAddress, verifierAbiLocation, accountAddress, accountPrivKey}
+	veriferDetails := VerifierDetails{verifierAddress, verifierAbiLocation, accountPrivKeyPath, accountAddress}
 	return veriferDetails, nil
 }
