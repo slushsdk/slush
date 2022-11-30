@@ -5,7 +5,6 @@ import (
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/crypto/weierstrass"
 
 	"github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -27,11 +26,12 @@ func Ed25519ValidatorUpdate(pk []byte, power int64) ValidatorUpdate {
 }
 
 func StarkValidatorUpdate(pk []byte, power int64) ValidatorUpdate {
-	pke := stark.UnmarshalCompressed(weierstrass.Stark(), pk)
+	pkb := stark.PubKey(pk)
+	pke := pkb.MakeFull()
 	if pke.IsNil() {
-		pke = stark.GenPrivKeyFromSecret(pk).PubKey().(stark.PubKey)
+		pkb = stark.GenPrivKeyFromSecret(pk).PubKey().(stark.PubKey)
 	}
-	pkp, err := encoding.PubKeyToProto(pke)
+	pkp, err := encoding.PubKeyToProto(pkb)
 	if err != nil {
 		panic(err)
 	}

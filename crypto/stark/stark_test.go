@@ -30,7 +30,7 @@ func TestSignAndVerify(t *testing.T) {
 	pv := stark.GenPrivKey()
 	pb := pv.PubKey()
 
-	msg := []byte("hello  world")
+	msg := []byte("hello world")
 	sig, _ := pv.Sign(msg)
 
 	pb.VerifySignature(msg, sig)
@@ -40,7 +40,8 @@ func TestMarshalling(t *testing.T) {
 	pv := stark.GenPrivKey()
 	pb := pv.PubKey()
 
-	pb2 := stark.UnmarshalCompressed(weierstrass.Stark(), pb.Bytes())
-	require.Equal(t, pb.Equals(pb2), true)
+	pbo := stark.UnmarshalCompressedStark(weierstrass.Stark(), pb.Bytes())
+	pb2 := pbo.MarshalCompressedStark()
+	require.Equal(t, pb.Bytes(), pb2.Bytes())
 
 }

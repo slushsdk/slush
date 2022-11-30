@@ -24,13 +24,18 @@ package stark
 // [SEC 1, Version 2.0]: https://www.secg.org/sec1-v2.pdf
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/sha512"
 	"errors"
+	"hash"
 	"io"
 	"math/big"
+
+	"github.com/tendermint/tendermint/crypto/abstractions"
 
 	"github.com/tendermint/tendermint/crypto/randutil"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
@@ -57,6 +62,18 @@ const aesIV = "IV for ECDSA CTR"
 type PublicKey struct {
 	weierstrass.Curve
 	X, Y *big.Int
+}
+
+// Private key returns true if nil.
+func (pb *PublicKey) IsNil() bool {
+	if pb == nil {
+		return true
+	}
+	if pb.X.Cmp(big.NewInt(0)) == 0 {
+		return true
+
+	}
+	return false
 }
 
 // Any methods implemented on PublicKey might need to also be
@@ -90,8 +107,20 @@ type PrivateKey struct {
 }
 
 // Public returns the public key corresponding to pvt.
-func (pvt *PrivateKey) Public() crypto.PublicKey {
-	return &pvt.PublicKey
+func (pvt *PrivateKey) Public() PublicKey {
+	return pvt.PublicKey
+}
+
+// Private key returns true if nil.
+func (pvt *PrivateKey) IsNil() bool {
+	if pvt == nil {
+		return true
+	}
+	if pvt.D.Cmp(big.NewInt(0)) == 0 {
+		return true
+
+	}
+	return false
 }
 
 // Equal reports whether pvt and x have the same value.
@@ -256,6 +285,145 @@ func Sign(
 	return sign(pvt, &csprng, c, hash)
 }
 
+// func hmac(K []byte, msg []byte) []byte {
+// 	hashLen := tmcrypto.HashSize
+// 	ipad := bytes.Repeat([]byte{0x36}, hashLen)
+// 	opad := bytes.Repeat([]byte{0x5C}, hashLen)
+
+// 	hasherInner := abstractions.New()
+// 	hashInner := hasherInner.Sum(append(K^ipad, msg...))
+
+// 	hasherOuter := abstractions.New()
+// 	hashOuter := hasherOuter.Sum(append(K^opad, hashInner...))
+// 	return hashOuter
+// }
+
+// mac returns an HMAC of the given key and message.
+func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
+	h := hmac.New(alg, k)
+	h.Write(m)
+	return h.Sum(buf[:0])
+}
+
+// https://tools.ietf.org/html/rfc6979#section-2.3.2
+func bits2int(in []byte, qlen int) *big.Int {
+	vlen := len(in) * 8
+	v := new(big.Int).SetBytes(in)
+	if vlen > qlen {
+		v = new(big.Int).Rsh(v, uint(vlen-qlen))
+	}
+	return v
+}
+
+// https://tools.ietf.org/html/rfc6979#section-2.3.3
+func int2octets(v *big.Int, rolen int) []byte {
+	out := v.Bytes()
+
+	// pad with zeros if it's too short
+	if len(out) < rolen {
+		out2 := make([]byte, rolen)
+		copy(out2[rolen-len(out):], out)
+		return out2
+	}
+
+	// drop most significant bytes if it's too long
+	if len(out) > rolen {
+		out2 := make([]byte, rolen)
+		copy(out2, out[len(out)-rolen:])
+		return out2
+	}
+
+	return out
+}
+
+// https://tools.ietf.org/html/rfc6979#section-2.3.4
+func bits2octets(in []byte, q *big.Int, qlen, rolen int) []byte {
+	z1 := bits2int(in, qlen)
+	z2 := new(big.Int).Sub(z1, q)
+	if z2.Sign() < 0 {
+		return int2octets(z1, rolen)
+	}
+	return int2octets(z2, rolen)
+}
+
+// https://tools.ietf.org/html/rfc6979#section-3.2
+func generateSecret(q, x *big.Int, alg func() hash.Hash, hash []byte, test func(*big.Int) bool) *big.Int {
+	qlen := q.BitLen()
+	holen := abstractions.Size
+	rolen := (qlen + 7) >> 3
+	bx := append(int2octets(x, rolen), bits2octets(hash, q, qlen, rolen)...)
+
+	// Step B
+	v := bytes.Repeat([]byte{0x01}, holen)
+
+	// Step C
+	k := bytes.Repeat([]byte{0x00}, holen)
+
+	// Step D
+	k = mac(alg, k, append(append(v, 0x00), bx...), k)
+
+	// Step E
+	v = mac(alg, k, v, v)
+
+	// Step F
+	k = mac(alg, k, append(append(v, 0x01), bx...), k)
+
+	// Step G
+	v = mac(alg, k, v, v)
+
+	// Step H
+	for {
+		// Step H1
+		var t []byte
+
+		// Step H2
+		for len(t) < qlen/8 {
+			v = mac(alg, k, v, v)
+			t = append(t, v...)
+		}
+
+		// Step H3
+		secret := bits2int(t, qlen)
+		if secret.Cmp(one) >= 0 && secret.Cmp(q) < 0 && test(secret) {
+			return secret
+		}
+		k = mac(alg, k, append(v, 0x00), k)
+		v = mac(alg, k, v, v)
+	}
+}
+
+// SignECDSA signs an arbitrary length hash (which should be the result of
+// hashing a larger message) using the private key, priv. It returns the
+// signature as a pair of integers.
+//
+// Note that FIPS 186-3 section 4.6 specifies that the hash should be truncated
+// to the byte-length of the subgroup. This function does not perform that
+// truncation itself.
+func SignECDSA(priv *PrivateKey, hash []byte, alg func() hash.Hash) (r, s *big.Int, err error) {
+	c := priv.Curve
+	N := c.Params().N
+
+	generateSecret(N, priv.D, alg, hash, func(k *big.Int) bool {
+		inv := new(big.Int).ModInverse(k, N)
+		r, _ = priv.Curve.ScalarBaseMult(k.Bytes())
+		r.Mod(r, N)
+
+		if r.Sign() == 0 {
+			return false
+		}
+
+		e := hashToInt(hash, c)
+		s = new(big.Int).Mul(priv.D, r)
+		s.Add(s, e)
+		s.Mul(s, inv)
+		s.Mod(s, N)
+
+		return s.Sign() != 0
+	})
+
+	return
+}
+
 func sign(
 	pvt *PrivateKey,
 	csprng *cipher.StreamReader,
@@ -271,6 +439,7 @@ func sign(
 	for {
 		for {
 			k, err = randFieldElement(c, *csprng)
+
 			if err != nil {
 				r = nil
 				return
