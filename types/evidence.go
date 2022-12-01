@@ -558,7 +558,7 @@ func (evl EvidenceList) Hash() []byte {
 		// may cause different hashes
 		evidenceBzs[i] = evl[i].Bytes()
 	}
-	return merkle.HashFromByteSlices(evidenceBzs)
+	return merkle.HashFromByteSlicesInt128(evidenceBzs)
 }
 
 func (evl EvidenceList) String() string {

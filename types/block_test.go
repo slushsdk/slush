@@ -404,7 +404,7 @@ func TestHeaderHash(t *testing.T) {
 				// assert.Equal(t,
 				// 	bytes.HexBytes(dst), tc.header.Hash())
 				assert.Equal(t,
-					bytes.HexBytes(merkle.HashFromByteSlices(byteSlices)), tc.header.Hash())
+					bytes.HexBytes(merkle.HashFromByteSlicesInt128(byteSlices)), tc.header.Hash())
 			}
 		})
 	}

@@ -920,7 +920,7 @@ func (commit *Commit) Hash() tmbytes.HexBytes {
 
 			bs[i] = bz
 		}
-		commit.hash = merkle.HashFromByteSlices(bs)
+		commit.hash = merkle.HashFromByteSlicesInt128(bs)
 	}
 	return commit.hash
 }
