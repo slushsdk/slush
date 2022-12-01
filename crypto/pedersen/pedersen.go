@@ -33,15 +33,17 @@ func ByteRounderFelt(ba []byte) []byte {
 func PedersenHashInt128(b [16]byte) [32]byte {
 	bigInteger := big.NewInt(0).SetBytes(b[:])
 	zero := big.NewInt(0)
-
-	return *(*[32]byte)(Digest(bigInteger, zero).Bytes())
+	pedersenOutputBytes := ByteRounderFelt(Digest(bigInteger, zero).Bytes())
+	return *(*[32]byte)(pedersenOutputBytes)
 }
 
 func PedersenHashInt128Array(b []byte) [32]byte {
 	chunks := utils.Split(b, 16)
 
 	if len(chunks) == 0 {
-		return *(*[32]byte)(Digest(big.NewInt(0), big.NewInt(0)).Bytes())
+		zero := big.NewInt(0)
+		pedersenOutputBytes := ByteRounderFelt(Digest(zero, zero).Bytes())
+		return *(*[32]byte)(pedersenOutputBytes)
 	}
 	lastWordSize := len(chunks[len(chunks)-1])
 	isLastWordFull := lastWordSize == 16
@@ -59,21 +61,24 @@ func PedersenHashInt128Array(b []byte) [32]byte {
 	}
 
 	pedersenOutput := ArrayDigest(pedersenInput...)
-	pedersenOutputBytes := pedersenOutput.Bytes()
+	pedersenOutputBytes := ByteRounderFelt(pedersenOutput.Bytes())
 	return *(*[32]byte)(pedersenOutputBytes)
 }
 
 func PedersenHashFelt(b [32]byte) [32]byte {
 	bigInteger := big.NewInt(0).SetBytes(b[:])
 	zero := big.NewInt(0)
-	return *(*[32]byte)(Digest(bigInteger, zero).Bytes())
+	pedersenOutputBytes := ByteRounderFelt(Digest(bigInteger, zero).Bytes())
+	return *(*[32]byte)(pedersenOutputBytes)
 }
 
 func PedersenHashFeltArray(b []byte) [32]byte {
 	chunks := utils.Split(b, 32)
 
 	if len(chunks) == 0 {
-		return *(*[32]byte)(Digest(big.NewInt(0), big.NewInt(0)).Bytes())
+		zero := big.NewInt(0)
+		pedersenOutputBytes := ByteRounderFelt(Digest(zero, zero).Bytes())
+		return *(*[32]byte)(pedersenOutputBytes)
 	}
 	lastWordSize := len(chunks[len(chunks)-1])
 	isLastWordFull := lastWordSize == 32
@@ -91,7 +96,7 @@ func PedersenHashFeltArray(b []byte) [32]byte {
 	}
 
 	pedersenOutput := ArrayDigest(pedersenInput...)
-	pedersenOutputBytes := pedersenOutput.Bytes()
+	pedersenOutputBytes := ByteRounderFelt(pedersenOutput.Bytes())
 	return *(*[32]byte)(pedersenOutputBytes)
 }
 

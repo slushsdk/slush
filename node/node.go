@@ -100,11 +100,10 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 		)
 	}
 
-	// verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
-	// }
-	verifierDetails := types.VerifierDetails{}
+	verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
+	}
 
 	var pval *privval.FilePV
 	if cfg.Mode == config.ModeValidator {
@@ -297,7 +296,9 @@ func makeNode(cfg *config.Config,
 	mpReactorShim, mpReactor, mp, err := createMempoolReactor(
 		cfg, proxyApp, state, nodeMetrics.mempool, peerManager, router, logger,
 	)
+
 	AddVerifierDetails(csState, verifierDetails)
+
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 
