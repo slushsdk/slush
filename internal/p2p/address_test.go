@@ -46,7 +46,7 @@ func TestNewNodeID(t *testing.T) {
 func TestNewNodeIDFromPubKey(t *testing.T) {
 	privKey := stark.GenPrivKeyFromSecret([]byte("foo"))
 	nodeID := types.NodeIDFromPubKey(privKey.PubKey())
-	require.Equal(t, types.NodeID("29e1d898670ee24a2d1e0f6a2f56d88c1e2506ece652efb2e08e90ef4a24c1e0"), nodeID)
+	require.Equal(t, types.NodeID("02e4fbd3d5d6188996709afd10927faacb303f6d743cbb5a6a39633faf64842e"), nodeID)
 	require.NoError(t, nodeID.Validate())
 }
 
