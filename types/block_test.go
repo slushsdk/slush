@@ -214,15 +214,18 @@ func makeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) BlockID {
 
 var nilBytes []byte
 
-// This follows RFC-6962, i.e. `echo -n ” | sha256sum`
-var emptyBytes = []byte{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
-	0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b,
-	0x78, 0x52, 0xb8, 0x55}
-
 func TestNilHeaderHashDoesntCrash(t *testing.T) {
 	assert.Equal(t, nilBytes, []byte((*Header)(nil).Hash()))
 	assert.Equal(t, nilBytes, []byte((new(Header)).Hash()))
 }
+
+// In Cairo hash2(0, 0) = 2089986280348253421170679821480865132823066470938446095505822317253594081284
+// Result in bytes:
+// zeroHashFelt, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
+// zeroHashFelt.Bytes() is:
+var emptyBytes = []byte{0x4, 0x9e, 0xe3, 0xeb, 0xa8, 0xc1, 0x60, 0x7, 0x0, 0xee, 0x1b, 0x87,
+	0xeb, 0x59, 0x9f, 0x16, 0x71, 0x6b, 0xb, 0x10, 0x22, 0x94, 0x77, 0x33, 0x55, 0x1f, 0xde, 0x40,
+	0x50, 0xca, 0x68, 0x4}
 
 func TestNilDataHashDoesntCrash(t *testing.T) {
 	assert.Equal(t, emptyBytes, []byte((*Data)(nil).Hash()))
@@ -337,7 +340,7 @@ func TestHeaderHash(t *testing.T) {
 			LastResultsHash:    crypto.ChecksumInt128([]byte("last_results_hash")),
 			EvidenceHash:       crypto.ChecksumInt128([]byte("evidence_hash")),
 			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
-		}, hexBytesFromString("21208EBC14908E6DA2941FF8D7BDDD4B96F34FF38AA3BC88208F955743DBA955")},
+		}, hexBytesFromString("00B5F6182F597E433F8B618D251CAF33A2445EA1AF6F57A35FD45232114B9944")},
 		{"nil header yields nil", nil, nil},
 		{"nil ValidatorsHash yields nil", &Header{
 			Version:            version.Consensus{Block: 1, App: 2},
@@ -359,7 +362,7 @@ func TestHeaderHash(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			assert.Equal(t, tc.expectHash, tc.header.Hash())
+			assert.Equal(t, tc.expectHash, tc.header.Hash(), "%s failed: header hashes don't match", tc.desc)
 
 			// We also make sure that all fields are hashed in struct order, and that all
 			// fields in the test struct are non-zero.
@@ -375,26 +378,30 @@ func TestHeaderHash(t *testing.T) {
 
 					switch f := f.Interface().(type) {
 					case int64:
-						fB := make([]byte, 8)
-						encoding_binary.BigEndian.PutUint64(fB, uint64(f))
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(fB))
+						heightInt64Bytes := make([]byte, 8)
+						encoding_binary.BigEndian.PutUint64(heightInt64Bytes, uint64(f))
+						heightInt128Bytes := *(*[16]byte)(pedersen.ByteRounderInt128(heightInt64Bytes))
+						heightHash := crypto.HashInt128(heightInt128Bytes)
+
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(heightHash[:]))
 					case bytes.HexBytes:
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(f))
+						hexBytes := []byte(f)
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(hexBytes))
 					case string:
-						byteSlices = append(byteSlices, pedersen.ByteRounderInt128([]byte(f)))
+						chainIdBytes := []byte(f)
+						chainIdBytesRounded := pedersen.ByteRounderInt128(chainIdBytes)
+						chainIdHash := crypto.ChecksumInt128(chainIdBytesRounded)
+
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(chainIdHash))
 					case time.Time:
-						bz := HashTime(f)
-
-						byteSlices = append(byteSlices, bz)
+						pbt := HashTime(f)
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(pbt))
 					case version.Consensus:
-						bz := f.Hash()
-
-						byteSlices = append(byteSlices, bz)
+						hbz := f.Hash()
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(hbz))
 					case BlockID:
-						fProto := CanonicalizeBlockID(f.ToProto())
-						bz := HashBlockID(*(fProto))
-
-						byteSlices = append(byteSlices, bz)
+						bzbi := HashBlockID(*CanonicalizeBlockID(f.ToProto()))
+						byteSlices = append(byteSlices, pedersen.ByteRounderInt128(bzbi))
 					default:
 						t.Errorf("unknown type %T", f)
 					}
@@ -404,7 +411,7 @@ func TestHeaderHash(t *testing.T) {
 				// assert.Equal(t,
 				// 	bytes.HexBytes(dst), tc.header.Hash())
 				assert.Equal(t,
-					bytes.HexBytes(merkle.HashFromByteSlicesInt128(byteSlices)), tc.header.Hash())
+					bytes.HexBytes(merkle.HashFromByteSlicesFelt(byteSlices)), tc.header.Hash(), "%s failed: merkle hash doesn't match with header hash", tc.desc)
 			}
 		})
 	}
@@ -1322,31 +1329,28 @@ func TestCommit_ValidateBasic(t *testing.T) {
 }
 
 func TestHeaderHashVector(t *testing.T) {
-	chainID := "test"
-	h := Header{
-		Version:            version.Consensus{Block: 1, App: 1},
-		ChainID:            chainID,
-		Height:             50,
-		Time:               time.Date(math.MaxInt64, 0, 0, 0, 0, 0, math.MaxInt64, time.UTC),
-		LastBlockID:        BlockID{},
-		LastCommitHash:     []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		DataHash:           []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		ValidatorsHash:     []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		NextValidatorsHash: []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		ConsensusHash:      []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		AppHash:            []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-
-		LastResultsHash: []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-
-		EvidenceHash:    []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		ProposerAddress: []byte("2915b7b15f979e48ebc61774bb1d86ba3136b7eb"),
-	}
-
 	testCases := []struct {
 		header   Header
 		expBytes string
 	}{
-		{header: h, expBytes: "ddb82ef0023681bfb5017b317c0e2295d6918b75271316ab16d3436e6f9c8431"},
+		{
+			header: Header{
+				Version:            version.Consensus{Block: 1, App: 1},
+				ChainID:            "test",
+				Height:             50,
+				Time:               time.Date(math.MaxInt64, 0, 0, 0, 0, 0, math.MaxInt64, time.UTC),
+				LastBlockID:        makeBlockID(emptyBytes, 6, emptyBytes),
+				LastCommitHash:     emptyBytes,
+				DataHash:           emptyBytes,
+				ValidatorsHash:     emptyBytes,
+				NextValidatorsHash: emptyBytes,
+				ConsensusHash:      emptyBytes,
+				AppHash:            emptyBytes,
+				LastResultsHash:    emptyBytes,
+				EvidenceHash:       emptyBytes,
+				ProposerAddress:    emptyBytes,
+			},
+			expBytes: "07610f45d2c0349f0d48543ee9e2f40018836f5535c478691723b74fa4103b75"},
 	}
 
 	for _, tc := range testCases {

@@ -15,7 +15,7 @@ func Invoke(vd types.VerifierDetails, id consensus.InvokeData, currentTime *big.
 
 	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
 
-	cd := consensus.FormatCallData(id.TrustedLightB, id.UntrustedLightB, id.TrustedLightB.ValidatorSet, currentTime, big.NewInt(10), trustingPeriod)
+	cd := consensus.FormatCallData(id.TrustedLightB, id.UntrustedLightB, &id.ValidatorSet, currentTime, big.NewInt(10), trustingPeriod)
 	ext := consensus.External{VerifierAddress: vd.VerifierAddress, CallData: cd}
 	jsonString, _ := json.Marshal(ext)
 
