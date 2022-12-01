@@ -61,3 +61,8 @@ build
 tendermint-cairo
 .idea/
 /pkey
+cairo/build
+cairo/pkey
+seed42pkey
+cairo/migrations/*.json
+valdata/*

@@ -71,7 +71,7 @@ func (txs Txs) Proof(i int) TxProof {
 	for i := 0; i < l; i++ {
 		bzs[i] = txs[i].Hash()
 	}
-	root, proofs := merkle.ProofsFromByteSlices(bzs)
+	root, proofs := merkle.ProofsFromByteSlicesInt128(bzs)
 
 	return TxProof{
 		RootHash: root,
@@ -104,7 +104,7 @@ func (tp TxProof) Validate(dataHash []byte) error {
 	if tp.Proof.Total <= 0 {
 		return errors.New("proof total must be positive")
 	}
-	valid := tp.Proof.Verify(tp.RootHash, tp.Leaf())
+	valid := tp.Proof.VerifyInt128(tp.RootHash, tp.Leaf())
 	if valid != nil {
 		return errors.New("proof is not internally consistent")
 	}

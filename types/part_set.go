@@ -179,7 +179,7 @@ func NewPartSetFromData(data []byte, partSize uint32) *PartSet {
 		partsBitArray.SetIndex(int(i), true)
 	}
 	// Compute merkle proofs
-	root, proofs := merkle.ProofsFromByteSlices(partsBytes)
+	root, proofs := merkle.ProofsFromByteSlicesInt128(partsBytes)
 	for i := uint32(0); i < total; i++ {
 
 		parts[i].Proof = *proofs[i]
@@ -282,7 +282,7 @@ func (ps *PartSet) AddPart(part *Part) (bool, error) {
 	}
 
 	// Check hash proof
-	if part.Proof.Verify(ps.Hash(), part.Bytes) != nil {
+	if part.Proof.VerifyInt128(ps.Hash(), part.Bytes) != nil {
 		return false, ErrPartSetInvalidProof
 	}
 

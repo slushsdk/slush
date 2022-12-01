@@ -79,8 +79,8 @@ func (r *Reactor) FormatAndSendCommit(id consensus.InvokeData) error {
 	timeBig := big.NewInt((currentTime.UnixNano()))
 
 	stdout, err := smartcontracts.Invoke(r.verifierDetails, id, timeBig)
+	logger.Info(fmt.Sprintf("CAIRO: %s", stdout))
 	if err != nil {
-		fmt.Println(string(stdout))
 		fmt.Println(err)
 
 	}
