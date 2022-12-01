@@ -51,7 +51,7 @@ func leafHashOpt(s hash.Hash, leaf []byte) []byte {
 func leafHashOptFelt(s hash.Hash, leaf []byte) []byte {
 	s.Reset()
 	s.Write(leafPrefixFelt)
-	s.Write(pedersen.ByteRounderInt128(leaf))
+	s.Write(pedersen.ByteRounderFelt(leaf))
 	return s.Sum(nil)
 }
 
