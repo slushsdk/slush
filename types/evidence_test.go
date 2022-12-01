@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"math"
+	"math/big"
 	mrand "math/rand"
 	"testing"
 	"time"
@@ -101,7 +102,7 @@ func TestLightClientAttackEvidenceBasic(t *testing.T) {
 	voteSet, valSet, privVals := randVoteSet(height, 1, tmproto.PrecommitType, nValidators, 1)
 	header := makeHeaderRandom()
 	header.Height = height
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumInt128(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	commit, err := makeCommit(blockID, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{
@@ -264,15 +265,15 @@ func makeHeaderRandom() *Header {
 		Height:             int64(mrand.Uint32() + 1),
 		Time:               time.Now(),
 		LastBlockID:        makeBlockIDRandom(),
-		LastCommitHash:     crypto.CRandBytes(tmhash.Size),
-		DataHash:           crypto.CRandBytes(tmhash.Size),
-		ValidatorsHash:     crypto.CRandBytes(tmhash.Size),
-		NextValidatorsHash: crypto.CRandBytes(tmhash.Size),
-		ConsensusHash:      crypto.CRandBytes(tmhash.Size),
-		AppHash:            crypto.CRandBytes(tmhash.Size),
-		LastResultsHash:    crypto.CRandBytes(tmhash.Size),
-		EvidenceHash:       crypto.CRandBytes(tmhash.Size),
-		ProposerAddress:    crypto.CRandBytes(crypto.AddressSize),
+		LastCommitHash:     tmrand.FeltBytes(crypto.HashSize),
+		DataHash:           tmrand.FeltBytes(crypto.HashSize),
+		ValidatorsHash:     tmrand.FeltBytes(crypto.HashSize),
+		NextValidatorsHash: tmrand.FeltBytes(crypto.HashSize),
+		ConsensusHash:      tmrand.FeltBytes(crypto.HashSize),
+		AppHash:            tmrand.FeltBytes(crypto.HashSize),
+		LastResultsHash:    tmrand.FeltBytes(crypto.HashSize),
+		EvidenceHash:       tmrand.FeltBytes(crypto.HashSize),
+		ProposerAddress:    tmrand.FeltBytes(crypto.AddressSize),
 	}
 }
 
@@ -321,11 +322,14 @@ func TestEvidenceVectors(t *testing.T) {
 	// Votes for duplicateEvidence
 	val := NewMockPV()
 	val.PrivKey = stark.GenPrivKeyFromSecret([]byte("it's a secret")) // deterministic key
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumInt128([]byte("blockhash")), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.ChecksumInt128([]byte("blockhash2")), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	const chainID = "mychain"
 	v := makeVote(t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
+
+	zeroHashFelt, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
+	emptyBytes = zeroHashFelt.Bytes()
 
 	// Data for LightClientAttackEvidence
 	height := int64(5)
@@ -338,17 +342,15 @@ func TestEvidenceVectors(t *testing.T) {
 		Height:             height,
 		Time:               time.Date(math.MaxInt64, 0, 0, 0, 0, 0, math.MaxInt64, time.UTC),
 		LastBlockID:        BlockID{},
-		LastCommitHash:     []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		DataHash:           []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
+		LastCommitHash:     emptyBytes,
+		DataHash:           emptyBytes,
 		ValidatorsHash:     valSet.Hash(),
-		NextValidatorsHash: []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		ConsensusHash:      []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		AppHash:            []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-
-		LastResultsHash: []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-
-		EvidenceHash:    []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
-		ProposerAddress: []byte("2915b7b15f979e48ebc61774bb1d86ba3136b7eb"),
+		NextValidatorsHash: emptyBytes,
+		ConsensusHash:      emptyBytes,
+		AppHash:            emptyBytes,
+		LastResultsHash:    emptyBytes,
+		EvidenceHash:       emptyBytes,
+		ProposerAddress:    emptyBytes,
 	}
 	blockID3 := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	commit, err := makeCommit(blockID3, height, 1, voteSet, privVals, defaultVoteTime)
