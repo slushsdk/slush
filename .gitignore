@@ -54,3 +54,7 @@ test/fuzz/**/*.zip
 *.gz
 *.dvi
 .idea
+build
+*.*~
+.*.*~
+..*.*~
