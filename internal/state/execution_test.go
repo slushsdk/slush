@@ -23,6 +23,7 @@ import (
 	sf "github.com/tendermint/tendermint/internal/state/test/factory"
 	"github.com/tendermint/tendermint/internal/store"
 	"github.com/tendermint/tendermint/libs/log"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
@@ -147,15 +148,15 @@ func TestBeginBlockByzantineValidators(t *testing.T) {
 		Height:             10,
 		Time:               defaultEvidenceTime,
 		LastBlockID:        blockID,
-		LastCommitHash:     crypto.CRandBytes(tmhash.Size),
-		DataHash:           crypto.CRandBytes(tmhash.Size),
+		LastCommitHash:     tmrand.FeltBytes(crypto.HashSize),
+		DataHash:           tmrand.FeltBytes(crypto.HashSize),
 		ValidatorsHash:     state.Validators.Hash(),
 		NextValidatorsHash: state.Validators.Hash(),
-		ConsensusHash:      crypto.CRandBytes(tmhash.Size),
-		AppHash:            crypto.CRandBytes(tmhash.Size),
-		LastResultsHash:    crypto.CRandBytes(tmhash.Size),
-		EvidenceHash:       crypto.CRandBytes(tmhash.Size),
-		ProposerAddress:    crypto.CRandBytes(crypto.AddressSize),
+		ConsensusHash:      tmrand.FeltBytes(crypto.HashSize),
+		AppHash:            tmrand.FeltBytes(crypto.HashSize),
+		LastResultsHash:    tmrand.FeltBytes(crypto.HashSize),
+		EvidenceHash:       tmrand.FeltBytes(crypto.HashSize),
+		ProposerAddress:    tmrand.FeltBytes(crypto.AddressSize),
 	}
 
 	// we don't need to worry about validating the evidence as long as they pass validate basic

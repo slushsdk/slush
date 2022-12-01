@@ -56,8 +56,8 @@ func TestVoteSignable(t *testing.T) {
 	v := vote.ToProto()
 	signBytes := VoteSignBytes("test_chain_id", v)
 	pb := CanonicalizeVote("test_chain_id", v)
-	timeb := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeb, uint64(v.GetTimestamp().UnixNano()))
+	timeb := make([]byte, 32)
+	binary.BigEndian.PutUint64(timeb[24:32], uint64(v.GetTimestamp().UnixNano()))
 
 	expected := append(timeb, HashCanonicalVoteNoTime(pb)...)
 	// require.NoError(t, err)
