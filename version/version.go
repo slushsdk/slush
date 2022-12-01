@@ -4,6 +4,7 @@ import (
 	encoding_binary "encoding/binary"
 
 	tmcrypto "github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 )
 
@@ -47,15 +48,13 @@ func (c Consensus) ToProto() tmversion.Consensus {
 
 func (c Consensus) Hash() []byte {
 
-	cByte := make([]byte, 16)
-
 	blockByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(blockByte, uint64(c.Block))
 
 	appByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(appByte, uint64(c.App))
 
-	cByte = append(blockByte, appByte...)
+	cByte := append(pedersen.ByteRounder(blockByte), pedersen.ByteRounder(appByte)...)
 
 	return tmcrypto.ChecksumInt128(cByte)
 }
