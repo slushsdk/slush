@@ -104,6 +104,10 @@ type State struct {
 	// when it's detected
 	evpool evidencePool
 
+	// send lightblocks to settlement
+	// when block is finalised
+	SettlementCh chan<- InvokeData
+
 	// internal state
 	mtx tmsync.RWMutex
 	cstypes.RoundState
