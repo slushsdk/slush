@@ -10,8 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/privval"
@@ -62,16 +64,16 @@ func makeEvidences(
 		Type:             tmproto.PrevoteType,
 		Timestamp:        defaultTestTime,
 		BlockID: types.BlockID{
-			Hash: crypto.ChecksumInt128(tmrand.Bytes(crypto.HashSize)),
+			Hash: crypto.ChecksumFelt(pedersen.FeltBytes(32)),
 			PartSetHeader: types.PartSetHeader{
 				Total: 1000,
-				Hash:  crypto.ChecksumInt128([]byte("partset")),
+				Hash:  crypto.ChecksumFelt(pedersen.FeltBytes(32)),
 			},
 		},
 	}
 
 	vote2 := vote
-	vote2.BlockID.Hash = crypto.ChecksumInt128([]byte("blockhash2"))
+	vote2.BlockID.Hash = crypto.ChecksumFelt(pedersen.FeltBytes(32))
 	correct = newEvidence(t, val, &vote, &vote2, chainID)
 
 	fakes = make([]*types.DuplicateVoteEvidence, 0)

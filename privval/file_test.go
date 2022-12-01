@@ -229,8 +229,8 @@ func TestSignProposal(t *testing.T) {
 	privVal, err := GenFilePV(tempKeyFile.Name(), tempStateFile.Name(), "")
 	require.NoError(t, err)
 
-	randbytes := tmrand.Bytes(tmhash.Size)
-	randbytes2 := tmrand.Bytes(tmhash.Size)
+	randbytes := pedersen.FeltBytes(32)
+	randbytes2 := pedersen.FeltBytes(32)
 
 	block1 := types.BlockID{Hash: randbytes,
 		PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
@@ -277,7 +277,7 @@ func TestDifferByTimestamp(t *testing.T) {
 
 	privVal, err := GenFilePV(tempKeyFile.Name(), tempStateFile.Name(), "")
 	require.NoError(t, err)
-	randbytes := tmrand.Bytes(tmhash.Size)
+	randbytes := pedersen.FeltBytes(32)
 	block1 := types.BlockID{Hash: randbytes, PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
 	height, round := int64(10), int32(1)
 	chainID := "mychainid"

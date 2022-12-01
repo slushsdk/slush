@@ -7,7 +7,6 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/pedersen"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
 func TestBlockMeta_ToProto(t *testing.T) {
@@ -49,9 +48,9 @@ func TestBlockMeta_ToProto(t *testing.T) {
 
 func TestBlockMeta_ValidateBasic(t *testing.T) {
 	h := MakeRandHeader()
-	bi := BlockID{Hash: h.Hash(), PartSetHeader: PartSetHeader{Total: 123, Hash: tmrand.Bytes(tmhash.Size)}}
-	bi2 := BlockID{Hash: tmrand.Bytes(tmhash.Size),
-		PartSetHeader: PartSetHeader{Total: 123, Hash: tmrand.Bytes(tmhash.Size)}}
+	bi := BlockID{Hash: h.Hash(), PartSetHeader: PartSetHeader{Total: 123, Hash: pedersen.FeltBytes(32)}}
+	bi2 := BlockID{Hash: pedersen.FeltBytes(32),
+		PartSetHeader: PartSetHeader{Total: 123, Hash: pedersen.FeltBytes(32)}}
 	bi3 := BlockID{Hash: []byte("incorrect hash"),
 		PartSetHeader: PartSetHeader{Total: 123, Hash: []byte("incorrect hash")}}
 

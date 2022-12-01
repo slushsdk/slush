@@ -10,9 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/internal/libs/protoio"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
+	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -62,7 +65,7 @@ func TestProposalVerifySignature(t *testing.T) {
 
 	prop := NewProposal(
 		4, 2, 2,
-		BlockID{tmrand.Bytes(tmhash.Size), PartSetHeader{777, tmrand.Bytes(tmhash.Size)}})
+		BlockID{pedersen.FeltBytes(32), PartSetHeader{777, pedersen.FeltBytes(32)}})
 	p := prop.ToProto()
 	signBytes := ProposalSignBytes("test_chain_id", p)
 
@@ -146,7 +149,7 @@ func TestProposalValidateBasic(t *testing.T) {
 			p.Signature = make([]byte, MaxSignatureSize+1)
 		}, true},
 	}
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumFelt([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 
 	for _, tc := range testCases {
 		tc := tc
