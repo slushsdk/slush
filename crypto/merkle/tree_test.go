@@ -93,7 +93,7 @@ func TestHashFromByteSlices(t *testing.T) {
 	for name, tc := range testcases {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			hash := HashFromByteSlices(tc.slices)
+			hash := HashFromByteSlicesInt128(tc.slices)
 			assert.Equal(t, tc.expectHash, hex.EncodeToString(hash))
 		})
 	}
@@ -113,7 +113,7 @@ func TestProof(t *testing.T) {
 		items[i] = testItem(tmrand.Bytes(tmhash.Size))
 	}
 
-	rootHash = HashFromByteSlices(items)
+	rootHash = HashFromByteSlicesInt128(items)
 
 	rootHash2, proofs := ProofsFromByteSlicesInt128(items)
 
@@ -167,7 +167,7 @@ func TestHashAlternatives(t *testing.T) {
 	}
 
 	rootHash1 := HashFromByteSlicesIterative(items)
-	rootHash2 := HashFromByteSlices(items)
+	rootHash2 := HashFromByteSlicesInt128(items)
 	require.Equal(t, rootHash1, rootHash2, "Unmatched root hashes: %X vs %X", rootHash1, rootHash2)
 }
 
@@ -182,7 +182,7 @@ func BenchmarkHashAlternatives(b *testing.B) {
 	b.ResetTimer()
 	b.Run("recursive", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = HashFromByteSlices(items)
+			_ = HashFromByteSlicesInt128(items)
 		}
 	})
 
@@ -253,7 +253,7 @@ func TestTreePedersen(t *testing.T) {
 
 	start := time.Now()
 
-	HashFromByteSlices(items)
+	HashFromByteSlicesInt128(items)
 
 	elapsed := time.Since(start)
 	fmt.Println("elapsed time", elapsed)

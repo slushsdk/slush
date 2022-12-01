@@ -25,6 +25,7 @@ import (
 type KeyPathFunc func(path string, key []byte) (merkle.KeyPath, error)
 
 // LightClient is an interface that contains functionality needed by Client from the light client.
+//
 //go:generate ../../scripts/mockery_generate.sh LightClient
 type LightClient interface {
 	ChainID() string
@@ -444,7 +445,7 @@ func (c *Client) BlockResults(ctx context.Context, height *int64) (*coretypes.Re
 	}
 
 	// Build a Merkle tree out of the above 3 binary slices.
-	rH := merkle.HashFromByteSlices([][]byte{bbeBytes, results.Hash(), ebeBytes})
+	rH := merkle.HashFromByteSlicesInt128([][]byte{bbeBytes, results.Hash(), ebeBytes})
 
 	// Verify block results.
 	if !bytes.Equal(rH, trustedBlock.LastResultsHash) {

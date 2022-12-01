@@ -39,7 +39,7 @@ func (txs Txs) Hash() []byte {
 	for i := 0; i < len(txs); i++ {
 		txBzs[i] = txs[i].Hash()
 	}
-	return merkle.HashFromByteSlices(txBzs)
+	return merkle.HashFromByteSlicesInt128(txBzs)
 }
 
 // Index returns the index of this transaction in the list, or -1 if not found
