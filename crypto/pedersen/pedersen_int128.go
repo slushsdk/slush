@@ -1,30 +1,31 @@
-// Package pedersen implements the StarkNet variant of the Pedersen
-// hash function.
 package pedersen
 
 import (
-	_ "embed"
 	"math/big"
 
 	"github.com/tendermint/tendermint/crypto/utils"
 )
 
-func ByteRounderFelt(ba []byte) []byte {
-	rem := len(ba) % 32
-	// Taking reminder with 32 only changes rem if it was originally 0.
-	rem = (32 - rem) % 32
+// We want to pass in 128 bit numbers from pedersen, so we want to round the byte array to be that long.
+// Checking is also done inside pedersen.
+func ByteRounderInt128(ba []byte) []byte {
+
+	rem := len(ba) % 16
+	//Taking reminder with 16 only changes rem if it was originally 0.
+	rem = (16 - rem) % 16
 	return append(make([]byte, rem), ba...)
+
 }
 
-func PedersenHashFelt(b [32]byte) [32]byte {
+func PedersenHashInt128(b [16]byte) [32]byte {
 	bigInteger := big.NewInt(0).SetBytes(b[:])
 	zero := big.NewInt(0)
 	pedersenOutputBytes := ByteRounderFelt(Digest(bigInteger, zero).Bytes())
 	return *(*[32]byte)(pedersenOutputBytes)
 }
 
-func PedersenHashFeltArray(b []byte) [32]byte {
-	chunks := utils.Split(b, 32)
+func PedersenHashInt128Array(b []byte) [32]byte {
+	chunks := utils.Split(b, 16)
 
 	if len(chunks) == 0 {
 		zero := big.NewInt(0)
@@ -32,10 +33,10 @@ func PedersenHashFeltArray(b []byte) [32]byte {
 		return *(*[32]byte)(pedersenOutputBytes)
 	}
 	lastWordSize := len(chunks[len(chunks)-1])
-	isLastWordFull := lastWordSize == 32
+	isLastWordFull := lastWordSize == 16
 
 	if !isLastWordFull {
-		remainingBytes := 32 - lastWordSize
+		remainingBytes := 16 - lastWordSize
 		leadingBytes := make([]byte, remainingBytes)
 		chunks[len(chunks)-1] = append(leadingBytes, chunks[len(chunks)-1]...)
 	}

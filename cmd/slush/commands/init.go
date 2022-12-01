@@ -98,7 +98,7 @@ func InitializeVerifierDetails(pkeyStr string, addressStr string, network string
 
 	if network == "devnet" && seedKeysBool {
 		pkeypath = "seed42pkey"
-		err := os.WriteFile(pkeypath, []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
+		err := os.WriteFile("cairo/"+pkeypath, []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
 		if err != nil {
 			return types.VerifierDetails{}, err
 		}

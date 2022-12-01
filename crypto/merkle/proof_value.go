@@ -94,7 +94,7 @@ func (op ValueOp) Run(args [][]byte) ([][]byte, error) {
 	}
 
 	return [][]byte{
-		op.Proof.ComputeRootHash(),
+		op.Proof.ComputeRootHashInt128(),
 	}, nil
 }
 

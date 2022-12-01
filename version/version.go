@@ -54,7 +54,7 @@ func (c Consensus) Hash() []byte {
 	appByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(appByte, uint64(c.App))
 
-	cByte := append(pedersen.ByteRounder(blockByte), pedersen.ByteRounder(appByte)...)
+	cByte := append(pedersen.ByteRounderInt128(blockByte), pedersen.ByteRounderInt128(appByte)...)
 
 	return tmcrypto.ChecksumInt128(cByte)
 }

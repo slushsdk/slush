@@ -35,7 +35,7 @@ func HashFelt(b [32]byte) [32]byte {
 
 func (ph *PedersenHashFelt) Sum(b []byte) []byte {
 	bs := pedersen.PedersenHashFeltArray(ph.Input)
-	return append(b, pedersen.ByteRounder(bs[:])...)
+	return append(b, pedersen.ByteRounderInt128(bs[:])...)
 }
 
 func (ph *PedersenHashFelt) BlockSize() int {
