@@ -29,22 +29,13 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType     = types.DefaultValidatorParams().PubKeyTypes[0]
-	pathToFiles = "./cairo"
-	network     string
-	pkey        string
-	address     string
-	seedkeys    string
+	keyType = types.DefaultValidatorParams().PubKeyTypes[0]
+	network string
+	pkey    string
+	address string
 )
 
 func init() {
-	InitFilesCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
-		"Key type to generate privval file with. Options: stark, ed25519, secp256k1")
-
-	// Todo: merge cairo and tm, remove this.k
-	InitFilesCmd.Flags().StringVar(&pathToFiles, "path-to-files", "",
-		"For mainnet or testnet: relative path to folder . ")
-	InitFilesCmd.MarkFlagRequired("path-to-files")
 
 	InitFilesCmd.Flags().StringVar(&network, "network", "devnet",
 		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42, and set seedkeys=1 here.")
@@ -63,9 +54,9 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return errors.New("must specify a node type: tendermint init [validator|full|seed]")
 	}
-	config.Mode = args[0]
+	config.Mode = keyType
 
-	vd, err := InitializeVerifierDetails(pathToFiles, pkey, address, network)
+	vd, err := InitializeVerifierDetails(pkey, address, network) //will probably have to use args[i] here
 	if err != nil {
 		return err
 	}
@@ -82,7 +73,7 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	return initFilesWithConfig(config)
 }
 
-func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr string, network string) (types.VerifierDetails, error) {
+func InitializeVerifierDetails(pkeyStr string, addressStr string, network string) (types.VerifierDetails, error) {
 
 	address, b := big.NewInt(0).SetString(addressStr, 16)
 	if !b {
@@ -133,7 +124,7 @@ func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr st
 	}
 
 	nd := types.NetworkDetails{Network: network, SeedKeysBool: seedKeysBool}
-	vd := types.VerifierDetails{PathToFiles: pathToFiles, AccountPrivKeyPath: pkeypath, AccountAddress: address, NetworkDetails: nd}
+	vd := types.VerifierDetails{AccountPrivKeyPath: pkeypath, AccountAddress: address, NetworkDetails: nd}
 
 	return vd, nil
 }
