@@ -12,8 +12,11 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+	tmmath "github.com/tendermint/tendermint/libs/math"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -714,10 +717,10 @@ func makeMockVote(height int64, round, index int32, addr Address,
 
 func randBlockID() BlockID {
 	return BlockID{
-		Hash: tmrand.Bytes(tmhash.Size),
+		Hash: pedersen.FeltBytes(crypto.HashSize),
 		PartSetHeader: PartSetHeader{
 			Total: 1,
-			Hash:  tmrand.Bytes(tmhash.Size),
+			Hash:  pedersen.FeltBytes(crypto.HashSize),
 		},
 	}
 }

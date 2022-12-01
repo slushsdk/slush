@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/internal/test/factory"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -257,20 +258,20 @@ func makeHeaderRandom(chainID string, height int64) *types.Header {
 		Height:             height,
 		Time:               time.Now(),
 		LastBlockID:        makeBlockID([]byte("headerhash"), 1000, []byte("partshash")),
-		LastCommitHash:     crypto.CRandBytes(tmhash.Size),
-		DataHash:           crypto.CRandBytes(tmhash.Size),
-		ValidatorsHash:     crypto.CRandBytes(tmhash.Size),
-		NextValidatorsHash: crypto.CRandBytes(tmhash.Size),
-		ConsensusHash:      crypto.CRandBytes(tmhash.Size),
-		AppHash:            crypto.CRandBytes(tmhash.Size),
-		LastResultsHash:    crypto.CRandBytes(tmhash.Size),
-		EvidenceHash:       crypto.CRandBytes(tmhash.Size),
+		LastCommitHash:     pedersen.FeltBytes(crypto.HashSize),
+		DataHash:           pedersen.FeltBytes(crypto.HashSize),
+		ValidatorsHash:     pedersen.FeltBytes(crypto.HashSize),
+		NextValidatorsHash: pedersen.FeltBytes(crypto.HashSize),
+		ConsensusHash:      pedersen.FeltBytes(crypto.HashSize),
+		AppHash:            pedersen.FeltBytes(crypto.HashSize),
+		LastResultsHash:    pedersen.FeltBytes(crypto.HashSize),
+		EvidenceHash:       pedersen.FeltBytes(crypto.HashSize),
 		ProposerAddress:    crypto.CRandBytes(crypto.AddressSize),
 	}
 }
 
 func makeRandomBlockID() types.BlockID {
-	return makeBlockID(crypto.CRandBytes(tmhash.Size), 100, crypto.CRandBytes(tmhash.Size))
+	return makeBlockID(pedersen.FeltBytes(crypto.HashSize), 100, pedersen.FeltBytes(crypto.HashSize))
 }
 
 func makeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) types.BlockID {
