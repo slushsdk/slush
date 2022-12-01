@@ -92,7 +92,7 @@ func DefaultConsensusParams() *ConsensusParams {
 // DefaultBlockParams returns a default BlockParams.
 func DefaultBlockParams() BlockParams {
 	return BlockParams{
-		MaxBytes: 22020096, // 21MB
+		MaxBytes: 78000,
 		MaxGas:   -1,
 	}
 }
@@ -102,7 +102,7 @@ func DefaultEvidenceParams() EvidenceParams {
 	return EvidenceParams{
 		MaxAgeNumBlocks: 100000, // 27.8 hrs at 1block/s
 		MaxAgeDuration:  48 * time.Hour,
-		MaxBytes:        1048576, // 1MB
+		MaxBytes:        3800,
 	}
 }
 
