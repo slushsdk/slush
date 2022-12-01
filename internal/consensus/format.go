@@ -7,7 +7,6 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/internal/evidence"
-	"github.com/tendermint/tendermint/smartcontracts"
 
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/utils"
@@ -117,6 +116,12 @@ type External struct {
 	Untrusted               SignedHeaderArgs `json:"untrusted"`
 	ValidatorSetArgs        ValidatorSetArgs `json:"validator_set_args"`
 	VerificationArgs        VerificationArgs `json:"verification_args"`
+}
+
+type InvokeData struct {
+	TrustedLightB  types.LightBlock
+	UntrusteLightB types.LightBlock
+	ValidatorSet   types.ValidatorSet
 }
 
 func formatPartSetHeader(partSetHeader types.PartSetHeader) PartSetHeaderData {
@@ -273,8 +278,8 @@ func FormatExternal(trustedLightBlock types.LightBlock, untrustedLightBlock type
 	}
 }
 
-func (cs *State) FormatAndSendCommit() error {
-	logger := cs.logger.With("height", cs.Height)
+// we use this to push new block to settlment channel
+func (cs *State) PushCommitToSettlment() error {
 	trustedLightB, err := cs.getLightBlock(cs.Height - 1)
 	if err != nil {
 		return err
@@ -285,15 +290,8 @@ func (cs *State) FormatAndSendCommit() error {
 		return err
 	}
 
-	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
-	FormatExternal(trustedLightB, untrustedLightB, trustedLightB.ValidatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
-
-	stdout, err := smartcontracts.Invoke(cs.VerifierDetails)
-	if err != nil {
-		return err
-	}
-	logger.Info(string(stdout))
-
+	id := InvokeData{TrustedLightB: trustedLightB, UntrusteLightB: untrustedLightB, ValidatorSet: *trustedLightB.ValidatorSet}
+	cs.SettlementCh <- id
 	return nil
 }
 
