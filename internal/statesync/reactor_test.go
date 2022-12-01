@@ -551,7 +551,7 @@ func TestReactor_StateProviderP2P(t *testing.T) {
 	bctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ictx, cancel := context.WithTimeout(bctx, time.Second)
+	ictx, cancel := context.WithTimeout(ctx, 10*1*time.Second) // SLU-12 1 second original
 	defer cancel()
 
 	rts.reactor.mtx.Lock()
@@ -560,7 +560,7 @@ func TestReactor_StateProviderP2P(t *testing.T) {
 	require.NoError(t, err)
 	rts.reactor.syncer.stateProvider = rts.reactor.stateProvider
 
-	actx, cancel := context.WithTimeout(ctx, time.Second)
+	actx, cancel := context.WithTimeout(ctx, 10*1*time.Second) // SLU-12 1 second original
 	defer cancel()
 
 	appHash, err := rts.reactor.stateProvider.AppHash(actx, 5)
