@@ -392,12 +392,15 @@ func TestMaxProposalBlockSize(t *testing.T) {
 
 	logger := log.TestingLogger()
 
-	state, stateDB, _ := state(types.MaxVotesCount, int64(1))
+	const maxVotesCount = types.MaxVotesCount / 20
+
+	state, stateDB, _ := state(maxVotesCount, int64(1))
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
 		DiscardABCIResponses: false,
 	})
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
-	const maxBytes int64 = 1024 * 1024 * 2
+	const maxBytes int64 = 65536
+	const partSize uint32 = 2048
 	state.ConsensusParams.Block.MaxBytes = maxBytes
 	proposerAddr, _ := state.Validators.GetByIndex(0)
 
@@ -413,7 +416,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	mp.SetLogger(logger)
 
 	// fill the mempool with one txs just below the maximum size
-	txLength := int(types.MaxDataBytesNoEvidence(maxBytes, types.MaxVotesCount))
+	txLength := int(types.MaxDataBytesNoEvidence(maxBytes, maxVotesCount))
 	tx := tmrand.Bytes(txLength - 6) // to account for the varint
 	err = mp.CheckTx(context.Background(), tx, nil, mempool.TxInfo{})
 	assert.NoError(t, err)
@@ -471,7 +474,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	}
 
 	// add maximum amount of signatures to a single commit
-	for i := 0; i < types.MaxVotesCount; i++ {
+	for i := 0; i < maxVotesCount; i++ {
 		commit.Signatures = append(commit.Signatures, cs)
 	}
 
@@ -489,9 +492,9 @@ func TestMaxProposalBlockSize(t *testing.T) {
 
 	// require that the header and commit be the max possible size
 	require.Equal(t, int64(pb.Header.Size()), types.MaxHeaderBytes)
-	require.Equal(t, int64(pb.LastCommit.Size()), types.MaxCommitBytes(types.MaxVotesCount))
+	require.Equal(t, int64(pb.LastCommit.Size()), types.MaxCommitBytes(maxVotesCount))
 	// make sure that the block is less than the max possible size
-	assert.Equal(t, int64(pb.Size()), maxBytes)
+	assert.LessOrEqual(t, int64(pb.Size()), maxBytes)
 	// because of the proto overhead we expect the part set bytes to be equal or
 	// less than the pb block size
 	assert.LessOrEqual(t, partSet.ByteSize(), int64(pb.Size()))
