@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 
 	"github.com/spf13/cobra"
 
@@ -55,18 +54,21 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	}
 	config.Mode = args[0]
 
-	ret, err := smartcontracts.DeclareDeploy(pathToFiles, network, b)
+	var b bool
+	if devnetbool == "1" {
+		b = true
+	} else {
+		b = false
+	}
+
+	address, class, err := smartcontracts.DeclareDeploy(pathToFiles, network, b)
 
 	if err != nil {
-		fmt.Println(string(ret))
-		fmt.Println(err)
 		return err
 	}
-	logger.Info("Successfully declared and deployed contract at:...")
-	line := regexp.MustCompile(`contract_address *.*?\n`)
-	zerox := regexp.MustCompile(`0x.{64}`)
-	fmt.Printf("%q\n", (line.Find(ret)))
-	fmt.Printf("%q\n", zerox.Find(line.Find(ret)))
+
+	logger.Info("Successfully declared with classhash: ", fmt.Sprintf("%x", class), "")
+	logger.Info("and deployed contract address:", fmt.Sprintf("%x", address), "")
 
 	return initFilesWithConfig(config)
 }
@@ -76,13 +78,6 @@ func initFilesWithConfig(config *cfg.Config) error {
 		pv  *privval.FilePV
 		err error
 	)
-
-	var b bool
-	if devnetbool == "1" {
-		b = true
-	} else {
-		b = false
-	}
 
 	if config.Mode == cfg.ModeValidator {
 		// private validator
