@@ -48,15 +48,15 @@ func randomDuplicateVoteEvidence(t *testing.T) *DuplicateVoteEvidence {
 func TestDuplicateVoteEvidence(t *testing.T) {
 	const height = int64(13)
 	ev := NewMockDuplicateVoteEvidence(height, time.Now(), "mock-chain-id")
-	assert.Equal(t, ev.Hash(), tmhash.Sum(ev.Bytes()))
+	assert.Equal(t, ev.Hash(), crypto.ChecksumInt128(ev.Bytes()))
 	assert.NotNil(t, ev.String())
 	assert.Equal(t, ev.Height(), height)
 }
 
 func TestDuplicateVoteEvidenceValidation(t *testing.T) {
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.Checksum(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.Checksum(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	const chainID = "mychain"
 
 	testCases := []struct {
@@ -101,8 +101,8 @@ func TestLightClientAttackEvidenceBasic(t *testing.T) {
 	voteSet, valSet, privVals := randVoteSet(height, 1, tmproto.PrecommitType, nValidators, 1)
 	header := makeHeaderRandom()
 	header.Height = height
-	blockID := makeBlockID(crypto.Checksum(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	Commit, err := makeCommit(blockID, height, 1, voteSet, privVals, defaultVoteTime)
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	commit, err := makeCommit(blockID, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{
 		ConflictingBlock: &LightBlock{
@@ -161,7 +161,7 @@ func TestLightClientAttackEvidenceValidation(t *testing.T) {
 	header := makeHeaderRandom()
 	header.Height = height
 	header.ValidatorsHash = valSet.Hash()
-	blockID := makeBlockID(header.Hash(), math.MaxInt32, tmhash.Sum([]byte("partshash")))
+	blockID := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	commit, err := makeCommit(blockID, height, 1, voteSet, privVals, time.Now())
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{
@@ -279,8 +279,8 @@ func makeHeaderRandom() *Header {
 func TestEvidenceProto(t *testing.T) {
 	// -------- Votes --------
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	const chainID = "mychain"
 	v := makeVote(t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
@@ -321,8 +321,8 @@ func TestEvidenceVectors(t *testing.T) {
 	// Votes for duplicateEvidence
 	val := NewMockPV()
 	val.PrivKey = stark.GenPrivKeyFromSecret([]byte("it's a secret")) // deterministic key
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.Checksum([]byte("partshash")))
+	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt([]byte("blockhash2"))), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	const chainID = "mychain"
 	v := makeVote(t, val, chainID, math.MaxInt32, math.MaxInt64, 1, 0x01, blockID, defaultVoteTime)
 	v2 := makeVote(t, val, chainID, math.MaxInt32, math.MaxInt64, 2, 0x01, blockID2, defaultVoteTime)
@@ -350,7 +350,7 @@ func TestEvidenceVectors(t *testing.T) {
 		EvidenceHash:    []byte("f2564c78071e26643ae9b3e2a19fa0dc10d4d9e873aa0be808660123f11a1e78"),
 		ProposerAddress: []byte("2915b7b15f979e48ebc61774bb1d86ba3136b7eb"),
 	}
-	blockID3 := makeBlockID(header.Hash(), math.MaxInt32, tmhash.Sum([]byte("partshash")))
+	blockID3 := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumInt128([]byte("partshash")))
 	commit, err := makeCommit(blockID3, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{

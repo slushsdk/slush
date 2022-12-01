@@ -57,5 +57,5 @@ func (c Consensus) Hash() []byte {
 
 	cByte = append(blockByte, appByte...)
 
-	return tmcrypto.Checksum(cByte)
+	return tmcrypto.ChecksumInt128(cByte)
 }

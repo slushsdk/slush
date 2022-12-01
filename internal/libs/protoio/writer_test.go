@@ -26,17 +26,10 @@ func aVote() *types.Vote {
 		Round:     2,
 		Timestamp: stamp,
 		BlockID: types.BlockID{
-			Hash: tmhash.Sum([]byte("blockID_hash")),
-			PartSetHeader: types.PartSetHeader{
-				Total: 1000000,
-				Hash:  tmhash.Sum([]byte("blockID_part_set_header_hash")),
-			},
-		},
 		ValidatorAddress: crypto.AddressHash([]byte("validator_address")),
 		ValidatorIndex:   56789,
 	}
 }
-
 type excludedMarshalTo struct {
 	msg proto.Message
 }

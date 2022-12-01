@@ -19,10 +19,10 @@ import (
 type Tx []byte
 
 // Key produces a fixed-length key for use in indexing.
-func (tx Tx) Key() TxKey { return crypto.Sum256(tx) }
+func (tx Tx) Key() TxKey { return crypto.Sum256Int128(tx) }
 
 // Hash computes the TMHASH hash of the wire encoded transaction.
-func (tx Tx) Hash() []byte { return tmhash.Sum(tx) }
+func (tx Tx) Hash() []byte { return crypto.ChecksumInt128(tx) }
 
 // String returns the hex-encoded transaction as a string.
 func (tx Tx) String() string { return fmt.Sprintf("Tx{%X}", []byte(tx)) }

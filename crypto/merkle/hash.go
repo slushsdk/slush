@@ -28,7 +28,7 @@ func emptyHash() []byte {
 func leafHash(leaf []byte) []byte {
 	a := make([]byte, 16)
 	copy(a, leafPrefix)
-	b := crypto.Checksum(append(a, pedersen.ByteRounder(leaf)...))
+	b := crypto.ChecksumInt128(append(a, pedersen.ByteRounder(leaf)...))
 	return b
 }
 
