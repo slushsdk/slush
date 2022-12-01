@@ -464,7 +464,7 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	chainIDB := pedersen.ByteRounder([]byte(h.ChainID))
 
 	heightB_int64 := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(heightB_int64, uint64(3))
+	encoding_binary.BigEndian.PutUint64(heightB_int64, uint64(h.Height))
 
 	heightB_int128 := *(*[16]byte)(pedersen.ByteRounder(heightB_int64))
 
