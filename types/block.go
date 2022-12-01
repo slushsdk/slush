@@ -463,13 +463,17 @@ func (h *Header) Hash() tmbytes.HexBytes {
 
 	chainIDB := pedersen.ByteRounder([]byte(h.ChainID))
 
-	heightB := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(heightB, uint64(h.Height))
+	heightB_int64 := make([]byte, 8)
+	encoding_binary.BigEndian.PutUint64(heightB_int64, uint64(3))
 
-	return merkle.HashFromByteSlices([][]byte{
+	heightB_int128 := *(*[16]byte)(pedersen.ByteRounder(heightB_int64))
+
+	heightB_hash := crypto.HashInt128(heightB_int128)
+
+	return merkle.HashFromByteSlicesFelt([][]byte{
 		pedersen.ByteRounder(hbz),
 		pedersen.ByteRounder(crypto.ChecksumInt128(chainIDB)),
-		pedersen.ByteRounder(crypto.ChecksumInt128(heightB)),
+		pedersen.ByteRounder(heightB_hash[:]),
 		pedersen.ByteRounder(pbt),
 		pedersen.ByteRounder(bzbi),
 		pedersen.ByteRounder([]byte(h.LastCommitHash)),

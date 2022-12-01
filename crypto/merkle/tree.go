@@ -26,6 +26,23 @@ func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
 		return innerHashOpt(sha, left, right)
 	}
 }
+func HashFromByteSlicesFelt(items [][]byte) []byte {
+	return hashFromByteSlicesFelt(crypto.NewFelt(), items)
+}
+
+func hashFromByteSlicesFelt(sha hash.Hash, items [][]byte) []byte {
+	switch len(items) {
+	case 0:
+		return emptyHash()
+	case 1:
+		return leafHashOptFelt(sha, items[0])
+	default:
+		k := getSplitPoint(int64(len(items)))
+		left := hashFromByteSlicesFelt(sha, items[:k])
+		right := hashFromByteSlicesFelt(sha, items[k:])
+		return innerHashOpt(sha, left, right)
+	}
+}
 
 // HashFromByteSliceIterative is an iterative alternative to
 // HashFromByteSlice motivated by potential performance improvements.
