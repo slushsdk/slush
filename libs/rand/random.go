@@ -93,21 +93,4 @@ func crandSeed() int64 {
 		panic(fmt.Sprintf("could nor read random seed from crypto/rand: %v", err))
 	}
 	return seed
-func ByteRounderFactory(n int) func(byteSlice []byte) []byte {
-	return func(byteSlice []byte) []byte {
-		rem := len(byteSlice) % n
-		rem = (n - rem) % n
-		byteSliceRounded := append(make([]byte, rem), byteSlice...)
-		return byteSliceRounded
-	}
-}
 
-func FeltBytes(n int) []byte {
-	numb, _ := big.NewInt(0).SetString("3618502788666131213697322783095070105623107215331596699973092056135872020480", 10)
-	randNumb, _ := rand.Int(rand.Reader, numb)
-	randBytes := randNumb.Bytes()
-
-	randBytesRounded := ByteRounderFactory(n)(randBytes)
-
-	return randBytesRounded[:n]
-}
