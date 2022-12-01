@@ -2,8 +2,10 @@ package settlement
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"sync"
+	"time"
 
 	"github.com/tendermint/tendermint/internal/consensus"
 	"github.com/tendermint/tendermint/libs/log"
@@ -18,7 +20,7 @@ type Reactor struct {
 	logger log.Logger
 
 	verifierDetails types.VerifierDetails
-	receiveBlocksCh <-chan consensus.InvokeData
+	SettlementCh    <-chan consensus.InvokeData
 
 	mtx sync.Mutex
 }
@@ -29,12 +31,12 @@ type Reactor struct {
 func NewReactor(
 	logger log.Logger,
 	vd types.VerifierDetails,
-	receiveBlocksCh <-chan consensus.InvokeData,
+	SettlementCh <-chan consensus.InvokeData,
 ) *Reactor {
 	r := &Reactor{
 		logger:          logger,
 		verifierDetails: vd,
-		receiveBlocksCh: receiveBlocksCh,
+		SettlementCh:    SettlementCh,
 	}
 
 	r.BaseService = *service.NewBaseService(logger, "Settlement", r)
@@ -47,7 +49,7 @@ func NewReactor(
 // messages on that p2p channel accordingly. The caller must be sure to execute
 // OnStop to ensure the outbound p2p Channels are closed. No error is returned.
 func (r *Reactor) OnStart(ctx context.Context) error {
-	r.ListenInvokeBlocks(ctx, r.receiveBlocksCh)
+	go r.ListenInvokeBlocks(ctx, r.SettlementCh)
 
 	return nil
 }
@@ -56,11 +58,11 @@ func (r *Reactor) OnStart(ctx context.Context) error {
 // blocking until they all exit.
 func (r *Reactor) OnStop() {}
 
-func (r *Reactor) ListenInvokeBlocks(ctx context.Context, receiveBlocksCh <-chan consensus.InvokeData) {
-	r.logger.Info("Started settlement reactor")
+func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan consensus.InvokeData) {
+	r.logger.Info("started settlement reactor")
 	for {
 		select {
-		case newBlock := <-receiveBlocksCh:
+		case newBlock := <-SettlementCh:
 			r.FormatAndSendCommit(newBlock)
 		case <-ctx.Done():
 			r.logger.Info("Stopping settlement reactor")
@@ -72,19 +74,15 @@ func (r *Reactor) ListenInvokeBlocks(ctx context.Context, receiveBlocksCh <-chan
 
 func (r *Reactor) FormatAndSendCommit(id consensus.InvokeData) error {
 	logger := r.logger
-	trustedLightB := id.TrustedLightB
+	logger.Info("settling commit")
+	currentTime := time.Now()
+	timeBig := big.NewInt((currentTime.UnixNano()))
 
-	untrustedLightB := id.UntrusteLightB
-
-	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
-	// TODO: set new bigInt for currentime.
-	consensus.FormatExternal(trustedLightB, untrustedLightB, trustedLightB.ValidatorSet, big.NewInt(1665753884507526850), big.NewInt(10), trustingPeriod)
-
-	stdout, err := smartcontracts.Invoke(r.verifierDetails)
+	stdout, err := smartcontracts.Invoke(r.verifierDetails, id, timeBig)
 	if err != nil {
-		return err
-	}
-	logger.Info(string(stdout))
+		fmt.Println(string(stdout))
+		fmt.Println(err)
 
-	return nil
+	}
+	return err
 }
