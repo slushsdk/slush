@@ -170,7 +170,7 @@ func generateLightClientAttackEvidence(
 	header.ValidatorsHash = conflictingVals.Hash()
 
 	// create a commit for the forged header
-	blockID := makeBlockID(header.Hash(), 1000, []byte("partshash"))
+	blockID := makeBlockID(header.Hash(), 1000, pedersen.FeltBytes(32))
 	voteSet := types.NewVoteSet(chainID, forgedHeight, 0, tmproto.SignedMsgType(2), conflictingVals)
 	commit, err := factory.MakeCommit(blockID, forgedHeight, 0, voteSet, pv, forgedTime)
 	if err != nil {
@@ -257,7 +257,7 @@ func makeHeaderRandom(chainID string, height int64) *types.Header {
 		ChainID:            chainID,
 		Height:             height,
 		Time:               time.Now(),
-		LastBlockID:        makeBlockID([]byte("headerhash"), 1000, []byte("partshash")),
+		LastBlockID:        makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32)),
 		LastCommitHash:     pedersen.FeltBytes(crypto.HashSize),
 		DataHash:           pedersen.FeltBytes(crypto.HashSize),
 		ValidatorsHash:     pedersen.FeltBytes(crypto.HashSize),

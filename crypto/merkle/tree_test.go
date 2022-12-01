@@ -110,7 +110,7 @@ func TestProof(t *testing.T) {
 
 	items := make([][]byte, total)
 	for i := 0; i < total; i++ {
-		items[i] = testItem(tmrand.Bytes(tmhash.Size))
+		items[i] = testItem(pedersen.FeltBytes(32))
 	}
 
 	rootHash = HashFromByteSlicesInt128(items)
@@ -163,7 +163,7 @@ func TestHashAlternatives(t *testing.T) {
 
 	items := make([][]byte, total)
 	for i := 0; i < total; i++ {
-		items[i] = testItem(tmrand.Bytes(tmhash.Size))
+		items[i] = testItem(pedersen.FeltBytes(32))
 	}
 
 	rootHash1 := HashFromByteSlicesIterative(items)
@@ -176,7 +176,7 @@ func BenchmarkHashAlternatives(b *testing.B) {
 
 	items := make([][]byte, total)
 	for i := 0; i < total; i++ {
-		items[i] = testItem(tmrand.Bytes(tmhash.Size))
+		items[i] = testItem(pedersen.FeltBytes(32))
 	}
 
 	b.ResetTimer()

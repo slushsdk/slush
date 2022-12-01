@@ -13,11 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
 
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -92,7 +93,7 @@ func TestSignerClient_SignVote(t *testing.T) {
 	require.NoError(t, err)
 
 	ts := time.Now()
-	hash := tmrand.Bytes(crypto.HashSize)
+	hash := pedersen.FeltBytes(32)
 	valAddr := stark.GenPrivKey().PubKey().Address()
 
 	want := &types.Vote{
@@ -148,7 +149,7 @@ func TestSignerClient_SignProposal(t *testing.T) {
 	require.NoError(t, err)
 
 	ts := time.Now()
-	hash := tmrand.Bytes(tmhash.Size)
+	hash := pedersen.FeltBytes(32)
 
 	have := &types.Proposal{
 		Type:      tmproto.ProposalType,
