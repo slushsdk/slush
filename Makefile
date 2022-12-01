@@ -66,11 +66,14 @@ include test/Makefile
 ###############################################################################
 
 build: $(BUILDDIR)/
-	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(BUILDDIR)/ ./cmd/tendermint/
+	@cd cairo; \
+	protostar build; \
+	cd ..
+	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(BUILDDIR)/ ./cmd/slush/
 .PHONY: build
 
 install:
-	CGO_ENABLED=$(CGO_ENABLED) go install $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./cmd/tendermint
+	CGO_ENABLED=$(CGO_ENABLED) go install $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./cmd/slush
 .PHONY: install
 
 $(BUILDDIR)/:
@@ -177,12 +180,12 @@ go.sum: go.mod
 draw_deps:
 	@# requires brew install graphviz or apt-get install graphviz
 	go get github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/tendermint/tendermint/cmd/tendermint -d 3 | dot -Tpng -o dependency-graph.png
+	@goviz -i github.com/tendermint/tendermint/cmd/slush -d 3 | dot -Tpng -o dependency-graph.png
 .PHONY: draw_deps
 
 get_deps_bin_size:
 	@# Copy of build recipe with additional flags to perform binary size analysis
-	$(eval $(shell go build -work -a $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(BUILDDIR)/ ./cmd/tendermint/ 2>&1))
+	$(eval $(shell go build -work -a $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(BUILDDIR)/ ./cmd/slush/ 2>&1))
 	@find $(WORK) -type f -name "*.a" | xargs -I{} du -hxs "{}" | sort -rh | sed -e s:${WORK}/::g > deps_bin_size.log
 	@echo "Results can be found here: $(CURDIR)/deps_bin_size.log"
 .PHONY: get_deps_bin_size
