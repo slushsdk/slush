@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
@@ -166,7 +167,7 @@ func TestPartProtoBuf(t *testing.T) {
 	proof := merkle.Proof{
 		Total:    1,
 		Index:    1,
-		LeafHash: tmrand.Bytes(32),
+		LeafHash: pedersen.FeltBytes(32),
 	}
 	testCases := []struct {
 		msg     string
