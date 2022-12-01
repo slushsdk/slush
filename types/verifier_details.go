@@ -13,7 +13,6 @@ import (
 // VerifierDetails is the onchain details needed for verifying a lightheader.
 // It contains the nodes private key for authentication.
 type VerifierDetails struct {
-	PathToFiles        string         `json:"pathToFiles"`
 	VerifierAddress    *big.Int       `json:"verifierAddress"`
 	AccountPrivKeyPath string         `json:"accountPrivKeyPath"`
 	AccountAddress     *big.Int       `json:"accountAddress"`
