@@ -137,8 +137,7 @@ func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
 	hasherForChainID := crypto.NewInt128()
 	hasherForChainID.Write(chainIDByte)
 
-	var voteArray []byte
-	voteArray = bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
+	voteArray := bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
 	hasher := crypto.NewFelt()
 	hasher.Write(voteArray)
 	r := hasher.Sum(nil)
