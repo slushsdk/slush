@@ -76,6 +76,7 @@ type nodeImpl struct {
 	consensusReactor *consensus.Reactor // for participating in the consensus
 	pexReactor       service.Service    // for exchanging peer addresses
 	evidenceReactor  service.Service
+	settlementReactor settlement.Reactor
 	rpcListeners     []net.Listener // rpc servers
 	shutdownOps      closer
 	indexerService   service.Service
@@ -129,8 +130,14 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 	)
 }
 
+// TODO: move this  somewhere ok
 func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
 	state.VerifierDetails = vd
+}
+
+// TODO: move this  somewhere ok
+func AddSettlementCh(state *consensus.State, ch chan consensus.InvokeData) {
+	state.SettlementCh = ch
 }
 
 // makeNode returns a new, ready to go, Tendermint Node.
@@ -297,7 +304,6 @@ func makeNode(cfg *config.Config,
 		cfg, proxyApp, state, nodeMetrics.mempool, peerManager, router, logger,
 	)
 
-	AddVerifierDetails(csState, verifierDetails)
 
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
@@ -328,6 +334,12 @@ func makeNode(cfg *config.Config,
 		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus,
 		peerManager, router, consensusLogger,
 	)
+
+	settlementCh := createSettlementChnel()
+	settlementReactor, settlsmentCloser, err := createSettlementReactor(logger, verifierDetails, settlementCh)
+
+	AddVerifierDetails(csState, verifierDetails)
+	AddSettlementCh(csState, settlementCh)
 
 	// Create the blockchain reactor. Note, we do not start block sync if we're
 	// doing a state sync first.
@@ -496,6 +508,7 @@ func makeNode(cfg *config.Config,
 		stateSync:        stateSync,
 		pexReactor:       pexReactor,
 		evidenceReactor:  evReactor,
+		settlementReactor: settlementReactor
 		indexerService:   indexerService,
 		eventBus:         eventBus,
 		eventSinks:       eventSinks,
@@ -863,6 +876,12 @@ func (n *nodeImpl) OnStop() {
 		if err := n.evidenceReactor.Stop(); err != nil {
 			n.Logger.Error("failed to stop the evidence reactor", "err", err)
 		}
+
+		
+	}
+
+	if err := n.settlementReactor.Stop(); err != nil {
+		n.Logger.Error("failed to stop the settlement reactor", "err", err)
 	}
 
 	if err := n.pexReactor.Stop(); err != nil {
