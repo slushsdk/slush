@@ -107,7 +107,7 @@ type LightBlockArgs struct {
 	ValidatorSet ValidatorSetArgs `json:"validator_set"`
 }
 
-type External struct {
+type CallData struct {
 	ChainIdArray            []*big.Int       `json:"chain_id_array"`
 	TrustedCommitSigArray   []CommitSigData  `json:"trusted_commit_sig_array"`
 	UntrustedCommitSigArray []CommitSigData  `json:"untrusted_commit_sig_array"`
@@ -118,10 +118,15 @@ type External struct {
 	VerificationArgs        VerificationArgs `json:"verification_args"`
 }
 
+type External struct {
+	VerifierAddress *big.Int `json:"address"`
+	CallData        CallData `json:"calldata"`
+}
+
 type InvokeData struct {
-	TrustedLightB  types.LightBlock
-	UntrusteLightB types.LightBlock
-	ValidatorSet   types.ValidatorSet
+	TrustedLightB   types.LightBlock
+	UntrustedLightB types.LightBlock
+	ValidatorSet    types.ValidatorSet
 }
 
 func formatPartSetHeader(partSetHeader types.PartSetHeader) PartSetHeaderData {
@@ -265,8 +270,8 @@ func formatChainId(chainId string) []*big.Int {
 	return chainIdArray
 }
 
-func FormatExternal(trustedLightBlock types.LightBlock, untrustedLightBlock types.LightBlock, validatorSet *types.ValidatorSet, currentTime, maxClockDrift, trustingPeriod *big.Int) External {
-	return External{
+func FormatCallData(trustedLightBlock types.LightBlock, untrustedLightBlock types.LightBlock, validatorSet *types.ValidatorSet, currentTime, maxClockDrift, trustingPeriod *big.Int) CallData {
+	return CallData{
 		ChainIdArray:            formatChainId(trustedLightBlock.ChainID),
 		TrustedCommitSigArray:   FormatCommitSigArray(trustedLightBlock.Commit.Signatures),
 		UntrustedCommitSigArray: FormatCommitSigArray(untrustedLightBlock.Commit.Signatures),
@@ -280,17 +285,17 @@ func FormatExternal(trustedLightBlock types.LightBlock, untrustedLightBlock type
 
 // we use this to push new block to settlment channel
 func (cs *State) PushCommitToSettlment() error {
-	trustedLightB, err := cs.getLightBlock(cs.Height - 1)
+	trustedLightB, err := cs.getLightBlock(cs.Height - 3)
 	if err != nil {
 		return err
 	}
 
-	untrustedLightB, err := cs.getLightBlock(cs.Height)
+	untrustedLightB, err := cs.getLightBlock(cs.Height - 2)
 	if err != nil {
 		return err
 	}
 
-	id := InvokeData{TrustedLightB: trustedLightB, UntrusteLightB: untrustedLightB, ValidatorSet: *trustedLightB.ValidatorSet}
+	id := InvokeData{TrustedLightB: trustedLightB, UntrustedLightB: untrustedLightB, ValidatorSet: *trustedLightB.ValidatorSet}
 	cs.SettlementCh <- id
 	return nil
 }
