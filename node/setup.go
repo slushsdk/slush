@@ -467,7 +467,12 @@ func createTransport(logger log.Logger, cfg *config.Config) *p2p.MConnTransport 
 	)
 }
 
-func createSettlementReactor(
+func CreateSettlementChan() chan consensus.InvokeData {
+	ch := make(chan consensus.InvokeData, 100)
+	return ch
+}
+
+func CreateSettlementReactor(
 	logger log.Logger,
 	vd types.VerifierDetails,
 	SettlementCh <-chan consensus.InvokeData,
@@ -478,11 +483,6 @@ func createSettlementReactor(
 	evidenceReactor := settlement.NewReactor(logger, vd, SettlementCh)
 
 	return evidenceReactor, nil
-}
-
-func createSettlementChnel() chan consensus.InvokeData {
-	ch := make(chan consensus.InvokeData, 20)
-	return ch
 }
 
 func createPeerManager(

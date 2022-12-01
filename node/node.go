@@ -131,9 +131,9 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 }
 
 // TODO: move this  somewhere ok
-func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
-	state.VerifierDetails = vd
-}
+// func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
+// 	state.VerifierDetails = vd
+// }
 
 // TODO: move this  somewhere ok
 func AddSettlementCh(state *consensus.State, ch chan consensus.InvokeData) {
@@ -329,17 +329,16 @@ func makeNode(cfg *config.Config,
 		sm.BlockExecutorWithMetrics(nodeMetrics.state),
 	)
 
-	csReactorShim, csReactor, csState := createConsensusReactor(
-		cfg, state, blockExec, blockStore, mp, evPool,
-		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus,
-		peerManager, router, consensusLogger,
-	)
 
 	settlementCh := createSettlementChnel()
 	settlementReactor, settlsmentCloser, err := createSettlementReactor(logger, verifierDetails, settlementCh)
 
-	AddVerifierDetails(csState, verifierDetails)
-	AddSettlementCh(csState, settlementCh)
+	csReactorShim, csReactor, csState := createConsensusReactor(
+		cfg, state, blockExec, blockStore, mp, evPool,
+		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus, settlementCh, 
+		peerManager, router, consensusLogger,
+	)
+
 
 	// Create the blockchain reactor. Note, we do not start block sync if we're
 	// doing a state sync first.
