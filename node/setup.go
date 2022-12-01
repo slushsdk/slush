@@ -25,6 +25,7 @@ import (
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/internal/p2p/pex"
 	"github.com/tendermint/tendermint/internal/proxy"
+	"github.com/tendermint/tendermint/internal/settlement"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/state/indexer"
 	"github.com/tendermint/tendermint/internal/state/indexer/sink"
@@ -464,6 +465,24 @@ func createTransport(logger log.Logger, cfg *config.Config) *p2p.MConnTransport 
 			MaxAcceptedConnections: maxAccepted,
 		},
 	)
+}
+
+func createSettlementReactor(
+	logger log.Logger,
+	vd types.VerifierDetails,
+	receiveBlocksCh <-chan consensus.InvokeData,
+) (*settlement.Reactor, error) {
+
+	logger = logger.With("module", "settlement")
+
+	evidenceReactor := settlement.NewReactor(logger, vd, receiveBlocksCh)
+
+	return evidenceReactor, nil
+}
+
+func createSettlementChnel() chan consensus.InvokeData {
+	ch := make(chan consensus.InvokeData, 20)
+	return ch
 }
 
 func createPeerManager(

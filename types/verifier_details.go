@@ -106,38 +106,39 @@ func (vd VerifierDetails) SaveAs(verifierAddressPath string, verifierAbiPath str
 
 // LoadVerifierDetails loads VerifierDetails located in filePath.
 func LoadVerifierDetails(verifierAddressPath string, verifierAbiPath string, accountPrivKeyPath string, accountAddressPath string) (VerifierDetails, error) {
-	// 	jsonBytes, err := os.ReadFile(verifierAddressPath)
-	// 	if err != nil {
-	// 		return VerifierDetails{}, err
-	// 	}
-	// 	verifierAddress := big.NewInt(0)
-	// 	err = json.Unmarshal(jsonBytes, &verifierAddress)
-	// 	if err != nil {
-	// 		return VerifierDetails{}, err
-	// 	}
+	// jsonBytes, err := os.ReadFile(verifierAddressPath)
+	// if err != nil {
+	// 	return VerifierDetails{}, err
+	// }
+	// verifierAddress := big.NewInt(0)
+	// err = json.Unmarshal(jsonBytes, &verifierAddress)
+	// if err != nil {
+	// 	return VerifierDetails{}, err
+	// }
 
-	// 	jsonBytes, err = os.ReadFile(verifierAbiPath)
-	// 	if err != nil {
-	// 		return VerifierDetails{}, err
-	// 	}
-	// 	verifierAbiLocation := ""
-	// 	err = json.Unmarshal(jsonBytes, &verifierAbiLocation)
-	// 	if err != nil {
-	// 		return VerifierDetails{}, err
-	// 	}
+	// jsonBytes, err = os.ReadFile(verifierAbiPath)
+	// if err != nil {
+	// 	return VerifierDetails{}, err
+	// }
+	// verifierAbiLocation := ""
+	// err = json.Unmarshal(jsonBytes, &verifierAbiLocation)
+	// if err != nil {
+	// 	return VerifierDetails{}, err
+	// }
 
-	// 	jsonBytes, err = os.ReadFile(accountAddressPath)
-	// 	if err != nil {
-	// 		return VerifierDetails{}, err
-	// 	}
-	// 	accountAddress := big.NewInt(0)
-	// 	err = json.Unmarshal(jsonBytes, &accountAddress)
-	// 	if err != nil {
-	// 		return VerifierDetails{}, err
-	// 	}
+	// jsonBytes, err = os.ReadFile(accountAddressPath)
+	// if err != nil {
+	// 	return VerifierDetails{}, err
+	// }
+	// accountAddress := big.NewInt(0)
+	// err = json.Unmarshal(jsonBytes, &accountAddress)
+	// if err != nil {
+	// 	return VerifierDetails{}, err
+	// }
 
-	// 	veriferDetails := VerifierDetails{verifierAddress, verifierAbiLocation, accountPrivKeyPath, accountAddress}
-	// 	return veriferDetails, nil
+	// 	verifierDetails := VerifierDetails{verifierAddress, verifierAbiLocation, accountPrivKeyPath, accountAddress}
+	// 	return verifierDetails, nil
 
 	return VerifierDetails{}, nil
+
 }
