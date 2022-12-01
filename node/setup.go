@@ -470,12 +470,12 @@ func createTransport(logger log.Logger, cfg *config.Config) *p2p.MConnTransport 
 func createSettlementReactor(
 	logger log.Logger,
 	vd types.VerifierDetails,
-	receiveBlocksCh <-chan consensus.InvokeData,
+	SettlementCh <-chan consensus.InvokeData,
 ) (*settlement.Reactor, error) {
 
 	logger = logger.With("module", "settlement")
 
-	evidenceReactor := settlement.NewReactor(logger, vd, receiveBlocksCh)
+	evidenceReactor := settlement.NewReactor(logger, vd, SettlementCh)
 
 	return evidenceReactor, nil
 }
