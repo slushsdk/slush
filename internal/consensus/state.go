@@ -117,7 +117,7 @@ type State struct {
 	privValidatorPubKey crypto.PubKey
 
 	//Added for stark. Used to communicate with
-	VerifierDetails types.VerifierDetails
+	//VerifierDetails types.VerifierDetails
 
 	// state changes may be triggered by: msgs from peers,
 	// msgs from ourself, or by timeouts
@@ -172,6 +172,8 @@ func NewState(
 	blockStore sm.BlockStore,
 	txNotifier txNotifier,
 	evpool evidencePool,
+	verifierDetails types.VerifierDetails,
+	settlementCh chan InvokeData,
 	options ...StateOption,
 ) *State {
 	cs := &State{
@@ -190,6 +192,8 @@ func NewState(
 		evsw:             tmevents.NewEventSwitch(),
 		metrics:          NopMetrics(),
 		onStopCh:         make(chan *cstypes.RoundState),
+		SettlementCh:     settlementCh,
+		//VerifierDetails:  verifierDetails,
 	}
 
 	// set function defaults (may be overwritten before calling Start)
