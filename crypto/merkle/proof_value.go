@@ -81,7 +81,7 @@ func (op ValueOp) Run(args [][]byte) ([][]byte, error) {
 	}
 	value := args[0]
 
-	vhash := crypto.Sum256(value)
+	vhash := crypto.Sum256Int128(value)
 
 	bz := new(bytes.Buffer)
 	// Wrap <op.Key, vhash> to hash the KVPair.

@@ -106,7 +106,7 @@ func (dve *DuplicateVoteEvidence) Bytes() []byte {
 
 // Hash returns the hash of the evidence.
 func (dve *DuplicateVoteEvidence) Hash() []byte {
-	return tmhash.Sum(dve.Bytes())
+	return crypto.ChecksumInt128(dve.Bytes())
 }
 
 // Height returns the height of the infraction
@@ -349,8 +349,8 @@ func (l *LightClientAttackEvidence) ConflictingHeaderIsInvalid(trustedHeader *He
 // validators and timestamp
 func (l *LightClientAttackEvidence) Hash() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
-	binary.BigEndian.PutVarint(buf, l.CommonHeight)
-	commonHeightHash := crypto.Checksum(buf)
+	binary.BigEndian.PutUint64(buf, uint64(l.CommonHeight))
+	commonHeightHash := crypto.ChecksumInt128(buf)
 
 	bz := make([]byte, 2*tmhash.Size)
 	copy(bz[:crypto.HashSize-1], l.ConflictingBlock.Hash().Bytes())

@@ -435,10 +435,10 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	)
 
 	blockID := types.BlockID{
-		Hash: tmhash.Sum([]byte("blockID_hash")),
+		Hash: crypto.ChecksumInt128([]byte("blockID_hash")),
 		PartSetHeader: types.PartSetHeader{
 			Total: math.MaxInt32,
-			Hash:  tmhash.Sum([]byte("blockID_part_set_header_hash")),
+			Hash:  crypto.ChecksumInt128([]byte("blockID_part_set_header_hash")),
 		},
 	}
 
@@ -447,8 +447,8 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	state.LastBlockID = blockID
 	state.LastBlockHeight = math.MaxInt64 - 1
 	state.LastBlockTime = timestamp
-	state.LastResultsHash = tmhash.Sum([]byte("last_results_hash"))
-	state.AppHash = tmhash.Sum([]byte("app_hash"))
+	state.LastResultsHash = crypto.ChecksumInt128([]byte("last_results_hash"))
+	state.AppHash = crypto.ChecksumInt128([]byte("app_hash"))
 	state.Version.Consensus.Block = math.MaxInt64
 	state.Version.Consensus.App = math.MaxInt64
 	maxChainID := ""

@@ -51,7 +51,7 @@ func TestValidateBlockHeader(t *testing.T) {
 	lastCommit := types.NewCommit(0, 0, types.BlockID{}, nil)
 
 	// some bad values
-	wrongHash := tmhash.Sum([]byte("this hash is wrong"))
+	wrongHash := crypto.ChecksumInt128([]byte("this hash is wrong"))
 	wrongVersion1 := state.Version.Consensus
 	wrongVersion1.Block += 2
 	wrongVersion2 := state.Version.Consensus

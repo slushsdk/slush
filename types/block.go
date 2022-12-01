@@ -468,8 +468,8 @@ func (h *Header) Hash() tmbytes.HexBytes {
 
 	return merkle.HashFromByteSlices([][]byte{
 		pedersen.ByteRounder(hbz),
-		pedersen.ByteRounder(crypto.Checksum(chainIDB)),
-		pedersen.ByteRounder(crypto.Checksum(heightB)),
+		pedersen.ByteRounder(crypto.ChecksumInt128(chainIDB)),
+		pedersen.ByteRounder(crypto.ChecksumInt128(heightB)),
 		pedersen.ByteRounder(pbt),
 		pedersen.ByteRounder(bzbi),
 		pedersen.ByteRounder([]byte(h.LastCommitHash)),

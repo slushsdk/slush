@@ -15,21 +15,34 @@ import (
 // the purpose of this test is primarily to ensure that the randomness
 // generation won't error.
 func TestPedersenSimpleDigest(t *testing.T) {
-	result := pedersen.Digest(big.NewInt(44), big.NewInt(0))
-	require.Equal(t, result.Cmp(big.NewInt(0)), 1)
+	num1 := big.NewInt(44)
+	num2 := big.NewInt(0)
+
+	result := pedersen.Digest(num1, num2)
+
+	isGreaterThanZero := result.Cmp(big.NewInt(0)) == 1
+	require.True(t, isGreaterThanZero)
 }
 
 func TestPedersenArrayDigest(t *testing.T) {
-	result := pedersen.ArrayDigest(big.NewInt(44), big.NewInt(44), big.NewInt(44), big.NewInt(44))
-	require.Equal(t, result.Cmp(big.NewInt(0)), 1)
+	num := big.NewInt(44)
+
+	result := pedersen.ArrayDigest(num, num, num, num)
+
+	isGreaterThanZero := result.Cmp(big.NewInt(0)) == 1
+	require.True(t, isGreaterThanZero)
 }
 
 // We got this result from the cairo playground pedersen hash function.
 func TestDigest(t *testing.T) {
-	expected, _ := big.NewInt(0).SetString("307958720726328212653290369969069617958360335228383070119367204176047090109", 10)
-	result := pedersen.Digest(big.NewInt(314), big.NewInt(159))
-	require.Equal(t, result.Cmp(expected), 0)
+	num1 := big.NewInt(314)
+	num2 := big.NewInt(159)
+	expectedBigInt, _ := big.NewInt(0).SetString("307958720726328212653290369969069617958360335228383070119367204176047090109", 10)
+	expected := expectedBigInt
 
+	result := pedersen.Digest(num1, num2)
+
+	require.Equal(t, result, expected)
 }
 
 func TestPedersenHash(t *testing.T) {
@@ -48,7 +61,7 @@ func TestPedersenHash(t *testing.T) {
 	require.True(t, resultInt.Cmp(expected) == 0)
 }
 
-//Also run in Cairo.
+// Also run in Cairo.
 func TestPedersenIntArray(t *testing.T) {
 	hasher := pedersenInt128.New()
 
@@ -84,20 +97,20 @@ func TestPedersenIntArray2(t *testing.T) {
 	require.True(t, resultInt.Cmp(expected) == 0)
 }
 
-//Also run in Cairo.
+// Also run in Cairo.
 func TestPedersenHashFeltArray(t *testing.T) {
 	hasher := pedersenFelt.New()
 
 	//we write the zeros for padding to simulate hashing a felt
 
-	hasher.Write(append(make([]byte, 24), pedersen.ByteRounder(([]byte{104}))...))
-	hasher.Write(append(make([]byte, 24), pedersen.ByteRounder(([]byte{105}))...))
+	hasher.Write(append(make([]byte, 16), pedersen.ByteRounder(([]byte{104}))...))
+	hasher.Write(append(make([]byte, 16), pedersen.ByteRounder(([]byte{105}))...))
 
 	result := hasher.Sum(nil)
 
 	resultInt := new(big.Int).SetBytes(result)
 	fmt.Println(resultInt)
-	expected, _ := new(big.Int).SetString("2646498606925522204838679506445363388192401594606070690927100495992848444995", 10)
+	expected, _ := new(big.Int).SetString("949196962641716154526889172894504096264434458913100418940040777598300992821", 10)
 	require.True(t, resultInt.Cmp(expected) == 0)
 }
 

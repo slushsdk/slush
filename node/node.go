@@ -100,10 +100,11 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 		)
 	}
 
-	verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
-	if err != nil {
-		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
-	}
+	// verifierDetails, err := types.LoadVerifierDetails(cfg.VerifierAddressFile(), cfg.VerifierAbiFile(), cfg.AccountPrivKeyFile(), cfg.AccountAddressFile())
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
+	// }
+	verifierDetails := types.VerifierDetails{}
 
 	var pval *privval.FilePV
 	if cfg.Mode == config.ModeValidator {
