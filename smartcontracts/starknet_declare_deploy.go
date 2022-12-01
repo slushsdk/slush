@@ -26,10 +26,10 @@ func DeclareDeploy(vd types.VerifierDetails, verifierDetailsFile string) (*big.I
 	// devnet is different
 	if vd.NetworkDetails.Network == "devnet" {
 		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", "./"+vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
-		deploycmd.Dir = vd.PathToFiles
+		deploycmd.Dir = "./cairo"
 	} else {
 		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--private-key", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.String(), "--network", vd.NetworkDetails.Network, "--no-confirm")
-		deploycmd.Dir = vd.PathToFiles
+		deploycmd.Dir = "./cairo"
 	}
 
 	deploystdout, err := deploycmd.CombinedOutput()

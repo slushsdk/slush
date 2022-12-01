@@ -29,7 +29,7 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType     = "stark"
+	keyType     = types.DefaultValidatorParams().PubKeyTypes[0]
 	pathToFiles = "./cairo"
 	network     string
 	pkey        string
@@ -94,11 +94,9 @@ func InitializeVerifierDetails(pathToFiles string, pkeyStr string, addressStr st
 		return types.VerifierDetails{}, errors.New("could not read pkey string. Provide in hex, without leading 0x")
 	}
 
-	mul := big.NewInt(0)
-
 	// Check whether we need to use burnt in keys.
 	var seedKeysBool bool
-	if mul.Mul(pkey, address) == big.NewInt(0) {
+	if pkeyStr == "0" || addressStr == "0" {
 		seedKeysBool = true
 	} else {
 		seedKeysBool = false
