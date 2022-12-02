@@ -61,7 +61,7 @@ func RootCommand(conf *config.Config, logger log.Logger) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.PersistentFlags().StringP(cli.HomeFlag, "", os.ExpandEnv(filepath.Join("$HOME", config.DefaultTendermintDir)), "directory for config and data")
+	cmd.PersistentFlags().StringP(cli.HomeFlag, "", os.ExpandEnv(filepath.Join("$HOME", config.DefaultSlushDir)), "directory for config and data")
 	cmd.PersistentFlags().Bool(cli.TraceFlag, false, "print out full stack trace on errors")
 	cmd.PersistentFlags().String("log-level", conf.LogLevel, "log level")
 	cobra.OnInitialize(func() { cli.InitEnv("TM") })

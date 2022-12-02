@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"runtime/debug"
 	"sort"
@@ -19,6 +20,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
 	"github.com/tendermint/tendermint/internal/eventbus"
+	"github.com/tendermint/tendermint/internal/evidence"
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/internal/libs/autofile"
 	sm "github.com/tendermint/tendermint/internal/state"
@@ -31,6 +33,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/tendermint/tendermint/starknet"
 	"github.com/tendermint/tendermint/types"
 )
 
@@ -137,7 +140,7 @@ type State struct {
 
 	// send lightblocks to settlement
 	// when block is finalised
-	SettlementCh chan<- InvokeData
+	SettlementCh chan<- []string
 
 	// internal state
 	mtx sync.RWMutex
@@ -205,7 +208,7 @@ func NewState(
 	txNotifier txNotifier,
 	evpool evidencePool,
 	eventBus *eventbus.EventBus,
-	settlementCh chan InvokeData,
+	settlementCh chan []string,
 	options ...StateOption,
 ) (*State, error) {
 	cs := &State{
@@ -2051,10 +2054,60 @@ func (cs *State) finalizeCommit(ctx context.Context, height int64) {
 	// * cs.StartTime is set to when we will start round0.
 
 	// Finally, we want to send the commit to starknet (exact location TBD)
-	err = cs.PushCommitToSettlment()
+	err = cs.PushCommitToSettlement()
 	if err != nil {
 		logger.Error("Failed to construct tx to Cairo: ", err)
 	}
+}
+
+func (cs *State) getLightBlock(height int64) (types.LightBlock, error) {
+	signedHeader, err := evidence.GetSignedHeader(cs.blockStore, height)
+
+	if err != nil {
+		return types.LightBlock{}, err
+	}
+
+	validators, err := cs.stateStore.LoadValidators(height)
+	if err != nil {
+		return types.LightBlock{}, err
+	}
+
+	return types.LightBlock{SignedHeader: signedHeader, ValidatorSet: validators}, nil
+}
+
+// we use this to push new block to settlment channel
+func (cs *State) PushCommitToSettlement() (err error) {
+	// First blocks are not sent to starknet, they are required for the consensus initialization
+	if cs.Height <= 3 {
+		logger := cs.logger
+		logger.Info(fmt.Sprintf("Initialization block %d of 3", cs.Height))
+		return
+	}
+
+	trustedLightBlock, err := cs.getLightBlock(cs.Height - 3)
+	if err != nil {
+		return
+	}
+
+	untrustedLightBlock, err := cs.getLightBlock(cs.Height - 2)
+	if err != nil {
+		return
+	}
+
+	vc := starknet.VerificationConfig{
+		CurrentTime:    big.NewInt((time.Now().UnixNano())),
+		MaxClockDrift:  big.NewInt(10),
+		TrustingPeriod: big.NewInt(999999999999999999),
+	}
+
+	inputs, err := starknet.ParseInput(trustedLightBlock, untrustedLightBlock, vc)
+	if err != nil {
+		err = fmt.Errorf("failed to format for settlement: %w", err)
+		return
+	}
+
+	cs.SettlementCh <- inputs
+	return
 }
 
 func (cs *State) RecordMetrics(height int64, block *types.Block) {
