@@ -132,7 +132,7 @@ func (pb *playback) replayReset(count int, newStepSub types.Subscription) error 
 	}
 	pb.cs.Wait()
 
-	settlementChan := make(chan InvokeData, 100)
+	settlementChan := make(chan []string, 100)
 	logger, _ := log.NewDefaultLogger("plain", "info", false)
 	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
@@ -339,7 +339,7 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 	mempool, evpool := emptyMempool{}, sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool, blockStore)
 
-	settlementChan := make(chan InvokeData, 100)
+	settlementChan := make(chan []string, 100)
 
 	consensusState := NewState(csConfig, state.Copy(), blockExec,
 		blockStore, mempool, evpool, settlementChan)
@@ -353,7 +353,7 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 
 type DummySettlementReactor struct {
 	logger       log.Logger
-	SettlementCh <-chan InvokeData
+	SettlementCh <-chan []string
 	stopChan     chan bool
 }
 

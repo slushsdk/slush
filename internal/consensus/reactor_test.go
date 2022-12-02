@@ -374,7 +374,7 @@ func TestReactorWithEvidence(t *testing.T) {
 
 		blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
 
-		settlementChan := make(chan InvokeData, 100)
+		settlementChan := make(chan []string, 100)
 		settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 		settlementReactor.OnStart()
 

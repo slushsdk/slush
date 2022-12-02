@@ -2,12 +2,15 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -22,7 +25,10 @@ func init() {
 }
 
 func registerFlagsRootCmd(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringP(cli.HomeFlag, "", os.ExpandEnv(filepath.Join("$HOME", cfg.DefaultSlushDir)), "directory for config and data")
+	cmd.PersistentFlags().Bool(cli.TraceFlag, false, "print out full stack trace on errors")
 	cmd.PersistentFlags().String("log-level", config.LogLevel, "log level")
+
 }
 
 // ParseConfig retrieves the default environment configuration,

@@ -43,10 +43,10 @@ const (
 // config/toml.go
 // NOTE: libs/cli must know to look in the config dir!
 var (
-	DefaultTendermintDir = ".tendermint"
-	defaultConfigDir     = "config"
-	defaultDataDir       = "data"
-	defaultCairoDir      = "cairo"
+	DefaultSlushDir  = ".slush"
+	defaultConfigDir = "config"
+	defaultDataDir   = "data"
+	defaultCairoDir  = "cairo"
 
 	defaultConfigFileName  = "config.toml"
 	defaultGenesisJSONName = "genesis.json"
@@ -185,7 +185,8 @@ type BaseConfig struct { //nolint: maligned
 	// chainID is unexposed and immutable but here for convenience
 	chainID string
 
-	VerifierAddress string
+	// Deployed verifier's contract address
+	VerifierAddress string `mapstructure:"verifier-address"`
 
 	// The root directory for all data.
 	// This should be set in viper so it can unmarshal into this struct

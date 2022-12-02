@@ -29,21 +29,14 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType           = "stark"
-	network           string
-	accountPrivateKey string
-	accountAddress    string
+	keyType        = "stark"
+	network        string
+	accountAddress string
 )
 
 func init() {
 
-	InitFilesCmd.Flags().StringVar(&network, "network", "devnet",
-		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42.")
-	InitFilesCmd.MarkFlagRequired("network")
-
-	InitFilesCmd.Flags().StringVar(&accountPrivateKey, "pkey", "0", "Specify privatekey. Not needed if --devnet=1. ")
-
-	InitFilesCmd.Flags().StringVar(&accountAddress, "address", "0", "Specify address. Not needed if --devnet=1. ")
+	InitFilesCmd.Flags().StringVar(&network, "network", "devnet", "Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050).")
 
 }
 
@@ -67,6 +60,7 @@ func initFiles(cmd *cobra.Command, args []string) error {
 }
 
 func initStarknetConfig(conf *cfg.Config, network string) error {
+	// MakeInitFilesCommand returns the command to initialize a fresh Tendermint Core instance.
 	switch network {
 	case "testnet":
 		conf.Starknet = &cfg.StarknetConfig{
@@ -97,13 +91,13 @@ func initStarknetConfig(conf *cfg.Config, network string) error {
 }
 
 func initVerifierAddress(conf *cfg.Config, logger log.Logger) (err error) {
-	classHashHex, transactionHashHex, err := starknet.Declare(conf.Starknet, filepath.Join(conf.CairoDir, "build/main.json"))
+	classHashHex, transactionHashHex, err := starknet.Declare(conf, filepath.Join(conf.CairoDir, "build/main.json"))
 	if err != nil {
 		return
 	}
 	logger.Info(fmt.Sprintf("Successfully declared with classHash=%s and transactionHash=%s", classHashHex, transactionHashHex))
 
-	contractAddressHex, transactionHex, err := starknet.Deploy(conf.Starknet, classHashHex)
+	contractAddressHex, transactionHex, err := starknet.Deploy(conf, classHashHex)
 	if err != nil {
 		return
 	}
