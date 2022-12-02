@@ -1,9 +1,9 @@
 package pedersen
 
 // implementation of hash.Hash interface
-
 import (
 	"crypto/rand"
+
 	"hash"
 	"math/big"
 
@@ -11,6 +11,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/pedersen/hashing"
 	"github.com/tendermint/tendermint/crypto/utils"
 )
+
+// implementation of hash.Hash interface
 
 // The size of a pedersen checksum
 const Size = 32
