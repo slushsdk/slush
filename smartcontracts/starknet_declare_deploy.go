@@ -6,8 +6,6 @@ import (
 	"math/big"
 	"os/exec"
 	"regexp"
-
-	"github.com/tendermint/tendermint/types"
 )
 
 // struct ContractAddressStruct{
@@ -16,7 +14,7 @@ import (
 
 // struct
 
-func DeclareDeploy(vd types.VerifierDetails, verifierDetailsFile string) (*big.Int, *big.Int, error) {
+func DeclareDeploy(accountAddress, accountPrivateKeyPath, network string) (verifierAddress *big.Int, classHash *big.Int, err error) {
 
 	//"get contract class hash out of return value"
 
@@ -24,11 +22,11 @@ func DeclareDeploy(vd types.VerifierDetails, verifierDetailsFile string) (*big.I
 	var deploycmd *exec.Cmd
 
 	// devnet is different
-	if vd.NetworkDetails.Network == "devnet" {
-		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", "./"+vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+	if network == "devnet" {
+		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", "./"+accountPrivateKeyPath, "--account-address", accountAddress, "--no-confirm")
 		deploycmd.Dir = "./cairo"
 	} else {
-		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--private-key", vd.AccountPrivKeyPath, "--account-address", vd.AccountAddress.Text(16), "--network", vd.NetworkDetails.Network, "--no-confirm")
+		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--private-key", accountPrivateKeyPath, "--account-address", accountAddress, "--network", network, "--no-confirm")
 		deploycmd.Dir = "./cairo"
 	}
 
@@ -39,19 +37,18 @@ func DeclareDeploy(vd types.VerifierDetails, verifierDetailsFile string) (*big.I
 	classH := regexp.MustCompile(`class_hash *.*?\n`)
 
 	zerox := regexp.MustCompile(`0x.{64}`)
-	verifierAddress, b := big.NewInt(0).SetString(string(zerox.Find(contractA.Find(deploystdout)))[2:], 16)
 
-	if !b {
-		return big.NewInt(0), big.NewInt(0), errors.New("was not able to parse verifier address in starknet declare/deploy output")
+	verifierAddress, ok := big.NewInt(0).SetString(string(zerox.Find(contractA.Find(deploystdout)))[2:], 16)
+	if !ok {
+		err = errors.New("was not able to parse verifier address in starknet declare/deploy output")
+		return
 	}
 
-	classHash, b := big.NewInt(0).SetString(string(zerox.Find(classH.Find(deploystdout))[2:]), 16)
-	if !b {
-		return big.NewInt(0), big.NewInt(0), errors.New("was not able to parse class hash in starknet declare/deploy output")
+	classHash, ok = big.NewInt(0).SetString(string(zerox.Find(classH.Find(deploystdout))[2:]), 16)
+	if !ok {
+		err = errors.New("was not able to parse class hash in starknet declare/deploy output")
+		return
 	}
 
-	vd.VerifierAddress = verifierAddress
-	vd.SaveAs(verifierDetailsFile)
-
-	return verifierAddress, classHash, err
+	return
 }

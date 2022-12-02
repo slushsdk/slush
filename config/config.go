@@ -46,6 +46,7 @@ var (
 	DefaultTendermintDir = ".tendermint"
 	defaultConfigDir     = "config"
 	defaultDataDir       = "data"
+	defaultCairoDir      = "cairo"
 
 	defaultConfigFileName  = "config.toml"
 	defaultGenesisJSONName = "genesis.json"
@@ -57,7 +58,8 @@ var (
 	defaultNodeKeyName  = "node_key.json"
 	defaultAddrBookName = "addrbook.json"
 
-	defaultVerifierDetailsName = "verifier_details.json"
+	defaultAccountPrivateKeyFileName = "pkey"
+	defaultVerifierDetailsName       = "verifier_details.json"
 
 	defaultConfigFilePath   = filepath.Join(defaultConfigDir, defaultConfigFileName)
 	defaultGenesisJSONPath  = filepath.Join(defaultConfigDir, defaultGenesisJSONName)
@@ -132,6 +134,7 @@ func TestConfig() *Config {
 // SetRoot sets the RootDir for all Config structs
 func (cfg *Config) SetRoot(root string) *Config {
 	cfg.BaseConfig.RootDir = root
+	cfg.BaseConfig.CairoDir = defaultCairoDir
 	cfg.RPC.RootDir = root
 	cfg.P2P.RootDir = root
 	cfg.Mempool.RootDir = root
@@ -181,6 +184,9 @@ type BaseConfig struct { //nolint: maligned
 	// The root directory for all data.
 	// This should be set in viper so it can unmarshal into this struct
 	RootDir string `mapstructure:"home"`
+
+	// The directory containing the cairo files
+	CairoDir string `mapstructure:"cairo"`
 
 	// TCP or UNIX socket address of the ABCI application,
 	// or the name of an ABCI application compiled in with the Tendermint binary
@@ -237,6 +243,9 @@ type BaseConfig struct { //nolint: maligned
 	// A JSON file containing the private key to use for p2p authenticated encryption
 	NodeKey string `mapstructure:"node-key-file"`
 
+	// A text file containing the private key in hex format without 0x prefix
+	AccountPrivateKeyFileName string `mapstructure:"account-priv-key-file"`
+
 	// A JSON file containing the verifier contract's address
 	VerifierDetails string `mapstructure:"verifier-details-file"`
 
@@ -253,18 +262,19 @@ type BaseConfig struct { //nolint: maligned
 // DefaultBaseConfig returns a default base configuration for a Tendermint node
 func DefaultBaseConfig() BaseConfig {
 	return BaseConfig{
-		Genesis:         defaultGenesisJSONPath,
-		NodeKey:         defaultNodeKeyPath,
-		VerifierDetails: defaultVerifierDetailsPath,
-		Mode:            defaultMode,
-		Moniker:         defaultMoniker,
-		ProxyApp:        "tcp://127.0.0.1:26658",
-		ABCI:            "socket",
-		LogLevel:        DefaultLogLevel,
-		LogFormat:       log.LogFormatPlain,
-		FilterPeers:     false,
-		DBBackend:       "goleveldb",
-		DBPath:          "data",
+		Genesis:                   defaultGenesisJSONPath,
+		NodeKey:                   defaultNodeKeyPath,
+		AccountPrivateKeyFileName: defaultAccountPrivateKeyFileName,
+		VerifierDetails:           defaultVerifierDetailsPath,
+		Mode:                      defaultMode,
+		Moniker:                   defaultMoniker,
+		ProxyApp:                  "tcp://127.0.0.1:26658",
+		ABCI:                      "socket",
+		LogLevel:                  DefaultLogLevel,
+		LogFormat:                 log.LogFormatPlain,
+		FilterPeers:               false,
+		DBBackend:                 "goleveldb",
+		DBPath:                    "data",
 	}
 }
 
