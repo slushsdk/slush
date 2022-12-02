@@ -4,7 +4,7 @@ import (
 	encoding_binary "encoding/binary"
 
 	tmcrypto "github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/utils"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 )
 
@@ -54,7 +54,7 @@ func (c Consensus) Hash() []byte {
 	appByte := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(appByte, uint64(c.App))
 
-	cByte := append(pedersen.ByteRounderInt128(blockByte), pedersen.ByteRounderInt128(appByte)...)
+	cByte := append(utils.ByteRounder(16)(blockByte), utils.ByteRounder(16)(appByte)...)
 
-	return tmcrypto.ChecksumInt128(cByte)
+	return tmcrypto.Checksum128(cByte)
 }

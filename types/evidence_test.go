@@ -15,7 +15,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/crypto/utils"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"github.com/tendermint/tendermint/version"
@@ -56,8 +56,8 @@ func TestDuplicateVoteEvidence(t *testing.T) {
 
 func TestDuplicateVoteEvidenceValidation(t *testing.T) {
 	val := NewMockPV()
-	blockID := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
-	blockID2 := makeBlockID(crypto.ChecksumFelt(crypto.ByteRounderFelt(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
+	blockID2 := makeBlockID(crypto.ChecksumFelt(utils.ByteRounder(32)(pedersen.FeltBytes(32))), math.MaxInt32, crypto.ChecksumFelt(pedersen.FeltBytes(32)))
 	const chainID = "mychain"
 
 	testCases := []struct {

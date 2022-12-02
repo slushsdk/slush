@@ -10,7 +10,7 @@ import (
 // HashFromByteSlicesInt128 computes a Merkle tree where the leaves are the byte slice,
 // in the provided order. It follows RFC-6962.
 func HashFromByteSlicesInt128(items [][]byte) []byte {
-	return hashFromByteSlices(crypto.NewInt128(), items)
+	return hashFromByteSlices(crypto.New128(), items)
 }
 
 func hashFromByteSlices(sha hash.Hash, items [][]byte) []byte {
@@ -85,7 +85,7 @@ func hashFromByteSlicesFelt(sha hash.Hash, items [][]byte) []byte {
 // implementation for so little benefit.
 func HashFromByteSlicesIterative(input [][]byte) []byte {
 	items := make([][]byte, len(input))
-	sha := crypto.NewInt128()
+	sha := crypto.New128()
 	for i, leaf := range input {
 		items[i] = leafHash(leaf)
 	}

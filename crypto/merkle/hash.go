@@ -7,7 +7,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/pedersen"
+	"github.com/tendermint/tendermint/crypto/utils"
 )
 
 // TODO: make these have a large predefined capacity
@@ -28,7 +28,7 @@ func emptyHash() []byte {
 func leafHash(leaf []byte) []byte {
 	a := make([]byte, 16)
 	copy(a, leafPrefix)
-	b := crypto.ChecksumInt128(append(a, pedersen.ByteRounderInt128(leaf)...))
+	b := crypto.Checksum128(append(a, leaf...))
 	return b
 }
 
@@ -36,7 +36,7 @@ func leafHash(leaf []byte) []byte {
 func leafHashFelt(leaf []byte) []byte {
 	a := make([]byte, 32)
 	copy(a, leafPrefixFelt)
-	b := crypto.ChecksumFelt(append(a, pedersen.ByteRounderInt128(leaf)...))
+	b := crypto.ChecksumFelt(append(a, leaf...))
 	return b
 }
 
@@ -44,21 +44,21 @@ func leafHashFelt(leaf []byte) []byte {
 func leafHashOpt(s hash.Hash, leaf []byte) []byte {
 	s.Reset()
 	s.Write(leafPrefix)
-	s.Write(pedersen.ByteRounderInt128(leaf))
+	s.Write(leaf)
 	return s.Sum(nil)
 }
 
 func leafHashOptFelt(s hash.Hash, leaf []byte) []byte {
 	s.Reset()
 	s.Write(leafPrefixFelt)
-	s.Write(pedersen.ByteRounderFelt(leaf))
+	s.Write(leaf)
 	return s.Sum(nil)
 }
 
 // returns tmhash(0x01 || left || right)
 func innerHash(left []byte, right []byte) []byte {
-	roundedLeft := pedersen.ByteRounderInt128(left)
-	roundedRight := pedersen.ByteRounderInt128(right)
+	roundedLeft := utils.ByteRounder(16)(left)
+	roundedRight := utils.ByteRounder(16)(right)
 
 	data := make([]byte, len(innerPrefix)+len(roundedLeft)+len(roundedRight))
 	n := copy(data, innerPrefix)

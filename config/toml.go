@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/tendermint/tendermint/crypto"
 	stark "github.com/tendermint/tendermint/crypto/stark"
 	tmos "github.com/tendermint/tendermint/libs/os"
 )
@@ -633,6 +634,8 @@ func ResetTestRootWithChainID(testName string, chainID string) (*Config, error) 
 	genesisFilePath := filepath.Join(rootDir, conf.Genesis)
 	privKeyFilePath := filepath.Join(rootDir, conf.PrivValidator.Key)
 	privStateFilePath := filepath.Join(rootDir, conf.PrivValidator.State)
+	nodeKeyFilePath := filepath.Join(rootDir, conf.NodeKey)
+	verifierDetailsFilePath := filepath.Join(rootDir, conf.VerifierDetails)
 
 	// Write default config file if missing.
 	if err := writeDefaultConfigFileIfNone(rootDir); err != nil {
@@ -655,6 +658,12 @@ func ResetTestRootWithChainID(testName string, chainID string) (*Config, error) 
 	if err := writeFile(privStateFilePath, []byte(testPrivValidatorState), 0644); err != nil {
 		return nil, err
 	}
+	if err := writeFile(nodeKeyFilePath, []byte(testNodeKey), 0644); err != nil {
+		return nil, err
+	}
+	if err := writeFile(verifierDetailsFilePath, []byte(testVerifierDetails), 0644); err != nil {
+		return nil, err
+	}
 
 	config := TestConfig().SetRoot(rootDir)
 	return config, nil
@@ -667,22 +676,38 @@ func writeFile(filePath string, contents []byte, mode os.FileMode) error {
 	return nil
 }
 
-var pv = stark.GenPrivKey()
-var pvb, _ = json.Marshal(pv)
-var pvJSON = string(pvb)
+func getKeys() (stark.PrivKey, crypto.PubKey) {
+	privKey := stark.GenPrivKey()
+	pubKey := privKey.PubKey()
+	return privKey, pubKey
+}
 
-var pb = pv.PubKey()
-var pbb, _ = json.Marshal(pb)
-var pbJSON = string(pbb)
+type key interface {
+	TypeTag() string
+}
 
-var address = pb.Address()
-var addressb, _ = json.Marshal(address)
-var addressJSON = string(addressb)
+type keyDetails struct {
+	typeTag string
+	value   string
+}
 
-var pbname = "\"" + pb.TypeTag() + "\""
-var pvname = "\"" + pv.TypeTag() + "\""
+func withQuotationMarks(s string) string {
+	return "\"" + s + "\""
+}
 
-var name = "\"" + pb.Type() + "\""
+func getKeyTypeAndValue(key key) keyDetails {
+	var keyJSONBytes, _ = json.Marshal(key)
+	var typeTag = withQuotationMarks(key.TypeTag())
+	var value = string(keyJSONBytes)
+
+	return keyDetails{typeTag, value}
+}
+
+var pv, pb = getKeys()
+var privValidatorPrivateKeyDetails = getKeyTypeAndValue(pv)
+var privValidatorPublicKeyDetails = getKeyTypeAndValue(pb)
+var privValidatorAddress = withQuotationMarks(pb.Address().String())
+var privValidatorPublicKeyType = withQuotationMarks(pb.Type())
 
 var testGenesisFmt = `{
   "genesis_time": "2018-10-10T08:20:13.695936996Z",
@@ -701,7 +726,7 @@ var testGenesisFmt = `{
 		},
 		"validator": {
 			"pub_key_types": [
-				` + name + `
+				` + privValidatorPublicKeyType + `
 			]
 		},
 		"version": {}
@@ -709,8 +734,8 @@ var testGenesisFmt = `{
   "validators": [
     {
       "pub_key": {
-        "type": ` + pbname + `,
-        "value":` + pbJSON + `
+        "type": ` + privValidatorPublicKeyDetails.typeTag + `,
+        "value":` + privValidatorPublicKeyDetails.value + `
       },
       "power": "10",
       "name": ""
@@ -720,14 +745,14 @@ var testGenesisFmt = `{
 }`
 
 var testPrivValidatorKey = `{
-  "address": ` + addressJSON + `,
+  "address": ` + privValidatorAddress + `,
   "pub_key": {
-    "type": ` + pbname + `,
-    "value": ` + pbJSON + `
+    "type": ` + privValidatorPublicKeyDetails.typeTag + `,
+    "value": ` + privValidatorPublicKeyDetails.value + `
   },
   "priv_key": {
-    "type": ` + pvname + `,
-    "value": ` + pvJSON + `
+    "type": ` + privValidatorPrivateKeyDetails.typeTag + `,
+    "value": ` + privValidatorPrivateKeyDetails.value + `
   }
 }`
 
@@ -735,4 +760,38 @@ var testPrivValidatorState = `{
   "height": "0",
   "round": 0,
   "step": 0
+}`
+
+var nodePrivateKey, nodePublicKey = getKeys()
+var nodePrivateKeyDetails = getKeyTypeAndValue(nodePrivateKey)
+var nodePublicKeyDetails = getKeyTypeAndValue(nodePublicKey)
+var nodeAddress = withQuotationMarks(nodePublicKey.Address().String())
+
+var testNodeKey = `{
+	"id": ` + nodeAddress + `,
+	"priv_key": {
+		"type": ` + nodePrivateKeyDetails.typeTag + `,
+		"value": ` + nodePrivateKeyDetails.value + `
+	}
+}`
+
+var testVerifierDetails = `{
+	"verifier": {
+		"address": ` + nodeAddress + `,
+		"pub_key": {
+			"type": ` + nodePublicKeyDetails.typeTag + `,
+			"value": ` + nodePublicKeyDetails.value + `
+		}
+	},
+	"verifier_set": {
+		"verifiers": [
+			{
+				"address": ` + nodeAddress + `,
+				"pub_key": {
+					"type": ` + nodePublicKeyDetails.typeTag + `,
+					"value": ` + nodePublicKeyDetails.value + `
+				}
+			}
+		]
+	}
 }`

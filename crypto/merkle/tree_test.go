@@ -15,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/crypto/utils"
 	ctest "github.com/tendermint/tendermint/internal/libs/test"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
@@ -41,33 +42,33 @@ func TestCompareCairo1(t *testing.T) {
 func TestCompareCairo2(t *testing.T) {
 
 	a0, _ := big.NewInt(0).SetString("3454952438923234006568527143781167235276775604066827568425481679972150643448", 10)
-	b0 := pedersen.ByteRounderInt128(a0.Bytes())
+	b0 := utils.ByteRounder(16)(a0.Bytes())
 	a1, _ := big.NewInt(0).SetString("2494110571235400288533148571502202163537425285881062150149675116686078062864", 10)
-	b1 := pedersen.ByteRounderInt128(a1.Bytes())
+	b1 := utils.ByteRounder(16)(a1.Bytes())
 	a2, _ := big.NewInt(0).SetString("2908682032041418908903105681227249033483541201006723240850136728317167492227", 10)
-	b2 := pedersen.ByteRounderInt128(a2.Bytes())
+	b2 := utils.ByteRounder(16)(a2.Bytes())
 	a3, _ := big.NewInt(0).SetString("2599929233293119982501280579193581206158611315304505534385243879518502888628", 10)
-	b3 := pedersen.ByteRounderInt128(a3.Bytes())
+	b3 := utils.ByteRounder(16)(a3.Bytes())
 	a4, _ := big.NewInt(0).SetString("2206723481920075052107131543171542739217923834753038471674523378436884433248", 10)
-	b4 := pedersen.ByteRounderInt128(a4.Bytes())
+	b4 := utils.ByteRounder(16)(a4.Bytes())
 	a5, _ := big.NewInt(0).SetString("3196042820007611016667731428007167809703393661030333042255511753651389202253", 10)
-	b5 := pedersen.ByteRounderInt128(a5.Bytes())
+	b5 := utils.ByteRounder(16)(a5.Bytes())
 	a6, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
-	b6 := pedersen.ByteRounderInt128(a6.Bytes())
+	b6 := utils.ByteRounder(16)(a6.Bytes())
 	a7, _ := big.NewInt(0).SetString("3081086906630340236863811480373298036427706612523827020334484978388108542248", 10)
-	b7 := pedersen.ByteRounderInt128(a7.Bytes())
+	b7 := utils.ByteRounder(16)(a7.Bytes())
 	a8, _ := big.NewInt(0).SetString("3081086906630340236863811480373298036427706612523827020334484978388108542248", 10)
-	b8 := pedersen.ByteRounderInt128(a8.Bytes())
+	b8 := utils.ByteRounder(16)(a8.Bytes())
 	a9, _ := big.NewInt(0).SetString("2132461975834504200398180281070409533541683498016798668455504133351250391630", 10)
-	b9 := pedersen.ByteRounderInt128(a9.Bytes())
+	b9 := utils.ByteRounder(16)(a9.Bytes())
 	// a10, _ := big.NewInt(0).SetString("0", 10)
 	b10 := make([]byte, 32)
 	a11, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
-	b11 := pedersen.ByteRounderInt128(a11.Bytes())
+	b11 := utils.ByteRounder(16)(a11.Bytes())
 	a12, _ := big.NewInt(0).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10)
-	b12 := pedersen.ByteRounderInt128(a12.Bytes())
+	b12 := utils.ByteRounder(16)(a12.Bytes())
 	a13, _ := big.NewInt(0).SetString("2096651760584687198361717080648350102473644945561758734773364314748439283675", 10)
-	b13 := pedersen.ByteRounderInt128(a13.Bytes())
+	b13 := utils.ByteRounder(16)(a13.Bytes())
 
 	c := [][]byte{b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13}
 	d := big.NewInt(0).SetBytes(HashFromByteSlicesFelt(c))
@@ -223,7 +224,7 @@ func TestPedersen(t *testing.T) {
 
 	start := time.Now()
 
-	crypto.ChecksumInt128(items)
+	crypto.Checksum128(items)
 
 	elapsed := time.Since(start)
 	fmt.Println("elapsed time", elapsed)
