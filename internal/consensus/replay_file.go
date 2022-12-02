@@ -145,7 +145,7 @@ func (pb *playback) replayReset(ctx context.Context, count int, newStepSub event
 	pb.cs.Stop()
 	pb.cs.Wait()
 
-	settlementChan := make(chan InvokeData, 100)
+	settlementChan := make(chan []string, 100)
 	logger, _ := log.NewDefaultLogger("plain", "info")
 	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
@@ -355,7 +355,7 @@ func newConsensusStateForReplay(
 	mempool, evpool := emptyMempool{}, sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, logger, proxyApp, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 
-	settlementChan := make(chan InvokeData, 100)
+	settlementChan := make(chan []string, 100)
 	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
@@ -369,7 +369,7 @@ func newConsensusStateForReplay(
 
 type DummySettlementReactor struct {
 	logger       log.Logger
-	SettlementCh <-chan InvokeData
+	SettlementCh <-chan []string
 	stopChan     chan bool
 }
 

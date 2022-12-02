@@ -37,10 +37,10 @@ const (
 // config/toml.go
 // NOTE: libs/cli must know to look in the config dir!
 var (
-	DefaultTendermintDir = ".tendermint"
-	defaultConfigDir     = "config"
-	defaultDataDir       = "data"
-	defaultCairoDir      = "cairo"
+	DefaultSlushDir  = ".slush"
+	defaultConfigDir = "config"
+	defaultDataDir   = "data"
+	defaultCairoDir  = "cairo"
 
 	defaultConfigFileName  = "config.toml"
 	defaultGenesisJSONName = "genesis.json"
@@ -76,7 +76,8 @@ type Config struct {
 	Instrumentation *InstrumentationConfig `mapstructure:"instrumentation"`
 	PrivValidator   *PrivValidatorConfig   `mapstructure:"priv-validator"`
 
-	Starknet *StarknetConfig `mapstructure:"starknet"`
+	Starknet  *StarknetConfig  `mapstructure:"starknet"`
+	Protostar *ProtostarConfig `mapstructure:"protostar"`
 }
 
 // DefaultConfig returns a default configuration for a Tendermint node
@@ -92,6 +93,7 @@ func DefaultConfig() *Config {
 		Instrumentation: DefaultInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
 		Starknet:        DefaultStarknetConfig(),
+		Protostar:       DefaultProtostarConfig(),
 	}
 }
 
@@ -115,6 +117,7 @@ func TestConfig() *Config {
 		Instrumentation: TestInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
 		Starknet:        DefaultStarknetConfig(),
+		Protostar:       DefaultProtostarConfig(),
 	}
 }
 
@@ -154,6 +157,9 @@ func (cfg *Config) ValidateBasic() error {
 	if err := cfg.Starknet.ValidateBasic(); err != nil {
 		return fmt.Errorf("error in [starknet] section: %w", err)
 	}
+	if err := cfg.Protostar.ValidateBasic(); err != nil {
+		return fmt.Errorf("error in [protostar] section: %w", err)
+	}
 	return nil
 }
 
@@ -169,7 +175,8 @@ type BaseConfig struct { //nolint: maligned
 	// chainID is unexposed and immutable but here for convenience
 	chainID string
 
-	VerifierAddress string
+	// Deployed verifier's contract address
+	VerifierAddress string `mapstructure:"verifier-address"`
 
 	// The root directory for all data.
 	// This should be set in viper so it can unmarshal into this struct
@@ -1254,21 +1261,23 @@ func getDefaultMoniker() string {
 // -----------------------------------------------------------------------------
 // StarknetConfig for network details
 type StarknetConfig struct {
-	Network          string
-	GatewayURL       string
-	FeederGatewayURL string
-	Wallet           string
-	Account          string
+	Account          string `mapstructure:"account"`
+	AccountDir       string `mapstructure:"wallets-dir"`
+	AccountAddress   string `mapstructure:"account-address"`
+	FeederGatewayURL string `mapstructure:"feeder-gateway-url"`
+	GatewayURL       string `mapstructure:"gateway-url"`
+	Network          string `mapstructure:"network"`
+	Wallet           string `mapstructure:"wallet"`
 }
 
 // DefaultStarknetConfig returns a default configuration for starknet
 func DefaultStarknetConfig() *StarknetConfig {
 	return &StarknetConfig{
-		Network:          "alpha-goerli",
-		GatewayURL:       "http://127.0.0.1:5050/",
-		FeederGatewayURL: "http://127.0.0.1:5050/",
-		Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
 		Account:          "devnet",
+		FeederGatewayURL: "http://127.0.0.1:5050/",
+		GatewayURL:       "http://127.0.0.1:5050/",
+		Network:          "alpha-goerli",
+		Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
 	}
 }
 
@@ -1279,15 +1288,58 @@ func TestStarknetConfig() *StarknetConfig {
 
 // ValidateBasic performs basic validation.
 func (cfg *StarknetConfig) ValidateBasic() error {
-	if cfg.Network == "" {
-		return errors.New("network cannot be empty")
-	}
-	if cfg.Network == "" {
-		return errors.New("wallet cannot be empty")
-	}
 	if cfg.Account == "" {
 		return errors.New("account cannot be empty")
 	}
+	if cfg.Network == "" {
+		return errors.New("network cannot be empty")
+	}
+	if cfg.Wallet == "" {
+		return errors.New("wallet cannot be empty")
+	}
 
+	return nil
+}
+
+// StateFile returns the full path to the priv_validator_state.json file
+func (cfg *Config) GetAccountDir() string {
+	return cfg.Starknet.AccountDir
+}
+
+// -----------------------------------------------------------------------------
+// ProtostarConfig for network details
+type ProtostarConfig struct {
+	AccountAddress string `mapstructure:"account-address"`
+	ChainId        string `mapstructure:"chain-id"`
+	GatewayURL     string `mapstructure:"gateway-url"`
+	MaxFee         string `mapstructure:"max-fee"`
+	Network        string `mapstructure:"network"`
+}
+
+// DefaultProtostarConfig returns a default configuration for starknet
+func DefaultProtostarConfig() *ProtostarConfig {
+	return &ProtostarConfig{
+		ChainId:    "1536727068981429685321",
+		GatewayURL: "http://127.0.0.1:5050/",
+		MaxFee:     "auto",
+	}
+}
+
+// TestProtostarConfig returns a default configuration for starknet
+func TestProtostarConfig() *ProtostarConfig {
+	return DefaultProtostarConfig()
+}
+
+// ValidateBasic performs basic validation.
+func (cfg *ProtostarConfig) ValidateBasic() error {
+	if cfg.ChainId == "" {
+		return errors.New("chain-id cannot be empty")
+	}
+	if cfg.GatewayURL == "" {
+		return errors.New("gateway-url cannot be empty")
+	}
+	if cfg.MaxFee == "" {
+		return errors.New("max-fee cannot be empty")
+	}
 	return nil
 }
