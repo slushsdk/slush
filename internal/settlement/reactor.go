@@ -2,13 +2,9 @@ package settlement
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"math/big"
-	"time"
 
 	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/internal/consensus"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/starknet"
@@ -19,7 +15,7 @@ type Reactor struct {
 	service.BaseService
 	logger       log.Logger
 	cfg          *config.Config
-	SettlementCh <-chan consensus.InvokeData
+	SettlementCh <-chan []string
 	stopChan     chan bool
 }
 
@@ -29,7 +25,7 @@ type Reactor struct {
 func NewReactor(
 	logger log.Logger,
 	cfg *config.Config,
-	SettlementCh <-chan consensus.InvokeData,
+	SettlementCh <-chan []string,
 ) *Reactor {
 	r := &Reactor{
 		logger:       logger,
@@ -58,12 +54,15 @@ func (r *Reactor) OnStop() {
 	r.stopChan <- true
 }
 
-func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan consensus.InvokeData) {
+func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan []string) {
 	r.logger.Info("started settlement reactor")
 	for {
 		select {
 		case newBlock := <-SettlementCh:
-			r.FormatAndSendCommit(newBlock)
+			err := r.SendCommit(newBlock)
+			if err != nil {
+				r.logger.Error("failed to send commit", "err", err)
+			}
 		case <-ctx.Done():
 			r.logger.Info("Stopping settlement reactor via context")
 
@@ -76,34 +75,15 @@ func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan co
 	}
 }
 
-func format(id consensus.InvokeData) (jsonString string, err error) {
-	currentTime := big.NewInt((time.Now().UnixNano()))
-	maxClockDrift := big.NewInt(10)
-	trustingPeriod, _ := big.NewInt(0).SetString("99999999999999999999", 10)
-
-	cd := consensus.FormatCallData(id.TrustedLightB, id.UntrustedLightB, &id.ValidatorSet, currentTime, maxClockDrift, trustingPeriod)
-	jsonBytes, err := json.Marshal(cd)
-	if err != nil {
-		panic(err)
-	}
-	jsonString = string(jsonBytes)
-	return
-}
-
-func (r *Reactor) FormatAndSendCommit(id consensus.InvokeData) (err error) {
+func (r *Reactor) SendCommit(inputs []string) (err error) {
 	logger := r.logger
 	logger.Info("settling commit")
 
-	jsonString, err := format(id)
-	if err != nil {
-		err = fmt.Errorf("failed to format call data: %w", err)
-		return
-	}
-	transactionHashHex, err := starknet.InvokeSimplified(r.cfg, jsonString)
+	transactionHashHex, err := starknet.Invoke(r.cfg, inputs)
 	if err != nil {
 		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
 		return
 	}
-	logger.Info("transaction hash", "hash", transactionHashHex)
+	logger.Info("invoked with transaction hash", "hash", transactionHashHex)
 	return
 }
