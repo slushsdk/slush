@@ -379,7 +379,7 @@ func TestReactorWithEvidence(t *testing.T) {
 		settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
 		settlementReactor.OnStart()
 
-		cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool2)
+		cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool2, settlementChan)
 		cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 		cs.SetPrivValidator(pv)
 

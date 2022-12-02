@@ -100,7 +100,7 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 		settlementReactor.OnStop()
 	}()
 
-	consensusState := NewState(cfg.Consensus, state.Copy(), blockExec, blockStore, mempool, evpool)
+	consensusState := NewState(cfg.Consensus, state.Copy(), blockExec, blockStore, mempool, evpool, settlementChan)
 	consensusState.SetLogger(logger)
 	consensusState.SetEventBus(eventBus)
 	if privValidator != nil && privValidator != (*privval.FilePV)(nil) {
