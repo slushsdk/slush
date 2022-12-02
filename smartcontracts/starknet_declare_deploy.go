@@ -23,8 +23,12 @@ func DeclareDeploy(accountAddress, accountPrivateKeyPath, network string) (verif
 
 	// devnet is different
 	if network == "devnet" {
-		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", "./"+accountPrivateKeyPath, "--account-address", accountAddress, "--no-confirm")
+		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key", "./"+accountPrivateKeyPath, "--account-address", "0x"+accountAddress, "--no-confirm")
 		deploycmd.Dir = "./cairo"
+	} else if network == "testnet2" {
+		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--gateway-url", "https://alpha4-2.starknet.io", "--chain-id", "1536727068981429685321", "--private-key", "./"+accountPrivateKeyPath, "--account-address", "0x"+accountAddress, "--no-confirm")
+		deploycmd.Dir = "./cairo"
+
 	} else {
 		deploycmd = exec.Command("protostar", "migrate", "migrations/migration_declare_deploy.cairo", "--private-key", accountPrivateKeyPath, "--account-address", accountAddress, "--network", network, "--no-confirm")
 		deploycmd.Dir = "./cairo"

@@ -32,7 +32,10 @@ func InvokePath(vd types.VerifierDetails, id consensus.InvokeData, currentTime *
 	// devnet is different
 	var cmd *exec.Cmd
 	if vd.Network == "devnet" {
-		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivateKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")
+		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--gateway-url", "http://127.0.0.1:5050/", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivateKeyPath, "--account-address", "0x"+vd.AccountAddress.Text(16), "--no-confirm")
+		cmd.Dir = "./cairo"
+	} else if vd.Network == "testnet2" {
+		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--gateway-url", "https://alpha4-2.starknet.io", "--chain-id", "1536727068981429685321", "--private-key-path", vd.AccountPrivateKeyPath, "--account-address", "0x"+vd.AccountAddress.Text(16), "--no-confirm")
 		cmd.Dir = "./cairo"
 	} else {
 		cmd = exec.Command("protostar", "migrate", "migrations/migration_02.cairo", "--network", vd.Network, "--private-key-path", vd.AccountPrivateKeyPath, "--account-address", vd.AccountAddress.Text(16), "--no-confirm")

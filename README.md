@@ -33,12 +33,13 @@ Before installing Starknet Devnet on M1 check [this thread](https://github.com/O
 
 1. Clone this repo
 2. Start the Starknet devnet. This will take up the view of Terminal 
-   - `starknet-devnet —seed=42`
+   - `starknet-devnet --seed=42`
 3. Open a new terminal. Run the following at the root of this repo
    - `make build`
    - `./build/slush init validator --home ./valdata`
    - `./build/slush start --proxy-app=kvstore --home ./valdata`
-
+4. If restarting this multiple times you might need to remove the validator data before `make build`:
+   - `rm -r ./valdata/config/ ./valdata/data/`
 
 
 ## Roadmap
