@@ -373,6 +373,12 @@ func TestReactorWithEvidence(t *testing.T) {
 		evpool2 := sm.EmptyEvidencePool{}
 
 		blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
+
+		settlementChan := make(chan InvokeData, 100)
+		verifierDetails := DevnetVerifierDetails()
+		settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+		settlementReactor.OnStart()
+
 		cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool2)
 		cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 		cs.SetPrivValidator(pv)

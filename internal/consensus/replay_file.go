@@ -131,6 +131,12 @@ func (pb *playback) replayReset(count int, newStepSub types.Subscription) error 
 	}
 	pb.cs.Wait()
 
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	logger, _ := log.NewDefaultLogger("plain", "info")
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+
 	newCS := NewState(pb.cs.config, pb.genesisState.Copy(), pb.cs.blockExec,
 		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool)
 	newCS.SetEventBus(pb.cs.eventBus)
@@ -333,9 +339,50 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 	mempool, evpool := emptyMempool{}, sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool, blockStore)
 
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+
 	consensusState := NewState(csConfig, state.Copy(), blockExec,
 		blockStore, mempool, evpool)
 
 	consensusState.SetEventBus(eventBus)
 	return consensusState
+}
+
+func DevnetVerifierDetails() types.VerifierDetails {
+	vd, err := types.LoadVerifierDetails("../../valdata/data/verifier_details.json")
+	if err != nil {
+		panic(err)
+	}
+	return vd
+}
+
+type DummySettlementReactor struct {
+	logger       log.Logger
+	vd           types.VerifierDetails
+	SettlementCh <-chan InvokeData
+	stopChan     chan bool
+}
+
+func (dsr DummySettlementReactor) OnStart() {
+	go func() {
+		dsr.logger.Info("started settlement reactor")
+		for {
+			select {
+			case <-dsr.SettlementCh:
+				//dsr.FormatAndSendCommit(newBlock)
+
+			case <-dsr.stopChan:
+				dsr.logger.Info("Stopping settlement reactor via stopChan")
+				return
+			}
+		}
+
+	}()
+}
+
+func (dsr DummySettlementReactor) OnStop() {
+	dsr.stopChan <- true
 }

@@ -84,6 +84,12 @@ func TestByzantinePrevoteEquivocation(t *testing.T) {
 
 			// Make State
 			blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
+
+			settlementChan := make(chan InvokeData, 100)
+			verifierDetails := DevnetVerifierDetails()
+			settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+			settlementReactor.OnStart()
+
 			cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool)
 			cs.SetLogger(cs.Logger)
 			// set private validator

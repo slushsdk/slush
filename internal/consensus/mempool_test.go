@@ -34,7 +34,10 @@ func TestMempoolNoProgressUntilTxsAvailable(t *testing.T) {
 
 	config.Consensus.CreateEmptyBlocks = false
 	state, privVals := randGenesisState(baseConfig, 1, false, 10)
-	cs := newStateWithConfig(config, state, privVals[0], NewCounterApplication())
+	cs, setReactor := newStateWithConfig(config, state, privVals[0], NewCounterApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	assertMempool(cs.txNotifier).EnableTxsAvailable()
 	height, round := cs.Height, cs.Round
 	newBlockCh := subscribe(cs.eventBus, types.EventQueryNewBlock)
@@ -57,7 +60,10 @@ func TestMempoolProgressAfterCreateEmptyBlocksInterval(t *testing.T) {
 
 	config.Consensus.CreateEmptyBlocksInterval = ensureTimeout
 	state, privVals := randGenesisState(baseConfig, 1, false, 10)
-	cs := newStateWithConfig(config, state, privVals[0], NewCounterApplication())
+	cs, setReactor := newStateWithConfig(config, state, privVals[0], NewCounterApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 
 	assertMempool(cs.txNotifier).EnableTxsAvailable()
 
@@ -78,7 +84,10 @@ func TestMempoolProgressInHigherRound(t *testing.T) {
 
 	config.Consensus.CreateEmptyBlocks = false
 	state, privVals := randGenesisState(baseConfig, 1, false, 10)
-	cs := newStateWithConfig(config, state, privVals[0], NewCounterApplication())
+	cs, setReactor := newStateWithConfig(config, state, privVals[0], NewCounterApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	assertMempool(cs.txNotifier).EnableTxsAvailable()
 	height, round := cs.Height, cs.Round
 	newBlockCh := subscribe(cs.eventBus, types.EventQueryNewBlock)
@@ -128,12 +137,15 @@ func TestMempoolTxConcurrentWithCommit(t *testing.T) {
 	state, privVals := randGenesisState(config, 1, false, 10)
 	stateStore := sm.NewStore(dbm.NewMemDB(), sm.StoreOptions{DiscardABCIResponses: false})
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
-	cs := newStateWithConfigAndBlockStore(config, state, privVals[0], NewCounterApplication(), blockStore)
+	cs, setReactor := newStateWithConfigAndBlockStore(config, state, privVals[0], NewCounterApplication(), blockStore)
+	defer func() {
+		setReactor.OnStop()
+	}()
 	err := stateStore.Save(state)
 	require.NoError(t, err)
 	newBlockHeaderCh := subscribe(cs.eventBus, types.EventQueryNewBlockHeader)
 
-	const numTxs int64 = 3000
+	const numTxs int64 = 300
 	go deliverTxsRange(cs, 0, int(numTxs))
 
 	startTestRound(cs, cs.Height, cs.Round)
@@ -142,8 +154,8 @@ func TestMempoolTxConcurrentWithCommit(t *testing.T) {
 		case msg := <-newBlockHeaderCh:
 			headerEvent := msg.Data().(types.EventDataNewBlockHeader)
 			n += headerEvent.NumTxs
-		case <-time.After(30 * time.Second):
-			t.Fatal("Timed out waiting 30s to commit blocks with transactions")
+		case <-time.After(60 * time.Second):
+			t.Fatal("Timed out waiting 60s to commit blocks with transactions")
 		}
 	}
 }
@@ -155,7 +167,10 @@ func TestMempoolRmBadTx(t *testing.T) {
 	app := NewCounterApplication()
 	stateStore := sm.NewStore(dbm.NewMemDB(), sm.StoreOptions{DiscardABCIResponses: false})
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
-	cs := newStateWithConfigAndBlockStore(config, state, privVals[0], app, blockStore)
+	cs, setReactor := newStateWithConfigAndBlockStore(config, state, privVals[0], app, blockStore)
+	defer func() {
+		setReactor.OnStop()
+	}()
 	err := stateStore.Save(state)
 	require.NoError(t, err)
 
