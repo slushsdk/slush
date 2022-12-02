@@ -54,7 +54,7 @@ func TestGetPubKey(t *testing.T) {
 func TestSignVote(t *testing.T) {
 
 	ts := time.Now()
-	hash := pedersen.FeltBytes(32)
+	hash := pedersen.RandFeltBytes(32)
 	valAddr := stark.GenPrivKey().PubKey().Address()
 
 	testCases := []struct {
@@ -126,7 +126,7 @@ func TestSignVote(t *testing.T) {
 func TestSignProposal(t *testing.T) {
 
 	ts := time.Now()
-	hash := pedersen.FeltBytes(32)
+	hash := pedersen.RandFeltBytes(32)
 
 	testCases := []struct {
 		name       string

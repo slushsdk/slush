@@ -20,7 +20,7 @@ func TestValidatorSet_VerifyCommit_All(t *testing.T) {
 		round  = int32(0)
 		height = int64(100)
 
-		blockID    = makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
+		blockID    = makeBlockID(pedersen.RandFeltBytes(32), 1000, pedersen.RandFeltBytes(32))
 		chainID    = "Lalande21185"
 		trustLevel = tmmath.Fraction{Numerator: 2, Denominator: 3}
 	)

@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/crypto/utils"
 
@@ -187,8 +188,8 @@ func TestBlockString(t *testing.T) {
 
 func makeBlockIDRandom() BlockID {
 	var (
-		blockHash   = pedersen.FeltBytes(crypto.HashSize)
-		partSetHash = pedersen.FeltBytes(crypto.HashSize)
+		blockHash   = pedersen.RandFeltBytes(crypto.HashSize)
+		partSetHash = pedersen.RandFeltBytes(crypto.HashSize)
 	)
 	return BlockID{blockHash, PartSetHeader{123, partSetHash}}
 }
@@ -558,7 +559,7 @@ func TestCommitToVoteSet(t *testing.T) {
 }
 
 func TestCommitToVoteSetWithVotesForNilBlock(t *testing.T) {
-	blockID := makeBlockID(pedersen.FeltBytes(32), 1000, pedersen.FeltBytes(32))
+	blockID := makeBlockID(pedersen.RandFeltBytes(32), 1000, pedersen.RandFeltBytes(32))
 
 	const (
 		height = int64(3)
@@ -764,7 +765,7 @@ func MakeRandHeader() Header {
 	chainID := "test"
 	t := time.Now()
 	height := mrand.Int63()
-	randBytes := pedersen.FeltBytes(crypto.HashSize)
+	randBytes := pedersen.RandFeltBytes(crypto.HashSize)
 	randAddress := stark.GenPrivKey().PubKey().Address()
 	h := Header{
 		Version:            version.Consensus{Block: version.BlockProtocol, App: 1},
