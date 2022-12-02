@@ -144,6 +144,9 @@ genesis-file = "{{ js .BaseConfig.Genesis }}"
 # Path to the JSON file containing the private key to use for node authentication in the p2p protocol
 node-key-file = "{{ js .BaseConfig.NodeKey }}"
 
+# Deployed verifier's contract address
+verifier-address = "{{ .BaseConfig.VerifierAddress }}"
+
 # Mechanism to connect to the ABCI application: socket | grpc
 abci = "{{ .BaseConfig.ABCI }}"
 
@@ -178,6 +181,31 @@ client-key-file = "{{ js .PrivValidator.ClientKey }}"
 # Path to the Root Certificate Authority used to sign both client and server certificates
 root-ca-file = "{{ js .PrivValidator.RootCA }}"
 
+#######################################################
+###             Starknet Configuration              ###
+#######################################################
+[starknet]
+
+#
+account = "{{ .Starknet.Account }}"
+
+#
+account-address = "{{ .Starknet.AccountAddress }}"
+
+#
+feeder-gateway-url = "{{ .Starknet.FeederGatewayURL }}"
+
+#
+gateway-url = "{{ .Starknet.GatewayURL }}"
+
+#
+network = "{{ .Starknet.Network }}"
+
+#
+wallet = "{{ .Starknet.Wallet }}"
+
+#
+account-dir = "{{ .Starknet.AccountDir }}"
 
 #######################################################################
 ###                 Advanced Configuration Options                  ###

@@ -98,7 +98,7 @@ func TestByzantinePrevoteEquivocation(t *testing.T) {
 			// Make State
 			blockExec := sm.NewBlockExecutor(stateStore, log.NewNopLogger(), proxyAppConnCon, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 
-			settlementChan := make(chan InvokeData, 100)
+			settlementChan := make(chan []string, 100)
 			settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 			settlementReactor.OnStart()
 

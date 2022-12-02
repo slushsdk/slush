@@ -82,7 +82,7 @@ func WALGenerateNBlocks(ctx context.Context, t *testing.T, logger log.Logger, wr
 	evpool := sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, log.NewNopLogger(), proxyApp, mempool, evpool, blockStore, eventBus, sm.NopMetrics())
 
-	settlementChan := make(chan InvokeData, 100)
+	settlementChan := make(chan []string, 100)
 	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 	defer func() {

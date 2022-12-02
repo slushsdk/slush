@@ -199,15 +199,15 @@ func createEvidenceReactor(
 	return evidenceReactor, evidencePool, evidenceDB.Close, nil
 }
 
-func CreateSettlementChan() chan consensus.InvokeData {
-	ch := make(chan consensus.InvokeData, 100)
+func CreateSettlementChan() chan []string {
+	ch := make(chan []string, 100)
 	return ch
 }
 
 func CreateSettlementReactor(
 	logger log.Logger,
 	cfg *config.Config,
-	SettlementCh <-chan consensus.InvokeData,
+	SettlementCh <-chan []string,
 ) (*settlement.Reactor, error) {
 
 	logger = logger.With("module", "settlement")
