@@ -63,9 +63,17 @@ func initStarknetConfig(conf *config.Config, network, accountAddress string) {
 	switch network {
 	case "testnet":
 		conf.Starknet = &config.StarknetConfig{
+			Account: "testnet",
 			Network: "alpha-goerli",
 			Wallet:  "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
-			Account: "testnet",
+		}
+	case "testnet2":
+		conf.Starknet = &config.StarknetConfig{
+			Account:          "testnet2",
+			GatewayURL:       "https://alpha4-2.starknet.io",
+			FeederGatewayURL: "https://alpha4-2.starknet.io",
+			Network:          "alpha-goerli",
+			Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
 		}
 	case "devnet":
 		conf.Starknet = config.DefaultStarknetConfig()
