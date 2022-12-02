@@ -37,7 +37,13 @@ from src.structs import (
     FractionData,
 )
 from src.utils import time_greater_than, isExpired, greater_than, recursive_comparison
-from src.hashing import hash_int128_array, hash_felt_array
+from src.hashing import (
+    check_i128_array_recursive,
+    hash,
+    hash_int128_array,
+    hash_felt,
+    hash_felt_array,
+)
 from src.merkle import get_split_point, leafHash, innerHash, merkleRootHash
 from src.struct_hasher import (
     hashHeader,
@@ -117,6 +123,103 @@ func test_hash_felt_array{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
     let (res_hash8) = hash2{hash_ptr=pedersen_ptr}(res_hash7, low_low4);
 
     let (res_hash_manual) = hash2{hash_ptr=pedersen_ptr}(res_hash8, 2);
+    assert res_hash_manual = res_hash_test;
+    return ();
+}
+
+@external
+func test_hash_test_case_0{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
+    // create array of felts to be split and hashed
+    alloc_locals;
+    let (local to_hash_array: felt*) = alloc();
+    let to_hash_array_len = 0;
+
+    // call the hash_array fn on this array
+
+    let res_hash_test: felt = hash(to_hash_array, to_hash_array_len);
+
+    // To be fed into tendermint tests
+    %{ print(ids.res_hash_test) %}
+
+    // check that this res_hash is the same as hashing the single felt by hand
+    let (res_hash_manual) = hash2{hash_ptr=pedersen_ptr}(0, 0);
+
+    assert res_hash_manual = res_hash_test;
+    return ();
+}
+
+@external
+func test_hash_test_case_1{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
+    // create array of felts to be split and hashed
+    alloc_locals;
+    let (local to_hash_array: felt*) = alloc();
+    assert to_hash_array[0] = 104;
+    let to_hash_array_len = 1;
+
+    // call the hash_array fn on this array
+
+    let res_hash_test: felt = hash(to_hash_array, to_hash_array_len);
+
+    // To be fed into tendermint tests
+    %{ print(ids.res_hash_test) %}
+
+    // check that this res_hash is the same as hashing the single felt by hand
+
+    let (res_hash_manual) = hash_felt(104);
+    assert res_hash_manual = res_hash_test;
+    return ();
+}
+
+@external
+func test_hash_test_case_2{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
+    // create array of felts to be split and hashed
+    alloc_locals;
+    let (local to_hash_array: felt*) = alloc();
+    assert to_hash_array[0] = 104;
+    assert to_hash_array[1] = 105;
+    let to_hash_array_len = 2;
+
+    // call the hash_array fn on this array
+
+    let res_hash_test: felt = hash(to_hash_array, to_hash_array_len);
+
+    // To be fed into tendermint tests
+    %{ print(ids.res_hash_test) %}
+
+    // check that this res_hash is the same as hashing the single felt by hand
+
+    let (res_hash_manual) = hash_felt_array(to_hash_array, to_hash_array_len);
+    assert res_hash_manual = res_hash_test;
+    return ();
+}
+
+@external
+func test_hash_test_case_3{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> () {
+    // create array of felts to be split and hashed
+    alloc_locals;
+    let (local to_hash_array: felt*) = alloc();
+    assert to_hash_array[0] = 0;
+    assert to_hash_array[1] = 1;
+    assert to_hash_array[2] = 2;
+    assert to_hash_array[3] = 3;
+    assert to_hash_array[4] = 4;
+    assert to_hash_array[5] = 5;
+    assert to_hash_array[6] = 6;
+    assert to_hash_array[7] = 7;
+    assert to_hash_array[8] = 8;
+    assert to_hash_array[9] = 9;
+    let to_hash_array_len = 10;
+
+    // call the hash_array fn on this array
+
+    let res_hash_test: felt = hash(to_hash_array, to_hash_array_len);
+
+    // To be fed into tendermint tests
+    %{ print(ids.res_hash_test) %}
+
+    // check that this res_hash is the same as hashing the single felt by hand
+
+    let (res_hash_manual) = hash_felt_array(to_hash_array, to_hash_array_len);
     assert res_hash_manual = res_hash_test;
     return ();
 }

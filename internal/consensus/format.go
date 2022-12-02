@@ -8,7 +8,6 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/internal/evidence"
 
-	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
@@ -260,7 +259,7 @@ func FormatValidatorArray(validators []*types.Validator) []ValidatorData {
 }
 
 func formatChainId(chainId string) []*big.Int {
-	chainIDchunks := utils.Split(pedersen.ByteRounderInt128([]byte(chainId)), 16)
+	chainIDchunks := utils.Split(utils.ByteRounder(16)([]byte(chainId)), 16)
 
 	chainIdArray := make([]*big.Int, len(chainIDchunks))
 

@@ -10,7 +10,6 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/encoding"
-	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -140,8 +139,7 @@ func (v *Validator) Hash() []byte {
 	votingPowerBytes := make([]byte, 8)
 	encoding_binary.BigEndian.PutUint64(votingPowerBytes, uint64(v.VotingPower))
 
-	votingPowerArray := *(*[16]byte)(pedersen.ByteRounderInt128(votingPowerBytes))
-	votingPowerFeltArray := crypto.HashInt128(votingPowerArray)
+	votingPowerFeltArray := crypto.Checksum128(votingPowerBytes)
 
 	publicKeyFelt := make([]byte, 32)
 	copy(publicKeyFelt[:32], v.PubKey.Bytes()[:32])

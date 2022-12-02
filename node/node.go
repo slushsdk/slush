@@ -130,16 +130,6 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 	)
 }
 
-// TODO: move this  somewhere ok
-// func AddVerifierDetails(state *consensus.State, vd types.VerifierDetails) {
-// 	state.VerifierDetails = vd
-// }
-
-// TODO: move this  somewhere ok
-func AddSettlementCh(state *consensus.State, ch chan consensus.InvokeData) {
-	state.SettlementCh = ch
-}
-
 // makeNode returns a new, ready to go, Tendermint Node.
 func makeNode(cfg *config.Config,
 	privValidator types.PrivValidator,
