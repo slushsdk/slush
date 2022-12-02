@@ -32,11 +32,12 @@ const (
 
 // replay the wal file
 func RunReplayFile(cfg config.BaseConfig, csConfig *config.ConsensusConfig, console bool) {
-	consensusState := newConsensusStateForReplay(cfg, csConfig)
+	consensusState, setReactor := newConsensusStateForReplay(cfg, csConfig)
 
 	if err := consensusState.ReplayFile(csConfig.WalFile(), console); err != nil {
 		tmos.Exit(fmt.Sprintf("Error during consensus replay: %v", err))
 	}
+	setReactor.OnStop()
 }
 
 // Replay msgs in file or start the console
@@ -292,7 +293,7 @@ func (pb *playback) replayConsoleLoop() int {
 //--------------------------------------------------------------------------------
 
 // convenience for replay mode
-func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.ConsensusConfig) *State {
+func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.ConsensusConfig) (*State, DummySettlementReactor) {
 	dbType := dbm.BackendType(cfg.DBBackend)
 	// Get BlockStore
 	blockStoreDB, err := dbm.NewDB("blockstore", dbType, cfg.DBDir())
@@ -348,7 +349,7 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 		blockStore, mempool, evpool)
 
 	consensusState.SetEventBus(eventBus)
-	return consensusState
+	return consensusState, &settlementReactor
 }
 
 func DevnetVerifierDetails() types.VerifierDetails {
