@@ -83,7 +83,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 		return nil
 
 	case *types.LightClientAttackEvidence:
-		commonHeader, err := getSignedHeader(evpool.blockStore, evidence.Height())
+		commonHeader, err := GetSignedHeader(evpool.blockStore, evidence.Height())
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 
 		// in the case of lunatic the trusted header is different to the common header
 		if evidence.Height() != ev.ConflictingBlock.Height {
-			trustedHeader, err = getSignedHeader(evpool.blockStore, ev.ConflictingBlock.Height)
+			trustedHeader, err = GetSignedHeader(evpool.blockStore, ev.ConflictingBlock.Height)
 			if err != nil {
 				// FIXME: This multi step process is a bit unergonomic. We may want to consider a more efficient process
 				// that doesn't require as much io and is atomic.
@@ -105,7 +105,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 				// If the node doesn't have a block at the height of the conflicting block, then this could be
 				// a forward lunatic attack. Thus the node must get the latest height it has
 				latestHeight := evpool.blockStore.Height()
-				trustedHeader, err = getSignedHeader(evpool.blockStore, latestHeight)
+				trustedHeader, err = GetSignedHeader(evpool.blockStore, latestHeight)
 				if err != nil {
 					return err
 				}
@@ -149,13 +149,14 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 
 // VerifyLightClientAttack verifies LightClientAttackEvidence against the state of the full node. This involves
 // the following checks:
-//     - the common header from the full node has at least 1/3 voting power which is also present in
-//       the conflicting header's commit
-//     - 2/3+ of the conflicting validator set correctly signed the conflicting block
-//     - the nodes trusted header at the same height as the conflicting header has a different hash
+//   - the common header from the full node has at least 1/3 voting power which is also present in
+//     the conflicting header's commit
+//   - 2/3+ of the conflicting validator set correctly signed the conflicting block
+//   - the nodes trusted header at the same height as the conflicting header has a different hash
 //
 // CONTRACT: must run ValidateBasic() on the evidence before verifying
-//           must check that the evidence has not expired (i.e. is outside the maximum age threshold)
+//
+//	must check that the evidence has not expired (i.e. is outside the maximum age threshold)
 func VerifyLightClientAttack(e *types.LightClientAttackEvidence, commonHeader, trustedHeader *types.SignedHeader,
 	commonVals *types.ValidatorSet, now time.Time, trustPeriod time.Duration) error {
 	// In the case of lunatic attack there will be a different commonHeader height. Therefore the node perform a single
@@ -195,10 +196,10 @@ func VerifyLightClientAttack(e *types.LightClientAttackEvidence, commonHeader, t
 
 // VerifyDuplicateVote verifies DuplicateVoteEvidence against the state of full node. This involves the
 // following checks:
-//      - the validator is in the validator set at the height of the evidence
-//      - the height, round, type and validator address of the votes must be the same
-//      - the block ID's must be different
-//      - The signatures must both be valid
+//   - the validator is in the validator set at the height of the evidence
+//   - the height, round, type and validator address of the votes must be the same
+//   - the block ID's must be different
+//   - The signatures must both be valid
 func VerifyDuplicateVote(e *types.DuplicateVoteEvidence, chainID string, valSet *types.ValidatorSet) error {
 	_, val := valSet.GetByAddress(e.VoteA.ValidatorAddress)
 	if val == nil {
@@ -251,7 +252,7 @@ func VerifyDuplicateVote(e *types.DuplicateVoteEvidence, chainID string, valSet 
 	return nil
 }
 
-func getSignedHeader(blockStore BlockStore, height int64) (*types.SignedHeader, error) {
+func GetSignedHeader(blockStore BlockStore, height int64) (*types.SignedHeader, error) {
 	blockMeta := blockStore.LoadBlockMeta(height)
 	if blockMeta == nil {
 		return nil, fmt.Errorf("don't have header at height #%d", height)

@@ -445,7 +445,7 @@ func newStateWithConfigAndBlockStore(
 		panic(err)
 	}
 
-	settlementChan := make(chan InvokeData, 100)
+	settlementChan := make(chan []string, 100)
 	settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 

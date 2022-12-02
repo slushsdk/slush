@@ -394,7 +394,7 @@ func createConsensusReactor(
 	csMetrics *consensus.Metrics,
 	waitSync bool,
 	eventBus *types.EventBus,
-	settlementChan chan consensus.InvokeData,
+	settlementChan chan []string,
 	peerManager *p2p.PeerManager,
 	router *p2p.Router,
 	logger log.Logger,
@@ -469,15 +469,15 @@ func createTransport(logger log.Logger, cfg *config.Config) *p2p.MConnTransport 
 	)
 }
 
-func CreateSettlementChan() chan consensus.InvokeData {
-	ch := make(chan consensus.InvokeData, 100)
+func CreateSettlementChan() chan []string {
+	ch := make(chan []string, 100)
 	return ch
 }
 
 func CreateSettlementReactor(
 	logger log.Logger,
 	cfg *config.Config,
-	SettlementCh <-chan consensus.InvokeData,
+	SettlementCh <-chan []string,
 ) (*settlement.Reactor, error) {
 
 	logger = logger.With("module", "settlement")
