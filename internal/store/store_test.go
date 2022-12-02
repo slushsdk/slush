@@ -41,8 +41,8 @@ func makeTestCommit(height int64, timestamp time.Time) *types.Commit {
 		height,
 		0,
 		types.BlockID{
-			Hash:          pedersen.FeltBytes(crypto.HashSize),
-			PartSetHeader: types.PartSetHeader{Hash: pedersen.FeltBytes(crypto.HashSize), Total: 2},
+			Hash:          pedersen.RandFeltBytes(crypto.HashSize),
+			PartSetHeader: types.PartSetHeader{Hash: pedersen.RandFeltBytes(crypto.HashSize), Total: 2},
 		},
 		commitSigs)
 }

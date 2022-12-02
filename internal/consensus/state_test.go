@@ -1481,10 +1481,7 @@ func TestWaitingTimeoutProposeOnNewRound(t *testing.T) {
 	signAddVotes(config, cs1, tmproto.PrevoteType, nil, types.PartSetHeader{}, vs2, vs3, vs4)
 
 	round++ // moving to the next round
-	ensureNewRound(newRoundCh, height, round)
-
-	rs := cs1.GetRoundState()
-	assert.True(t, rs.Step == cstypes.RoundStepPropose) // P0 does not prevote before timeoutPropose expires
+	ensureNewRound(newRoundCh, height, round)Bytes(crypprevote before timeoutPropose expires
 
 	ensureNewTimeout(timeoutWaitCh, height, round, cs1.config.Propose(round).Nanoseconds())
 
@@ -2016,7 +2013,7 @@ func TestStateOutputVoteStats(t *testing.T) {
 	// create dummy peer
 	peer := p2pmock.NewPeer(nil)
 
-	randBytes := pedersen.FeltBytes(32)
+	randBytes := pedersen.RandFeltBytes(32)
 
 	vote := signVote(vss[1], config, tmproto.PrecommitType, randBytes, types.PartSetHeader{})
 
@@ -2053,7 +2050,7 @@ func TestSignSameVoteTwice(t *testing.T) {
 		setReactor.OnStop()
 	}()
 
-	randBytes := pedersen.FeltBytes(32)
+	randBytes := pedersen.RandFeltBytes(32)
 
 	vote := signVote(vss[1],
 		config,

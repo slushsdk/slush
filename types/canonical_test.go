@@ -11,7 +11,7 @@ import (
 )
 
 func TestCanonicalizeBlockID(t *testing.T) {
-	randhash := pedersen.FeltBytes(32)
+	randhash := pedersen.RandFeltBytes(32)
 	block1 := tmproto.BlockID{Hash: randhash,
 		PartSetHeader: tmproto.PartSetHeader{Total: 5, Hash: randhash}}
 	block2 := tmproto.BlockID{Hash: randhash,

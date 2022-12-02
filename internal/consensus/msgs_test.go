@@ -26,11 +26,11 @@ import (
 func TestMsgToProto(t *testing.T) {
 	psh := types.PartSetHeader{
 		Total: 1,
-		Hash:  pedersen.FeltBytes(32),
+		Hash:  pedersen.RandFeltBytes(32),
 	}
 	pbPsh := psh.ToProto()
 	bi := types.BlockID{
-		Hash:          pedersen.FeltBytes(32),
+		Hash:          pedersen.RandFeltBytes(32),
 		PartSetHeader: psh,
 	}
 	pbBi := bi.ToProto()
@@ -43,7 +43,7 @@ func TestMsgToProto(t *testing.T) {
 		Proof: merkle.Proof{
 			Total:    1,
 			Index:    1,
-			LeafHash: pedersen.FeltBytes(32),
+			LeafHash: pedersen.RandFeltBytes(32),
 			Aunts:    [][]byte{},
 		},
 	}
@@ -216,7 +216,7 @@ func TestWALMsgProto(t *testing.T) {
 		Proof: merkle.Proof{
 			Total:    1,
 			Index:    1,
-			LeafHash: pedersen.FeltBytes(32),
+			LeafHash: pedersen.RandFeltBytes(32),
 			Aunts:    [][]byte{},
 		},
 	}
