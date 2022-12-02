@@ -139,7 +139,7 @@ func (pb *playback) replayReset(count int, newStepSub types.Subscription) error 
 	settlementReactor.OnStart()
 
 	newCS := NewState(pb.cs.config, pb.genesisState.Copy(), pb.cs.blockExec,
-		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool)
+		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, settlementChan)
 	newCS.SetEventBus(pb.cs.eventBus)
 	newCS.startForReplay()
 
@@ -346,7 +346,7 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 	settlementReactor.OnStart()
 
 	consensusState := NewState(csConfig, state.Copy(), blockExec,
-		blockStore, mempool, evpool)
+		blockStore, mempool, evpool, settlementChan)
 
 	consensusState.SetEventBus(eventBus)
 	return consensusState, &settlementReactor

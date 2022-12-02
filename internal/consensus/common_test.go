@@ -452,7 +452,7 @@ func newStateWithConfigAndBlockStore(
 	settlementReactor.OnStart()
 
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
-	cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool)
+	cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool, settlementChan)
 	cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 	cs.SetPrivValidator(pv)
 
