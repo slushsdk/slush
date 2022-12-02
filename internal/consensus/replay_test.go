@@ -61,7 +61,7 @@ func startNewStateAndWaitForBlock(t *testing.T, consensusReplayConfig *config.Co
 	require.NoError(t, err)
 	privValidator := loadPrivValidator(consensusReplayConfig)
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
-	cs := newStateWithConfigAndBlockStore(
+	cs, setReactor := newStateWithConfigAndBlockStore(
 		consensusReplayConfig,
 		state,
 		privValidator,
@@ -69,6 +69,9 @@ func startNewStateAndWaitForBlock(t *testing.T, consensusReplayConfig *config.Co
 		blockStore,
 	)
 	cs.SetLogger(logger)
+	defer func() {
+		setReactor.OnStop()
+	}()
 
 	bytes, _ := ioutil.ReadFile(cs.config.WalFile())
 	t.Logf("====== WAL: \n\r%X\n", bytes)
@@ -159,7 +162,7 @@ LOOP:
 		state, err := sm.MakeGenesisStateFromFile(consensusReplayConfig.GenesisFile())
 		require.NoError(t, err)
 		privValidator := loadPrivValidator(consensusReplayConfig)
-		cs := newStateWithConfigAndBlockStore(
+		cs, setReactor := newStateWithConfigAndBlockStore(
 			consensusReplayConfig,
 			state,
 			privValidator,
@@ -167,6 +170,9 @@ LOOP:
 			blockStore,
 		)
 		cs.SetLogger(logger)
+		defer func() {
+			setReactor.OnStop()
+		}()
 
 		// start sending transactions
 		ctx, cancel := context.WithCancel(context.Background())
@@ -206,8 +212,8 @@ LOOP:
 			if _, ok := err.(ReachedHeightToStopError); ok {
 				break LOOP
 			}
-		case <-time.After(10 * time.Second):
-			t.Fatal("WAL did not panic for 10 seconds (check the log)")
+		case <-time.After(180 * time.Second):
+			t.Fatal("WAL did not panic for 180 seconds (check the log)")
 		}
 	}
 }
@@ -695,10 +701,12 @@ func testHandshakeReplay(t *testing.T, sim *simulatorTestSuite, nBlocks int, mod
 	if testValidatorsChange {
 		testConfig, err := ResetConfig(fmt.Sprintf("%s_%v_m", t.Name(), mode))
 		require.NoError(t, err)
+
 		defer func() { _ = os.RemoveAll(testConfig.RootDir) }()
 		stateDB = dbm.NewMemDB()
 
 		genesisState = sim.GenesisState
+
 		cfg = sim.Config
 		chain = append([]*types.Block{}, sim.Chain...) // copy chain
 		commits = sim.Commits
@@ -706,6 +714,7 @@ func testHandshakeReplay(t *testing.T, sim *simulatorTestSuite, nBlocks int, mod
 	} else { // test single node
 		testConfig, err := ResetConfig(fmt.Sprintf("%s_%v_s", t.Name(), mode))
 		require.NoError(t, err)
+
 		defer func() { _ = os.RemoveAll(testConfig.RootDir) }()
 		walBody, err := WALWithNBlocks(t, numBlocks)
 		require.NoError(t, err)

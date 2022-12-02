@@ -91,6 +91,15 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	mempool := emptyMempool{}
 	evpool := sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool, blockStore)
+
+	settlementChan := make(chan InvokeData, 100)
+	verifierDetails := DevnetVerifierDetails()
+	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
+	defer func() {
+		settlementReactor.OnStop()
+	}()
+
 	consensusState := NewState(cfg.Consensus, state.Copy(), blockExec, blockStore, mempool, evpool)
 	consensusState.SetLogger(logger)
 	consensusState.SetEventBus(eventBus)
@@ -119,7 +128,7 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 			t.Error(err)
 		}
 		return nil
-	case <-time.After(1 * time.Minute):
+	case <-time.After(5 * 1 * time.Minute):
 		if err := consensusState.Stop(); err != nil {
 			t.Error(err)
 		}
