@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -29,10 +29,10 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType = types.DefaultValidatorParams().PubKeyTypes[0]
-	network string
-	pkey    string
-	address string
+	keyType           = types.DefaultValidatorParams().PubKeyTypes[0]
+	network           string
+	accountPrivateKey string
+	accountAddress    string
 )
 
 func init() {
@@ -41,9 +41,9 @@ func init() {
 		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42, and set seedkeys=1 here.")
 	InitFilesCmd.MarkFlagRequired("network")
 
-	InitFilesCmd.Flags().StringVar(&pkey, "pkey", "0", "Specify privatekey. Not needed if --seedkeys=1. ")
+	InitFilesCmd.Flags().StringVar(&accountPrivateKey, "pkey", "0", "Specify privatekey. Not needed if --seedkeys=1. ")
 
-	InitFilesCmd.Flags().StringVar(&address, "address", "0", "Specify address. Not needed if --seedkeys=1. ")
+	InitFilesCmd.Flags().StringVar(&accountAddress, "address", "0", "Specify address. Not needed if --seedkeys=1. ")
 
 	InitFilesCmd.Flags().StringVar(&seedkeys, "seedkeys", "0",
 		"If using devnet either provide keys (default), or launch devnet using seed=42 and set --seedkeys=1.")
@@ -56,77 +56,68 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	}
 	config.Mode = keyType
 
-	vd, err := InitializeVerifierDetails(pkey, address, network) //will probably have to use args[i] here
+	err = initVerifierDetails(conf, logger)(accountPrivateKey, accountAddress, network)
 	if err != nil {
-		return err
+		return
 	}
-
-	verifierAddress, class, err := smartcontracts.DeclareDeploy(vd, conf.VerifierDetailsFile())
-
-	if err != nil {
-		return err
-	}
-
-	logger.Info("Successfully declared with classhash: ", class.Text(16), "")
-	logger.Info("and deployed contract address:", verifierAddress.Text(16), "")
 
 	return initFilesWithConfig(config)
 }
 
-func InitializeVerifierDetails(pkeyStr string, addressStr string, network string) (types.VerifierDetails, error) {
-
-	address, b := big.NewInt(0).SetString(addressStr, 16)
-	if !b {
-		return types.VerifierDetails{}, errors.New("could not read address string. Provide in hex, without leading 0x")
+func initAccountPrivateKeyFile(conf *config.Config, logger log.Logger) func(accountPrivateKey string) (fileName string, err error) {
+	return func(accountPrivateKey string) (fileName string, err error) {
+		fileName = conf.AccountPrivateKeyFileName
+		filePath := filepath.Join(conf.CairoDir, fileName)
+		if tmos.FileExists(filePath) {
+			logger.Info("Found  account private key", "path", filePath)
+			return
+		}
+		if err = os.WriteFile(filePath, []byte(accountPrivateKey), 0600); err != nil {
+			return
+		}
+		logger.Info("Generated account private key", "path", filePath)
+		return
 	}
+}
 
-	pkey, b := big.NewInt(0).SetString(pkeyStr, 16)
-	if !b {
-		return types.VerifierDetails{}, errors.New("could not read pkey string. Provide in hex, without leading 0x")
-	}
-
-	// Check whether we need to use burnt in keys.
-	var seedKeysBool bool
-	if pkeyStr == "0" || addressStr == "0" {
-		seedKeysBool = true
-	} else {
-		seedKeysBool = false
-
-	}
-
-	pkeypath := "pkey"
-
-	if network == "devnet" && seedKeysBool {
-		pkeypath = "seed42pkey"
-		err := os.WriteFile("cairo/"+pkeypath, []byte("bdd640fb06671ad11c80317fa3b1799d"), 0644)
+func getVerifierAddress(logger log.Logger) func(accountAddress, accountPrivateKeyPath, network string) (verifierAddress string, err error) {
+	return func(accountAddress, accountPrivateKeyPath, network string) (verifierAddress string, err error) {
+		verifierAddressBigInt, classHashBigInt, err := smartcontracts.DeclareDeploy(accountAddress, accountPrivateKeyPath, network)
 		if err != nil {
-			return types.VerifierDetails{}, err
+			return
 		}
-		address, b = big.NewInt(0).SetString("347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a", 16)
-		if !b {
-			return types.VerifierDetails{}, errors.New("could not read baked in address string. ")
-		}
-
-	} else {
-
-		if pkey.Cmp(big.NewInt(0)) != 0 {
-			err := os.WriteFile("cairo/"+pkeypath, []byte(pkeyStr), 0644)
-			if err != nil {
-				return types.VerifierDetails{}, err
-			}
-		} else {
-			return types.VerifierDetails{}, errors.New("if not on devnet or seedkeys != 1 then pkey needs to be provided and nonzero. Input with --pkey  flag in hex, without leading 0x")
-		}
-
-		if address.Cmp(big.NewInt(0)) == 0 {
-			return types.VerifierDetails{}, errors.New("if not on devnet or seedkeys != 1 then address needs to be provided and nonzero. Input with --address  flag in hex, without leading 0x")
-		}
+		verifierAddress = verifierAddressBigInt.Text(16)
+		logger.Info("Successfully declared with classhash: ", classHashBigInt.Text(16), "")
+		logger.Info("and deployed contract address:", verifierAddress, "")
+		return
 	}
+}
 
-	nd := types.NetworkDetails{Network: network, SeedKeysBool: seedKeysBool}
-	vd := types.VerifierDetails{AccountPrivKeyPath: pkeypath, AccountAddress: address, NetworkDetails: nd}
+func initVerifierDetails(conf *config.Config, logger log.Logger) func(accountAddress, accountPrivateKey, network string) (err error) {
+	return func(accountAddress, accountPrivateKey, network string) (err error) {
+		if network == "devnet" && (accountPrivateKey == "0" || accountAddress == "0") {
+			accountAddress = "347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
+			accountPrivateKey = "bdd640fb06671ad11c80317fa3b1799d"
+			conf.AccountPrivateKeyFileName = "seed42pkey"
+		}
+		accountPrivateKeyPath, err := initAccountPrivateKeyFile(conf, logger)(accountPrivateKey)
+		if err != nil {
+			return
+		}
 
-	return vd, nil
+		verifierAddress, err := getVerifierAddress(logger)(accountAddress, accountPrivateKeyPath, network)
+		if err != nil {
+			return
+		}
+
+		vd, err := types.NewVerifierDetails(accountAddress, accountPrivateKeyPath, network, verifierAddress)
+		if err != nil {
+			return
+		}
+
+		err = vd.SaveAs(conf.VerifierDetailsFile())
+		return
+	}
 }
 
 func initFilesWithConfig(config *cfg.Config) error {
