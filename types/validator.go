@@ -3,14 +3,12 @@ package types
 import (
 	"bytes"
 	encoding_binary "encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/encoding"
-	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 

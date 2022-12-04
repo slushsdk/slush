@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -10,9 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 )
@@ -70,9 +67,9 @@ func TestGenesisGood(t *testing.T) {
 	var pbb, _ = json.Marshal(pb)
 	var pbJSON = string(pbb)
 
-	var pbname = "\"" + pb.TypeTag() + "\""
+	var pbname = "\"" + pb.Type() + "\""
 
-	var name = "\"" + pb.Type() + "\""
+	// var name = "\"" + pb.Type() + "\""
 
 	genDocBytes := []byte(
 		`{

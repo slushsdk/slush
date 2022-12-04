@@ -9,10 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	"github.com/tendermint/tendermint/libs/log"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
@@ -121,7 +120,7 @@ func TestSignerGetPubKey(t *testing.T) {
 func TestSignerProposal(t *testing.T) {
 	for _, tc := range getSignerTestCases(t) {
 		ts := time.Now()
-		hash := tmrand.Bytes(tmhash.Size)
+		hash := tmrand.Bytes(crypto.HashSize)
 		have := &types.Proposal{
 			Type:      tmproto.ProposalType,
 			Height:    1,
@@ -328,7 +327,7 @@ func TestSignerSignProposalErrors(t *testing.T) {
 		})
 
 		ts := time.Now()
-		hash := tmrand.Bytes(tmhash.Size)
+		hash := tmrand.Bytes(crypto.HashSize)
 		proposal := &types.Proposal{
 			Type:      tmproto.ProposalType,
 			Height:    1,

@@ -113,34 +113,6 @@ func HashCanonicalVoteNoTime(canVote tmproto.CanonicalVote) []byte {
 	return r
 }
 
-func HashCanonicalVoteExtension(canVote tmproto.CanonicalVoteExtension) []byte {
-
-	extensionByte := utils.ByteRounder(16)(canVote.Extension)
-	hasherForExtension := crypto.New128()
-	hasherForExtension.Write(extensionByte)
-
-	heightByte := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(heightByte, uint64(canVote.Height))
-	hasherForHeight := crypto.New128()
-	hasherForHeight.Write(heightByte)
-
-	roundByte := make([]byte, 8)
-	encoding_binary.BigEndian.PutUint64(roundByte, uint64(canVote.Round))
-	hasherForRound := crypto.New128()
-	hasherForRound.Write(roundByte)
-
-	chainIDByte := utils.ByteRounder(16)([]byte(canVote.ChainId))
-	hasherForChainID := crypto.New128()
-	hasherForChainID.Write(chainIDByte)
-
-	voteArray := bytes.Join([][]byte{hasherForExtension.Sum(nil), hasherForHeight.Sum(nil), hasherForRound.Sum(nil), hasherForChainID.Sum(nil)}, make([]byte, 0))
-	hasher := crypto.NewFelt()
-	hasher.Write(voteArray)
-	r := hasher.Sum(nil)
-
-	return r
-}
-
 func HashTime(timeStamp time.Time) []byte {
 
 	timeb := make([]byte, 8)

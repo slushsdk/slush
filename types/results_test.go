@@ -48,7 +48,7 @@ func TestABCIResults(t *testing.T) {
 		require.NoError(t, err)
 
 		proof := results.ProveResult(i)
-		valid := proof.Verify(root, bz)
+		valid := proof.VerifyInt128(root, bz)
 		assert.NoError(t, valid, "%d", i)
 	}
 }

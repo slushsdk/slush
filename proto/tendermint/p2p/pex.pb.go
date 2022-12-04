@@ -289,6 +289,7 @@ func (m *PexResponseV2) GetAddresses() []PexAddressV2 {
 
 type PexMessage struct {
 	// Types that are valid to be assigned to Sum:
+	//
 	//	*PexMessage_PexRequest
 	//	*PexMessage_PexResponse
 	//	*PexMessage_PexRequestV2
@@ -1025,10 +1026,7 @@ func (m *PexAddress) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {
@@ -1078,10 +1076,7 @@ func (m *PexRequest) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {
@@ -1165,10 +1160,7 @@ func (m *PexResponse) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {
@@ -1250,10 +1242,7 @@ func (m *PexAddressV2) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {
@@ -1303,10 +1292,7 @@ func (m *PexRequestV2) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {
@@ -1390,10 +1376,7 @@ func (m *PexResponseV2) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {
@@ -1583,10 +1566,7 @@ func (m *PexMessage) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthPex
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthPex
 			}
 			if (iNdEx + skippy) > l {

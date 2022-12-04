@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +13,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/internal/jsontypes"
+	"github.com/tendermint/tendermint/internal/libs/protoio"
 	"github.com/tendermint/tendermint/internal/libs/tempfile"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -438,9 +437,9 @@ func checkProposalsOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (ti
 
 	lastTime := lastProposal.Timestamp
 	// set the times to the same value and check equality
-	now := tmtime.Now()
+	now := time.Now()
 	lastProposal.Timestamp = now
 	newProposal.Timestamp = now
 
-	return lastTime, proto.Equal(&newProposal, &lastProposal)
+	return lastTime, newProposal == lastProposal //proto.Equal(&newProposal, &lastProposal)
 }

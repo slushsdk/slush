@@ -24,8 +24,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/stark"
 
 	"github.com/tendermint/tendermint/crypto/sr25519"
-	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/internal/libs/async"
 	"github.com/tendermint/tendermint/libs/async"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )

@@ -10,8 +10,9 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/crypto/weierstrass"
-	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
+
+	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
 const (
@@ -24,8 +25,8 @@ const (
 )
 
 func init() {
-	jsontypes.MustRegister(PubKey{})
-	jsontypes.MustRegister(PrivKey{})
+	tmjson.RegisterType(PubKey{}, PubKeyName)
+	tmjson.RegisterType(PrivKey{}, PrivKeyName)
 }
 
 var curve = weierstrass.Stark()

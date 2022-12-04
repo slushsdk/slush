@@ -13,7 +13,6 @@ import (
 
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/test/factory"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	"github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -314,7 +313,7 @@ func TestABCIResponsesResultsHash(t *testing.T) {
 	proof := results.ProveResult(0)
 	bz, err := results[0].Marshal()
 	require.NoError(t, err)
-	assert.NoError(t, proof.Verify(root, bz))
+	assert.NoError(t, proof.VerifyInt128(root, bz))
 }
 
 func TestLastABCIResponses(t *testing.T) {

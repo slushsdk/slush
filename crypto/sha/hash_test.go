@@ -1,4 +1,4 @@
-package tmhash_test
+package sha_test
 
 import (
 	"crypto/sha256"
@@ -6,18 +6,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/crypto/sha"
 )
 
 func TestHash(t *testing.T) {
 	testVector := []byte("abc")
-	hasher := tmhash.New()
+	hasher := sha.New()
 	_, err := hasher.Write(testVector)
 	require.NoError(t, err)
 	bz := hasher.Sum(nil)
 
-	bz2 := tmhash.Sum(testVector)
+	bz2 := sha.Sum(testVector)
 
 	hasher = sha256.New()
 	_, err = hasher.Write(testVector)
@@ -30,18 +29,18 @@ func TestHash(t *testing.T) {
 
 func TestHashTruncated(t *testing.T) {
 	testVector := []byte("abc")
-	hasher := tmhash.NewTruncated()
+	hasher := sha.NewTruncated()
 	_, err := hasher.Write(testVector)
 	require.NoError(t, err)
 	bz := hasher.Sum(nil)
 
-	bz2 := tmhash.SumTruncated(testVector)
+	bz2 := sha.SumTruncated(testVector)
 
 	hasher = sha256.New()
 	_, err = hasher.Write(testVector)
 	require.NoError(t, err)
 	bz3 := hasher.Sum(nil)
-	bz3 = bz3[:tmhash.TruncatedSize]
+	bz3 = bz3[:sha.TruncatedSize]
 
 	assert.Equal(t, bz, bz2)
 	assert.Equal(t, bz, bz3)

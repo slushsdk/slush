@@ -27,6 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // PublicKey defines the keys available for use with Tendermint Validators
 type PublicKey struct {
 	// Types that are valid to be assigned to Sum:
+	//
 	//	*PublicKey_Ed25519
 	//	*PublicKey_Secp256K1
 	//	*PublicKey_Sr25519
@@ -820,10 +821,7 @@ func (m *PublicKey) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if skippy < 0 {
-				return ErrInvalidLengthKeys
-			}
-			if (iNdEx + skippy) < 0 {
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
 				return ErrInvalidLengthKeys
 			}
 			if (iNdEx + skippy) > l {

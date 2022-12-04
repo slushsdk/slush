@@ -223,7 +223,7 @@ func TestVoteSet_2_3MajorityRedux(t *testing.T) {
 		addr := pubKey.Address()
 		vote := withValidator(voteProto, addr, 67)
 		blockPartsHeader := PartSetHeader{blockPartsTotal, pedersen.RandFeltBytes(crypto.HashSize)}
-		_, err = signAddVote(ctx, privValidators[67], withBlockPartSetHeader(vote, blockPartsHeader), voteSet)
+		_, err = signAddVote(privValidators[67], withBlockPartSetHeader(vote, blockPartsHeader), voteSet)
 		require.NoError(t, err)
 		blockID, ok = voteSet.TwoThirdsMajority()
 		assert.False(t, ok || !blockID.IsZero(),
@@ -250,7 +250,7 @@ func TestVoteSet_2_3MajorityRedux(t *testing.T) {
 		require.NoError(t, err)
 		addr := pubKey.Address()
 		vote := withValidator(voteProto, addr, 69)
-		_, err = signAddVote(ctx, privValidators[69], withBlockHash(vote, pedersen.RandFeltBytes(32)), voteSet)
+		_, err = signAddVote(privValidators[69], withBlockHash(vote, pedersen.RandFeltBytes(32)), voteSet)
 		require.NoError(t, err)
 		blockID, ok = voteSet.TwoThirdsMajority()
 		assert.False(t, ok || !blockID.IsZero(),
@@ -273,7 +273,7 @@ func TestVoteSet_2_3MajorityRedux(t *testing.T) {
 
 func TestVoteSet_Conflicts(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(ctx, t, height, round, tmproto.PrevoteType, 4, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, tmproto.PrevoteType, 4, 1)
 
 	blockHash1 := pedersen.RandFeltBytes(32)
 	blockHash2 := pedersen.RandFeltBytes(32)
@@ -403,7 +403,7 @@ func TestVoteSet_Conflicts(t *testing.T) {
 
 func TestVoteSet_MakeCommit(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(ctx, t, height, round, tmproto.PrecommitType, 10, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, tmproto.PrecommitType, 10, 1)
 
 	blockHash, blockPartSetHeader := pedersen.RandFeltBytes(crypto.HashSize), PartSetHeader{123, pedersen.RandFeltBytes(crypto.HashSize)}
 

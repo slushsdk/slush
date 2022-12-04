@@ -286,7 +286,7 @@ func FormatCallData(trustedLightBlock types.LightBlock, untrustedLightBlock type
 func (cs *State) PushCommitToSettlment() error {
 	// First blocks are not sent to starknet, they are required for the consensus initialization
 	if cs.Height <= 3 {
-		logger := cs.logger
+		logger := cs.Logger
 		logger.Info(fmt.Sprintf("Initialization block %d of 3", cs.Height))
 		return nil
 	}
@@ -313,7 +313,7 @@ func (cs *State) getLightBlock(height int64) (types.LightBlock, error) {
 		return types.LightBlock{}, err
 	}
 
-	validators, err := cs.stateStore.LoadValidators(height)
+	validators := cs.Votes.Precommits(cs.CommitRound).GetValSet() // .LoadValidators(height)
 	if err != nil {
 		return types.LightBlock{}, err
 	}
