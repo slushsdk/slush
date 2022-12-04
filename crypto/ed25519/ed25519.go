@@ -11,7 +11,7 @@ import (
 	"github.com/oasisprotocol/curve25519-voi/primitives/ed25519/extra/cache"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/crypto/sha"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
@@ -139,7 +139,7 @@ func genPrivKey(rand io.Reader) PrivKey {
 // NOTE: secret should be the output of a KDF like bcrypt,
 // if it's derived from user input.
 func GenPrivKeyFromSecret(secret []byte) PrivKey {
-	seed := crypto.Sha256(secret) // Not Ripemd160 because we want 32 bytes.
+	seed := sha.Sum(secret) // Not Ripemd160 because we want 32 bytes.
 
 	return PrivKey(ed25519.NewKeyFromSeed(seed))
 }
@@ -156,7 +156,7 @@ func (pubKey PubKey) Address() crypto.Address {
 	if len(pubKey) != PubKeySize {
 		panic("pubkey is incorrect size")
 	}
-	return crypto.Address(tmhash.SumTruncated(pubKey))
+	return crypto.Address(sha.SumTruncated(pubKey))
 }
 
 // Bytes returns the PubKey byte format.

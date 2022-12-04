@@ -1183,6 +1183,12 @@ func (blockID BlockID) Equals(other BlockID) bool {
 		blockID.PartSetHeader.Equals(other.PartSetHeader)
 }
 
+// IsNil returns true if this is the BlockID of a nil block.
+func (blockID BlockID) IsNil() bool {
+	return len(blockID.Hash) == 0 &&
+		blockID.PartSetHeader.IsZero()
+}
+
 // Key returns a machine-readable string representation of the BlockID
 func (blockID BlockID) Key() string {
 	pbph := blockID.PartSetHeader.ToProto()
@@ -1214,9 +1220,9 @@ func (blockID BlockID) IsZero() bool {
 
 // IsComplete returns true if this is a valid BlockID of a non-nil block.
 func (blockID BlockID) IsComplete() bool {
-	return len(blockID.Hash) == tmhash.Size &&
+	return len(blockID.Hash) == crypto.HashSize &&
 		blockID.PartSetHeader.Total > 0 &&
-		len(blockID.PartSetHeader.Hash) == tmhash.Size
+		len(blockID.PartSetHeader.Hash) == crypto.HashSize
 }
 
 // String returns a human readable string representation of the BlockID.

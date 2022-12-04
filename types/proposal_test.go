@@ -14,8 +14,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/pedersen"
 	"github.com/tendermint/tendermint/crypto/utils"
 	"github.com/tendermint/tendermint/internal/libs/protoio"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmtime "github.com/tendermint/tendermint/libs/time"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -65,7 +63,7 @@ func TestProposalVerifySignature(t *testing.T) {
 
 	prop := NewProposal(
 		4, 2, 2,
-		BlockID{pedersen.RandFeltBytes(32), PartSetHeader{777, pedersen.RandFeltBytes(32)}}, tmtime.Now())
+		BlockID{pedersen.RandFeltBytes(32), PartSetHeader{777, pedersen.RandFeltBytes(32)}})
 	p := prop.ToProto()
 	signBytes := ProposalSignBytes("test_chain_id", p)
 

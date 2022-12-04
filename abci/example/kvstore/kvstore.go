@@ -11,9 +11,6 @@ import (
 	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/encoding"
-	"github.com/tendermint/tendermint/libs/log"
-	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 	"github.com/tendermint/tendermint/version"
 )
 

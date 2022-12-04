@@ -134,12 +134,12 @@ func (pb *playback) replayReset(count int, newStepSub types.Subscription) error 
 
 	settlementChan := make(chan InvokeData, 100)
 	verifierDetails := DevnetVerifierDetails()
-	logger, _ := log.NewDefaultLogger("plain", "info")
+	logger, _ := log.NewDefaultLogger("plain", "info", false)
 	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	newCS := NewState(pb.cs.config, pb.genesisState.Copy(), pb.cs.blockExec,
-		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, settlementChan)
+		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool, verifierDetails, settlementChan)
 	newCS.SetEventBus(pb.cs.eventBus)
 	newCS.startForReplay()
 
@@ -342,14 +342,15 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 
 	settlementChan := make(chan InvokeData, 100)
 	verifierDetails := DevnetVerifierDetails()
-	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
-	settlementReactor.OnStart()
 
 	consensusState := NewState(csConfig, state.Copy(), blockExec,
-		blockStore, mempool, evpool, settlementChan)
+		blockStore, mempool, evpool, verifierDetails, settlementChan)
+
+	settlementReactor := DummySettlementReactor{logger: consensusState.Logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor.OnStart()
 
 	consensusState.SetEventBus(eventBus)
-	return consensusState, &settlementReactor
+	return consensusState, settlementReactor
 }
 
 func DevnetVerifierDetails() types.VerifierDetails {

@@ -394,6 +394,8 @@ func createConsensusReactor(
 	csMetrics *consensus.Metrics,
 	waitSync bool,
 	eventBus *types.EventBus,
+	settlementChan chan consensus.InvokeData,
+	verifierDetails types.VerifierDetails,
 	peerManager *p2p.PeerManager,
 	router *p2p.Router,
 	logger log.Logger,
@@ -406,6 +408,8 @@ func createConsensusReactor(
 		blockStore,
 		mp,
 		evidencePool,
+		verifierDetails,
+		settlementChan,
 		consensus.StateMetrics(csMetrics),
 	)
 	consensusState.SetLogger(logger)

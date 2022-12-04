@@ -10,7 +10,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 	"github.com/tendermint/tendermint/crypto/stark"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )

@@ -551,7 +551,7 @@ func TestReactor_StateProviderP2P(t *testing.T) {
 	bctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ictx, cancel := context.WithTimeout(ctx, 15*1*time.Second) // SLU-12 1 second original
+	ictx, cancel := context.WithTimeout(bctx, 15*1*time.Second) // SLU-12 1 second original
 	defer cancel()
 
 	rts.reactor.mtx.Lock()

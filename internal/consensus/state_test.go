@@ -11,11 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/abci/example/kvstore"
-	abci "github.com/tendermint/tendermint/abci/types"
-	abcimocks "github.com/tendermint/tendermint/abci/types/mocks"
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/pedersen"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
 	p2pmock "github.com/tendermint/tendermint/internal/p2p/mock"
 	"github.com/tendermint/tendermint/libs/log"
@@ -62,7 +58,7 @@ x * TestHalt1 - if we see +2/3 precommits after timing out into new round, we sh
 func TestStateProposerSelection0(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss, setReactor err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	defer func() {
 		setReactor.OnStop()
 	}()
@@ -277,7 +273,7 @@ func TestStateBadProposal(t *testing.T) {
 func TestStateOversizedBlock(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss, setReactor,  err := randState(config, 2)
+	cs1, vss, setReactor, err := randState(config, 2)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -389,7 +385,7 @@ func TestStateFullRound1(t *testing.T) {
 func TestStateFullRoundNil(t *testing.T) {
 	config := configSetup(t)
 
-	cs, vss, setReactor,err := randState(config, 1)
+	cs, vss, setReactor, err := randState(config, 1)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -598,7 +594,7 @@ func TestStateLockNoPOL(t *testing.T) {
 
 	ensureNewTimeout(timeoutWaitCh, height, round, cs1.config.Precommit(round).Nanoseconds())
 
-	cs2, _, setReactor, err := randState(config, 2) // needed so generated block is different than locked block
+	cs2, _, setReactor2, err := randState(config, 2) // needed so generated block is different than locked block
 	require.NoError(t, err)
 	defer func() {
 		setReactor2.OnStop()
@@ -701,7 +697,10 @@ func TestStateLockPOLRelock(t *testing.T) {
 	signAddVotes(config, cs1, tmproto.PrecommitType, nil, types.PartSetHeader{}, vs2, vs3, vs4)
 
 	// before we timeout to the new round set the new proposal
-	cs2, err := newState(cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor, err := newState(cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	require.NoError(t, err)
 
 	prop, propBlock := decideProposal(cs2, vs2, vs2.Height, vs2.Round+1)
@@ -853,7 +852,10 @@ func TestStateLockPOLUnlock(t *testing.T) {
 func TestStateLockPOLUnlockOnUnknownBlock(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss, err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
+	defer func() {
+		setReactor.OnStop()
+	}()
 	require.NoError(t, err)
 	vs2, vs3, vs4 := vss[1], vss[2], vss[3]
 	height, round := cs1.Height, cs1.Round
@@ -894,7 +896,10 @@ func TestStateLockPOLUnlockOnUnknownBlock(t *testing.T) {
 	signAddVotes(config, cs1, tmproto.PrecommitType, nil, types.PartSetHeader{}, vs2, vs3, vs4)
 
 	// before we timeout to the new round set the new proposal
-	cs2, err := newState(cs1.state, vs2, kvstore.NewApplication())
+	cs2, setReactor, err := newState(cs1.state, vs2, kvstore.NewApplication())
+	defer func() {
+		setReactor.OnStop()
+	}()
 	require.NoError(t, err)
 	prop, propBlock := decideProposal(cs2, vs2, vs2.Height, vs2.Round+1)
 	if prop == nil || propBlock == nil {
@@ -1107,7 +1112,7 @@ func TestStateLockPOLSafety1(t *testing.T) {
 func TestStateLockPOLSafety2(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss, setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1207,7 +1212,7 @@ func TestStateLockPOLSafety2(t *testing.T) {
 func TestProposeValidBlock(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss,setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1301,7 +1306,7 @@ func TestProposeValidBlock(t *testing.T) {
 func TestSetValidBlockOnDelayedPrevote(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss, setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1368,7 +1373,7 @@ func TestSetValidBlockOnDelayedPrevote(t *testing.T) {
 func TestSetValidBlockOnDelayedProposal(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss, setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1429,7 +1434,7 @@ func TestSetValidBlockOnDelayedProposal(t *testing.T) {
 func TestWaitingTimeoutOnNilPolka(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss,setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1481,7 +1486,10 @@ func TestWaitingTimeoutProposeOnNewRound(t *testing.T) {
 	signAddVotes(config, cs1, tmproto.PrevoteType, nil, types.PartSetHeader{}, vs2, vs3, vs4)
 
 	round++ // moving to the next round
-	ensureNewRound(newRoundCh, height, round)Bytes(crypprevote before timeoutPropose expires
+	ensureNewRound(newRoundCh, height, round)
+
+	rs := cs1.GetRoundState()
+	assert.True(t, rs.Step == cstypes.RoundStepPropose) // P0 does not prevote before timeoutPropose expires
 
 	ensureNewTimeout(timeoutWaitCh, height, round, cs1.config.Propose(round).Nanoseconds())
 
@@ -1571,7 +1579,6 @@ func TestEmitNewValidBlockEventOnCommitWithoutBlock(t *testing.T) {
 
 	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
-	cs1, vss, setReactor := makeState(ctx, t, makeStateArgs{config: config})
 	defer func() {
 		setReactor.OnStop()
 	}()
@@ -1610,7 +1617,7 @@ func TestEmitNewValidBlockEventOnCommitWithoutBlock(t *testing.T) {
 func TestCommitFromPreviousRound(t *testing.T) {
 	config := configSetup(t)
 
-	cs1, vss,setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1736,7 +1743,7 @@ func TestResetTimeoutPrecommitUponNewHeight(t *testing.T) {
 	config := configSetup(t)
 
 	config.Consensus.SkipTimeoutCommit = false
-	cs1, vss, setReactor,  err := randState(config, 4)
+	cs1, vss, setReactor, err := randState(config, 4)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()
@@ -1955,7 +1962,7 @@ func TestStateOutputsBlockPartsStats(t *testing.T) {
 	config := configSetup(t)
 
 	// create dummy peer
-	cs, _, setReactor,  err := randState(config, 1)
+	cs, _, setReactor, err := randState(config, 1)
 
 	defer func() {
 		setReactor.OnStop()
@@ -2004,7 +2011,7 @@ func TestStateOutputsBlockPartsStats(t *testing.T) {
 func TestStateOutputVoteStats(t *testing.T) {
 	config := configSetup(t)
 
-	cs, vss, setReactor,  err := randState(config, 2)
+	cs, vss, setReactor, err := randState(config, 2)
 	defer func() {
 		setReactor.OnStop()
 	}()
@@ -2044,7 +2051,7 @@ func TestStateOutputVoteStats(t *testing.T) {
 func TestSignSameVoteTwice(t *testing.T) {
 	config := configSetup(t)
 
-	_, vss, setReactor,  err := randState(config, 2)
+	_, vss, setReactor, err := randState(config, 2)
 	require.NoError(t, err)
 	defer func() {
 		setReactor.OnStop()

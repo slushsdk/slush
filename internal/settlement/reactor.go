@@ -1,7 +1,6 @@
 package settlement
 
 import (
-	"context"
 	"fmt"
 	"math/big"
 	"time"
@@ -46,8 +45,8 @@ func NewReactor(
 // envelopes on each. In addition, it also listens for peer updates and handles
 // messages on that p2p channel accordingly. The caller must be sure to execute
 // OnStop to ensure the outbound p2p Channels are closed. No error is returned.
-func (r *Reactor) OnStart(ctx context.Context) error {
-	go r.ListenInvokeBlocks(ctx, r.SettlementCh)
+func (r *Reactor) OnStart() error {
+	go r.ListenInvokeBlocks(r.SettlementCh)
 
 	return nil
 }
@@ -58,16 +57,16 @@ func (r *Reactor) OnStop() {
 	r.stopChan <- true
 }
 
-func (r *Reactor) ListenInvokeBlocks(ctx context.Context, SettlementCh <-chan consensus.InvokeData) {
+func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan consensus.InvokeData) {
 	r.logger.Info("started settlement reactor")
 	for {
 		select {
 		case newBlock := <-SettlementCh:
 			r.FormatAndSendCommit(newBlock)
-		case <-ctx.Done():
-			r.logger.Info("Stopping settlement reactor via context")
+		// case <-ctx.Done():
+		// 	r.logger.Info("Stopping settlement reactor via context")
 
-			return
+		// 	return
 		case <-r.stopChan:
 			r.logger.Info("Stopping settlement reactor via stopChan")
 

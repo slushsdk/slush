@@ -49,7 +49,7 @@ func randomDuplicateVoteEvidence(t *testing.T) *DuplicateVoteEvidence {
 func TestDuplicateVoteEvidence(t *testing.T) {
 	const height = int64(13)
 	ev := NewMockDuplicateVoteEvidence(height, time.Now(), "mock-chain-id")
-	assert.Equal(t, ev.Hash(), crypto.ChecksumInt128(ev.Bytes()))
+	assert.Equal(t, ev.Hash(), crypto.Checksum128(ev.Bytes()))
 	assert.NotNil(t, ev.String())
 	assert.Equal(t, ev.Height(), height)
 }
@@ -164,7 +164,7 @@ func TestLightClientAttackEvidenceValidation(t *testing.T) {
 	header.Height = height
 	header.ValidatorsHash = valSet.Hash()
 	blockID := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumFelt(pedersen.RandFeltBytes(32)))
-	commit, err := makecommit(ctx, blockID, height, 1, voteSet, privVals, time.Now())
+	commit, err := makeCommit(blockID, height, 1, voteSet, privVals, time.Now())
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{
 		ConflictingBlock: &LightBlock{
@@ -354,7 +354,7 @@ func TestEvidenceVectors(t *testing.T) {
 		ProposerAddress:    emptyBytes,
 	}
 	blockID3 := makeBlockID(header.Hash(), math.MaxInt32, crypto.ChecksumFelt(pedersen.RandFeltBytes(32)))
-	commit, err := makecommit(ctx, blockID3, height, 1, voteSet, privVals, defaultVoteTime)
+	commit, err := makeCommit(blockID3, height, 1, voteSet, privVals, defaultVoteTime)
 	require.NoError(t, err)
 	lcae := &LightClientAttackEvidence{
 		ConflictingBlock: &LightBlock{

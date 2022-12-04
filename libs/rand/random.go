@@ -4,8 +4,6 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"crypto/rand"
-	"math/big"
 	mrand "math/rand"
 )
 
@@ -93,4 +91,4 @@ func crandSeed() int64 {
 		panic(fmt.Sprintf("could nor read random seed from crypto/rand: %v", err))
 	}
 	return seed
-
+}

@@ -9,8 +9,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
-
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/privval"
@@ -218,7 +217,7 @@ func (th *TestHarness) TestPublicKey() error {
 func (th *TestHarness) TestSignProposal() error {
 	th.logger.Info("TEST: Signing of proposals")
 	// sha256 hash of "hash"
-	hash := tmhash.Sum([]byte("hash"))
+	hash := crypto.ChecksumFelt([]byte("hash"))
 	prop := &types.Proposal{
 		Type:     tmproto.ProposalType,
 		Height:   100,
@@ -266,7 +265,7 @@ func (th *TestHarness) TestSignVote() error {
 	th.logger.Info("TEST: Signing of votes")
 	for _, voteType := range voteTypes {
 		th.logger.Info("Testing vote type", "type", voteType)
-		hash := tmhash.Sum([]byte("hash"))
+		hash := crypto.ChecksumFelt([]byte("hash"))
 		vote := &types.Vote{
 			Type:   voteType,
 			Height: 101,
@@ -279,7 +278,7 @@ func (th *TestHarness) TestSignVote() error {
 				},
 			},
 			ValidatorIndex:   0,
-			ValidatorAddress: tmhash.SumTruncated([]byte("addr")),
+			ValidatorAddress: crypto.AddressHash([]byte("addr")),
 			Timestamp:        time.Now(),
 		}
 		v := vote.ToProto()

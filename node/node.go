@@ -22,6 +22,7 @@ import (
 	"github.com/tendermint/tendermint/internal/p2p/pex"
 	"github.com/tendermint/tendermint/internal/proxy"
 	rpccore "github.com/tendermint/tendermint/internal/rpc/core"
+	"github.com/tendermint/tendermint/internal/settlement"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/state/indexer"
 	"github.com/tendermint/tendermint/internal/statesync"
@@ -64,24 +65,24 @@ type nodeImpl struct {
 	isListening bool
 
 	// services
-	eventBus         *types.EventBus // pub/sub for services
-	eventSinks       []indexer.EventSink
-	stateStore       sm.Store
-	blockStore       *store.BlockStore // store the blockchain to disk
-	bcReactor        service.Service   // for block-syncing
-	mempoolReactor   service.Service   // for gossipping transactions
-	mempool          mempool.Mempool
-	stateSync        bool               // whether the node should state sync on startup
-	stateSyncReactor *statesync.Reactor // for hosting and restoring state sync snapshots
-	consensusReactor *consensus.Reactor // for participating in the consensus
-	pexReactor       service.Service    // for exchanging peer addresses
-	evidenceReactor  service.Service
+	eventBus          *types.EventBus // pub/sub for services
+	eventSinks        []indexer.EventSink
+	stateStore        sm.Store
+	blockStore        *store.BlockStore // store the blockchain to disk
+	bcReactor         service.Service   // for block-syncing
+	mempoolReactor    service.Service   // for gossipping transactions
+	mempool           mempool.Mempool
+	stateSync         bool               // whether the node should state sync on startup
+	stateSyncReactor  *statesync.Reactor // for hosting and restoring state sync snapshots
+	consensusReactor  *consensus.Reactor // for participating in the consensus
+	pexReactor        service.Service    // for exchanging peer addresses
+	evidenceReactor   service.Service
 	settlementReactor settlement.Reactor
-	rpcListeners     []net.Listener // rpc servers
-	shutdownOps      closer
-	indexerService   service.Service
-	rpcEnv           *rpccore.Environment
-	prometheusSrv    *http.Server
+	rpcListeners      []net.Listener // rpc servers
+	shutdownOps       closer
+	indexerService    service.Service
+	rpcEnv            *rpccore.Environment
+	prometheusSrv     *http.Server
 }
 
 // newDefaultNode returns a Tendermint node with default settings for the
@@ -294,7 +295,6 @@ func makeNode(cfg *config.Config,
 		cfg, proxyApp, state, nodeMetrics.mempool, peerManager, router, logger,
 	)
 
-
 	if err != nil {
 		return nil, combineCloseError(err, makeCloser(closers))
 
@@ -319,16 +319,14 @@ func makeNode(cfg *config.Config,
 		sm.BlockExecutorWithMetrics(nodeMetrics.state),
 	)
 
-
-	settlementCh := createSettlementChnel()
-	settlementReactor, settlsmentCloser, err := createSettlementReactor(logger, verifierDetails, settlementCh)
+	settlementCh := CreateSettlementChan()
+	settlementReactor, err := CreateSettlementReactor(logger, verifierDetails, settlementCh)
 
 	csReactorShim, csReactor, csState := createConsensusReactor(
 		cfg, state, blockExec, blockStore, mp, evPool,
-		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus, settlementCh, 
+		privValidator, nodeMetrics.consensus, stateSync || blockSync, eventBus, settlementCh, verifierDetails,
 		peerManager, router, consensusLogger,
 	)
-
 
 	// Create the blockchain reactor. Note, we do not start block sync if we're
 	// doing a state sync first.
@@ -487,20 +485,20 @@ func makeNode(cfg *config.Config,
 		nodeInfo:    nodeInfo,
 		nodeKey:     nodeKey,
 
-		stateStore:       stateStore,
-		blockStore:       blockStore,
-		bcReactor:        bcReactor,
-		mempoolReactor:   mpReactor,
-		mempool:          mp,
-		consensusReactor: csReactor,
-		stateSyncReactor: stateSyncReactor,
-		stateSync:        stateSync,
-		pexReactor:       pexReactor,
-		evidenceReactor:  evReactor,
-		settlementReactor: settlementReactor
-		indexerService:   indexerService,
-		eventBus:         eventBus,
-		eventSinks:       eventSinks,
+		stateStore:        stateStore,
+		blockStore:        blockStore,
+		bcReactor:         bcReactor,
+		mempoolReactor:    mpReactor,
+		mempool:           mp,
+		consensusReactor:  csReactor,
+		stateSyncReactor:  stateSyncReactor,
+		stateSync:         stateSync,
+		pexReactor:        pexReactor,
+		evidenceReactor:   evReactor,
+		settlementReactor: *settlementReactor,
+		indexerService:    indexerService,
+		eventBus:          eventBus,
+		eventSinks:        eventSinks,
 
 		shutdownOps: makeCloser(closers),
 
@@ -866,7 +864,6 @@ func (n *nodeImpl) OnStop() {
 			n.Logger.Error("failed to stop the evidence reactor", "err", err)
 		}
 
-		
 	}
 
 	if err := n.settlementReactor.Stop(); err != nil {

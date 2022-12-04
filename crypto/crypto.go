@@ -1,13 +1,10 @@
 package crypto
 
 import (
-	ihash "github.com/tendermint/tendermint/crypto/abstractions"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"hash"
 
 	"github.com/tendermint/tendermint/crypto/pedersen"
 
-	"github.com/tendermint/tendermint/internal/jsontypes"
 	"github.com/tendermint/tendermint/libs/bytes"
 )
 
@@ -16,7 +13,7 @@ const (
 	HashSize = 32
 
 	// AddressSize is the size of a pubkey address.
-	AddressSize = tmhash.TruncatedSize
+	AddressSize = 32
 )
 
 // An address is a []byte, but hex-encoded even in JSON.

@@ -12,9 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/abstractions"
 	"github.com/tendermint/tendermint/crypto/pedersen"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/crypto/utils"
 	ctest "github.com/tendermint/tendermint/internal/libs/test"
 	tmrand "github.com/tendermint/tendermint/libs/rand"

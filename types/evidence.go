@@ -11,13 +11,11 @@ import (
 	"time"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/pedersen"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	"github.com/tendermint/tendermint/internal/jsontypes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -355,10 +353,10 @@ func (l *LightClientAttackEvidence) Hash() []byte {
 	binary.BigEndian.PutUint64(buf, uint64(l.CommonHeight))
 	commonHeightHash := crypto.Checksum128(buf)
 
-	bz := make([]byte, 2*tmhash.Size)
+	bz := make([]byte, 2*crypto.HashSize)
 	copy(bz[:crypto.HashSize-1], l.ConflictingBlock.Hash().Bytes())
 	copy(bz[crypto.HashSize:], commonHeightHash)
-	return crypto.CheckSumFelt(bz)
+	return crypto.ChecksumFelt(bz)
 }
 
 // Height returns the last height at which the primary provider and witness provider had the same header.

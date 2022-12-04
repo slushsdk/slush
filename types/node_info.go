@@ -3,6 +3,9 @@ package types
 import (
 	"errors"
 	"fmt"
+	"net"
+	"strconv"
+	"strings"
 
 	"github.com/tendermint/tendermint/libs/bytes"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -243,4 +246,51 @@ func NodeInfoFromProto(pb *tmp2p.NodeInfo) (NodeInfo, error) {
 	}
 
 	return dni, nil
+}
+
+// ParseAddressString reads an address string, and returns the IP
+// address and port information, returning an error for any validation
+// errors.
+func ParseAddressString(addr string) (net.IP, uint16, error) {
+	addrWithoutProtocol := removeProtocolIfDefined(addr)
+	spl := strings.Split(addrWithoutProtocol, "@")
+	if len(spl) != 2 {
+		return nil, 0, errors.New("invalid address")
+	}
+
+	id, err := NewNodeID(spl[0])
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if err := id.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	addrWithoutProtocol = spl[1]
+
+	// get host and port
+	host, portStr, err := net.SplitHostPort(addrWithoutProtocol)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(host) == 0 {
+		return nil, 0, err
+	}
+
+	ip := net.ParseIP(host)
+	if ip == nil {
+		ips, err := net.LookupIP(host)
+		if err != nil {
+			return nil, 0, err
+		}
+		ip = ips[0]
+	}
+
+	port, err := strconv.ParseUint(portStr, 10, 16)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return ip, uint16(port), nil
 }

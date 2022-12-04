@@ -21,12 +21,10 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/config"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
-	"github.com/tendermint/tendermint/internal/eventbus"
+
 	tmsync "github.com/tendermint/tendermint/internal/libs/sync"
 	mempoolv0 "github.com/tendermint/tendermint/internal/mempool/v0"
 
-	"github.com/tendermint/tendermint/internal/mempool"
-	tmpubsub "github.com/tendermint/tendermint/internal/pubsub"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/store"
 	"github.com/tendermint/tendermint/internal/test/factory"
@@ -397,12 +395,13 @@ func subscribeToVoter(cs *State, addr []byte) <-chan tmpubsub.Message {
 //-------------------------------------------------------------------------------
 // consensus states
 
-func newState(state sm.State, pv types.PrivValidator, app abci.Application) (*State, DummySettlementReactor, error) {
+func newState(state sm.State, pv types.PrivValidator, app abci.Application) (*State, *DummySettlementReactor, error) {
 	cfg, err := config.ResetTestRoot("consensus_state_test")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return newStateWithConfig(cfg, state, pv, app), nil
+	stateRes, Dummy := newStateWithConfig(cfg, state, pv, app)
+	return stateRes, &Dummy, nil
 }
 
 func newStateWithConfig(
@@ -448,11 +447,11 @@ func newStateWithConfigAndBlockStore(
 
 	settlementChan := make(chan InvokeData, 100)
 	verifierDetails := DevnetVerifierDetails()
-	settlementReactor := DummySettlementReactor{logger: logger, vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
+	settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), vd: verifierDetails, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
-	cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool, settlementChan)
+	cs := NewState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool, verifierDetails, settlementChan)
 	cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 	cs.SetPrivValidator(pv)
 
@@ -478,7 +477,7 @@ func loadPrivValidator(cfg *config.Config) *privval.FilePV {
 	return privValidator
 }
 
-func randState(cfg *config.Config, nValidators int) (*State, []*validatorStub, DummySettlementReactor, error) {
+func randState(cfg *config.Config, nValidators int) (*State, []*validatorStub, *DummySettlementReactor, error) {
 	// Get State
 	state, privVals := randGenesisState(cfg, nValidators, false, 10)
 
@@ -486,7 +485,7 @@ func randState(cfg *config.Config, nValidators int) (*State, []*validatorStub, D
 
 	cs, setReactor, err := newState(state, privVals[0], kvstore.NewApplication())
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	for i := 0; i < nValidators; i++ {

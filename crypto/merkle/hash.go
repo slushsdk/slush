@@ -3,9 +3,6 @@ package merkle
 import (
 	"hash"
 
-	"github.com/tendermint/tendermint/crypto/abstractions"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/utils"
 )

@@ -674,7 +674,7 @@ func getKeys() (stark.PrivKey, crypto.PubKey) {
 }
 
 type key interface {
-	TypeTag() string
+	Type() string
 }
 
 type keyDetails struct {
@@ -688,7 +688,7 @@ func withQuotationMarks(s string) string {
 
 func getKeyTypeAndValue(key key) keyDetails {
 	var keyJSONBytes, _ = json.Marshal(key)
-	var typeTag = withQuotationMarks(key.TypeTag())
+	var typeTag = withQuotationMarks(key.Type())
 	var value = string(keyJSONBytes)
 
 	return keyDetails{typeTag, value}

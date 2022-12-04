@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
@@ -38,15 +39,12 @@ var (
 func init() {
 
 	InitFilesCmd.Flags().StringVar(&network, "network", "devnet",
-		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42, and set seedkeys=1 here.")
+		"Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050). If using devnet either provide keys, or launch devnet using --seed=42.")
 	InitFilesCmd.MarkFlagRequired("network")
 
-	InitFilesCmd.Flags().StringVar(&accountPrivateKey, "pkey", "0", "Specify privatekey. Not needed if --seedkeys=1. ")
+	InitFilesCmd.Flags().StringVar(&accountPrivateKey, "pkey", "0", "Specify privatekey. Not needed if --devnet=1. ")
 
-	InitFilesCmd.Flags().StringVar(&accountAddress, "address", "0", "Specify address. Not needed if --seedkeys=1. ")
-
-	InitFilesCmd.Flags().StringVar(&seedkeys, "seedkeys", "0",
-		"If using devnet either provide keys (default), or launch devnet using seed=42 and set --seedkeys=1.")
+	InitFilesCmd.Flags().StringVar(&accountAddress, "address", "0", "Specify address. Not needed if --devnet=1. ")
 
 }
 
@@ -56,15 +54,15 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	}
 	config.Mode = keyType
 
-	err = initVerifierDetails(conf, logger)(accountPrivateKey, accountAddress, network)
+	err := initVerifierDetails(config, logger)(accountPrivateKey, accountAddress, network)
 	if err != nil {
-		return
+		return err
 	}
 
 	return initFilesWithConfig(config)
 }
 
-func initAccountPrivateKeyFile(conf *config.Config, logger log.Logger) func(accountPrivateKey string) (fileName string, err error) {
+func initAccountPrivateKeyFile(conf *cfg.Config, logger log.Logger) func(accountPrivateKey string) (fileName string, err error) {
 	return func(accountPrivateKey string) (fileName string, err error) {
 		fileName = conf.AccountPrivateKeyFileName
 		filePath := filepath.Join(conf.CairoDir, fileName)
@@ -93,7 +91,7 @@ func getVerifierAddress(logger log.Logger) func(accountAddress, accountPrivateKe
 	}
 }
 
-func initVerifierDetails(conf *config.Config, logger log.Logger) func(accountAddress, accountPrivateKey, network string) (err error) {
+func initVerifierDetails(conf *cfg.Config, logger log.Logger) func(accountAddress, accountPrivateKey, network string) (err error) {
 	return func(accountAddress, accountPrivateKey, network string) (err error) {
 		if network == "devnet" && (accountPrivateKey == "0" || accountAddress == "0") {
 			accountAddress = "347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
