@@ -76,8 +76,7 @@ type Config struct {
 	Instrumentation *InstrumentationConfig `mapstructure:"instrumentation"`
 	PrivValidator   *PrivValidatorConfig   `mapstructure:"priv-validator"`
 
-	Starknet  *StarknetConfig  `mapstructure:"starknet"`
-	Protostar *ProtostarConfig `mapstructure:"protostar"`
+	Starknet *StarknetConfig `mapstructure:"starknet"`
 }
 
 // DefaultConfig returns a default configuration for a Tendermint node
@@ -93,7 +92,6 @@ func DefaultConfig() *Config {
 		Instrumentation: DefaultInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
 		Starknet:        DefaultStarknetConfig(),
-		Protostar:       DefaultProtostarConfig(),
 	}
 }
 
@@ -117,7 +115,6 @@ func TestConfig() *Config {
 		Instrumentation: TestInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
 		Starknet:        DefaultStarknetConfig(),
-		Protostar:       DefaultProtostarConfig(),
 	}
 }
 
@@ -157,9 +154,6 @@ func (cfg *Config) ValidateBasic() error {
 	if err := cfg.Starknet.ValidateBasic(); err != nil {
 		return fmt.Errorf("error in [starknet] section: %w", err)
 	}
-	if err := cfg.Protostar.ValidateBasic(); err != nil {
-		return fmt.Errorf("error in [protostar] section: %w", err)
-	}
 	return nil
 }
 
@@ -183,7 +177,7 @@ type BaseConfig struct { //nolint: maligned
 	RootDir string `mapstructure:"home"`
 
 	// The directory containing the cairo files
-	CairoDir string `mapstructure:"cairo"`
+	CairoDir string `mapstructure:"cairo-dir"`
 
 	// TCP or UNIX socket address of the ABCI application,
 	// or the name of an ABCI application compiled in with the Tendermint binary
@@ -1304,42 +1298,4 @@ func (cfg *StarknetConfig) ValidateBasic() error {
 // StateFile returns the full path to the priv_validator_state.json file
 func (cfg *Config) GetAccountDir() string {
 	return cfg.Starknet.AccountDir
-}
-
-// -----------------------------------------------------------------------------
-// ProtostarConfig for network details
-type ProtostarConfig struct {
-	AccountAddress string `mapstructure:"account-address"`
-	ChainId        string `mapstructure:"chain-id"`
-	GatewayURL     string `mapstructure:"gateway-url"`
-	MaxFee         string `mapstructure:"max-fee"`
-	Network        string `mapstructure:"network"`
-}
-
-// DefaultProtostarConfig returns a default configuration for starknet
-func DefaultProtostarConfig() *ProtostarConfig {
-	return &ProtostarConfig{
-		ChainId:    "1536727068981429685321",
-		GatewayURL: "http://127.0.0.1:5050/",
-		MaxFee:     "auto",
-	}
-}
-
-// TestProtostarConfig returns a default configuration for starknet
-func TestProtostarConfig() *ProtostarConfig {
-	return DefaultProtostarConfig()
-}
-
-// ValidateBasic performs basic validation.
-func (cfg *ProtostarConfig) ValidateBasic() error {
-	if cfg.ChainId == "" {
-		return errors.New("chain-id cannot be empty")
-	}
-	if cfg.GatewayURL == "" {
-		return errors.New("gateway-url cannot be empty")
-	}
-	if cfg.MaxFee == "" {
-		return errors.New("max-fee cannot be empty")
-	}
-	return nil
 }
