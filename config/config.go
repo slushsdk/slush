@@ -193,7 +193,7 @@ type BaseConfig struct { //nolint: maligned
 	RootDir string `mapstructure:"home"`
 
 	// The directory containing the cairo files
-	CairoDir string `mapstructure:"cairo"`
+	CairoDir string `mapstructure:"cairo-dir"`
 
 	// TCP or UNIX socket address of the ABCI application,
 	// or the name of an ABCI application compiled in with the Tendermint binary
