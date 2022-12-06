@@ -147,6 +147,9 @@ node-key-file = "{{ js .BaseConfig.NodeKey }}"
 # Deployed verifier's contract address
 verifier-address = "{{ .BaseConfig.VerifierAddress }}"
 
+# The directory containing the cairo files
+cairo-dir = "{{ .BaseConfig.CairoDir }}"
+
 # Mechanism to connect to the ABCI application: socket | grpc
 abci = "{{ .BaseConfig.ABCI }}"
 
