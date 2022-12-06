@@ -1,8 +1,11 @@
-FROM alpine:3.7
+FROM alpine:3.14
 
 RUN apk update && \
     apk upgrade && \
-    apk --no-cache add curl jq file
+    apk --no-cache add curl jq file python3-dev py3-pip g++ gmp-dev
+
+# installing cairo-lang
+RUN pip3 install --no-cache-dir wheel ecdsa fastecdsa sympy cairo-lang
 
 VOLUME [ /slush ]
 WORKDIR /slush
