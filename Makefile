@@ -289,6 +289,8 @@ build_c-amazonlinux:
 
 # Run a 4-node testnet locally
 localnet-start: localnet-stop build-docker-localnode
+	@mkdir -p build/.starknet_accounts; cp -r ./.starknet_accounts build
+	@mkdir -p build/cairo/build; cp -r cairo/build build/cairo
 	@if ! [ -f build/node0/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/slush:Z slush/localnode testnet --config /etc/slush/config-template.toml --o . --starting-ip-address 192.167.10.2; fi
 	docker compose up
 .PHONY: localnet-start
