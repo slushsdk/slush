@@ -1,4 +1,4 @@
-# Slush SDK 
+# Slush SDK
 
 [![license](https://img.shields.io/github/license/tendermint/tendermint.svg)](https://github.com/slushsdk/slush/blob/master/LICENSE)
 
@@ -32,7 +32,7 @@ Before installing Starknet Devnet on M1 check [this thread](https://github.com/O
 
 
 1. Clone this repo
-2. Start the Starknet devnet. This will take up the view of Terminal 
+2. Start the Starknet devnet. This will take up the view of Terminal
    - `starknet-devnet --seed=42`
 3. Open a new terminal. Run the following at the root of this repo
    - `make build`
