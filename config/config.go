@@ -121,7 +121,6 @@ func TestConfig() *Config {
 // SetRoot sets the RootDir for all Config structs
 func (cfg *Config) SetRoot(root string) *Config {
 	cfg.BaseConfig.RootDir = root
-	cfg.BaseConfig.CairoDir = defaultCairoDir
 	cfg.RPC.RootDir = root
 	cfg.P2P.RootDir = root
 	cfg.Mempool.RootDir = root
@@ -166,6 +165,9 @@ func (cfg *Config) DeprecatedFieldWarning() error {
 
 // BaseConfig defines the base configuration for a Tendermint node
 type BaseConfig struct { //nolint: maligned
+	// The directory containing the cairo files
+	CairoDir string `mapstructure:"cairo-dir"`
+
 	// chainID is unexposed and immutable but here for convenience
 	chainID string
 
@@ -175,9 +177,6 @@ type BaseConfig struct { //nolint: maligned
 	// The root directory for all data.
 	// This should be set in viper so it can unmarshal into this struct
 	RootDir string `mapstructure:"home"`
-
-	// The directory containing the cairo files
-	CairoDir string `mapstructure:"cairo-dir"`
 
 	// TCP or UNIX socket address of the ABCI application,
 	// or the name of an ABCI application compiled in with the Tendermint binary
@@ -250,6 +249,7 @@ type BaseConfig struct { //nolint: maligned
 // DefaultBaseConfig returns a default base configuration for a Tendermint node
 func DefaultBaseConfig() BaseConfig {
 	return BaseConfig{
+		CairoDir:                  defaultCairoDir,
 		Genesis:                   defaultGenesisJSONPath,
 		NodeKey:                   defaultNodeKeyPath,
 		AccountPrivateKeyFileName: defaultAccountPrivateKeyFileName,
@@ -1267,6 +1267,7 @@ type StarknetConfig struct {
 func DefaultStarknetConfig() *StarknetConfig {
 	return &StarknetConfig{
 		Account:          "devnet",
+		AccountDir:       ".starknet_accounts",
 		FeederGatewayURL: "http://127.0.0.1:5050/",
 		GatewayURL:       "http://127.0.0.1:5050/",
 		Network:          "alpha-goerli",
@@ -1283,6 +1284,9 @@ func TestStarknetConfig() *StarknetConfig {
 func (cfg *StarknetConfig) ValidateBasic() error {
 	if cfg.Account == "" {
 		return errors.New("account cannot be empty")
+	}
+	if cfg.AccountDir == "" {
+		return errors.New("account dir cannot be empty")
 	}
 	if cfg.Network == "" {
 		return errors.New("network cannot be empty")
