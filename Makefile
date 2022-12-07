@@ -61,10 +61,14 @@ include test/Makefile
 ###                                Build Tendermint                         ###
 ###############################################################################
 
-build: $(BUILDDIR)/
-	@cd cairo; \
-	protostar build; \
-	cd ..
+check-starknet-dep:
+ifeq (,$(shell which starknet))
+	$(error "starknet is required. Change your python environment or install it with 'pip install starknet-cairo'")
+endif
+.PHONY: check-starknet-dep
+
+build: check-starknet-dep $(BUILDDIR)/
+	@mkdir -p cairo/build; starknet-compile cairo/src/main.cairo --output cairo/build/main.json --abi cairo/build/main_abi.json --cairo_path cairo
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(BUILDDIR)/ ./cmd/slush/
 .PHONY: build
 
