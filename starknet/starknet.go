@@ -50,43 +50,9 @@ func executeWithPath(conf *config.Config) func(executePath string, args []string
 }
 
 // execute executes a command with the given args and returns the raw stdout and error
-func execute(conf *config.Config) func(args []string) (cmdOutput []byte, err error) {
-	return func(args []string) (cmdOutput []byte, err error) {
-		return executeWithPath(conf)(".", args)
-	}
-}
-
-// getNonce returns the nonce for the account
-func getNonce(conf *config.Config) (nonce string, err error) {
-	commandArgs := []string{"starknet", "get_nonce", "--contract_address", conf.Starknet.Account}
-
-	stdout, err := execute(conf)(commandArgs)
-	if err != nil {
-		err = fmt.Errorf("starknet get_nonce command responded with an error: %w", err)
-		return
-	}
-
-	nonceRegex := regexp.MustCompile(`(?m)^([0-9]+)$`)
-	if !nonceRegex.Match(stdout) {
-		err = fmt.Errorf("could not find nonce in stdout: %s", stdout)
-		return
-	}
-
-	nonce = string(nonceRegex.FindSubmatch(stdout)[1])
-	return
-}
-
-// executeCommand executes a command with the given args and the queried nonce and returns the raw stdout and error
 func executeCommand(conf *config.Config) func(args []string) (cmdOutput []byte, err error) {
 	return func(args []string) (cmdOutput []byte, err error) {
-		nonce, err := getNonce(conf)
-		if err != nil {
-			err = fmt.Errorf("could not get nonce: %w", err)
-			return
-		}
-
-		args = append(args, "--nonce", nonce)
-		return execute(conf)(args)
+		return executeWithPath(conf)(".", args)
 	}
 }
 
