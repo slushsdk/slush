@@ -1257,7 +1257,6 @@ func getDefaultMoniker() string {
 type StarknetConfig struct {
 	Account          string `mapstructure:"account"`
 	AccountDir       string `mapstructure:"wallets-dir"`
-	AccountAddress   string `mapstructure:"account-address"`
 	FeederGatewayURL string `mapstructure:"feeder-gateway-url"`
 	GatewayURL       string `mapstructure:"gateway-url"`
 	Network          string `mapstructure:"network"`
