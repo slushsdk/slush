@@ -53,25 +53,33 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 	return cmd
 }
 
-func initStarknetConfig(conf *config.Config, network string) {
+func initStarknetConfig(conf *config.Config, network string) (err error) {
 	switch network {
 	case "testnet":
 		conf.Starknet = &config.StarknetConfig{
-			Account: "testnet",
-			Network: "alpha-goerli",
-			Wallet:  "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
+			Account:          "testnet",
+			AccountDir:       ".starknet_accounts",
+			FeederGatewayURL: "http://127.0.0.1:5050/",
+			GatewayURL:       "http://127.0.0.1:5050/",
+			Network:          "alpha-goerli",
+			Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
 		}
 	case "testnet2":
 		conf.Starknet = &config.StarknetConfig{
 			Account:          "testnet2",
+			AccountDir:       ".starknet_accounts",
 			GatewayURL:       "https://alpha4-2.starknet.io",
 			FeederGatewayURL: "https://alpha4-2.starknet.io",
 			Network:          "alpha-goerli",
 			Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
 		}
 	case "devnet":
+		fallthrough
+	default:
 		conf.Starknet = config.DefaultStarknetConfig()
 	}
+	err = conf.Starknet.ValidateBasic()
+	return
 }
 
 func initVerifierAddress(conf *config.Config, logger log.Logger) (err error) {
