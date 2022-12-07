@@ -192,9 +192,6 @@ root-ca-file = "{{ js .PrivValidator.RootCA }}"
 account = "{{ .Starknet.Account }}"
 
 #
-account-address = "{{ .Starknet.AccountAddress }}"
-
-#
 feeder-gateway-url = "{{ .Starknet.FeederGatewayURL }}"
 
 #

@@ -29,9 +29,8 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType        = "stark"
-	network        string
-	accountAddress string
+	keyType = "stark"
+	network string
 )
 
 func init() {
