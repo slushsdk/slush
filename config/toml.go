@@ -192,6 +192,9 @@ root-ca-file = "{{ js .PrivValidator.RootCA }}"
 account = "{{ .Starknet.Account }}"
 
 #
+account-dir = "{{ .Starknet.AccountDir }}"
+
+#
 feeder-gateway-url = "{{ .Starknet.FeederGatewayURL }}"
 
 #
@@ -203,8 +206,6 @@ network = "{{ .Starknet.Network }}"
 #
 wallet = "{{ .Starknet.Wallet }}"
 
-#
-account-dir = "{{ .Starknet.AccountDir }}"
 
 #######################################################################
 ###                 Advanced Configuration Options                  ###
