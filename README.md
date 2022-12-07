@@ -42,6 +42,42 @@ Before installing Starknet Devnet on M1 check [this thread](https://github.com/O
    - `rm -r ./valdata/config/ ./valdata/data/`
 
 
+## Local testnet with multiple nodes
+
+Start Starknet devnet either locally on your machine or in docker:
+>locally:
+>```sh
+>starknet-devnet
+>```
+>docker (linux/amd64):
+>```sh
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet
+>```
+>docker (linux/arm64/v8):
+>```sh
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm
+>```
+
+Create an account on devnet:
+```sh
+./create_devnet_account.sh
+```
+
+Build the linux binary:
+```sh
+make build-linux
+```
+
+Start the local testnet:
+```sh
+make localnet-start
+```
+
+Cleanup:
+```sh
+make clean && docker stop devnet
+```
+
 ## Roadmap
 
 Our roadmap is [here](https://geometry.xyz/notebook/the-road-to-slush).
