@@ -121,6 +121,17 @@ func testnetFiles(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if err := initStarknetConfig(config, "devnet"); err != nil {
+		return err
+	}
+
+	config.Starknet.GatewayURL = "http://host.docker.internal:5050/"
+	config.Starknet.FeederGatewayURL = "http://host.docker.internal:5050/"
+
+	if err := initVerifierAddress(config, logger); err != nil {
+		return err
+	}
+
 	genVals := make([]types.GenesisValidator, nValidators)
 
 	for i := 0; i < nValidators; i++ {
