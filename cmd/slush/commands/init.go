@@ -21,9 +21,8 @@ import (
 // MakeInitFilesCommand returns the command to initialize a fresh Tendermint Core instance.
 func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command {
 	var (
-		keyType        = types.DefaultValidatorParams().PubKeyTypes[0]
-		network        string
-		accountAddress string
+		keyType = types.DefaultValidatorParams().PubKeyTypes[0]
+		network string
 	)
 
 	cmd := &cobra.Command{
@@ -39,11 +38,7 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 			}
 			conf.Mode = args[0]
 
-			if accountAddress == "" {
-				err = errors.New("must specify an account address with --account-address flag")
-				return
-			}
-			initStarknetConfig(conf, network, accountAddress)
+			initStarknetConfig(conf, network)
 			err = initVerifierAddress(conf, logger)
 			if err != nil {
 				return
@@ -54,12 +49,11 @@ func MakeInitFilesCommand(conf *config.Config, logger log.Logger) *cobra.Command
 	}
 
 	cmd.Flags().StringVar(&network, "network", "devnet", "Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050).")
-	cmd.Flags().StringVar(&accountAddress, "account-address", "", "Account address to deploy on.")
 
 	return cmd
 }
 
-func initStarknetConfig(conf *config.Config, network, accountAddress string) {
+func initStarknetConfig(conf *config.Config, network string) {
 	switch network {
 	case "testnet":
 		conf.Starknet = &config.StarknetConfig{
@@ -78,7 +72,6 @@ func initStarknetConfig(conf *config.Config, network, accountAddress string) {
 	case "devnet":
 		conf.Starknet = config.DefaultStarknetConfig()
 	}
-	conf.Starknet.AccountAddress = accountAddress
 }
 
 func initVerifierAddress(conf *config.Config, logger log.Logger) (err error) {
