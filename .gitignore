@@ -67,3 +67,4 @@ seed42pkey
 cairo/migrations/*.json
 valdata/*
 stark-tendermint.code-workspace
+.starknet_accounts
