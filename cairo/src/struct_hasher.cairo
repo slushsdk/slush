@@ -213,7 +213,7 @@ func hashCanonicalVoteNoTime{pedersen_ptr: HashBuiltin*, range_check_ptr}(
 ) -> (res: felt) {
     alloc_locals;
 
-    local type: felt = 2;
+    local type: felt = CVData.TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType;
     local height: felt = CVData.height;
     local round: felt = CVData.round;
     local chain_id: ChainID = CVData.chain_id;

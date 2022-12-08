@@ -77,7 +77,7 @@ func voteSignBytes{pedersen_ptr: HashBuiltin*, range_check_ptr}(
     local block_id: BlockIDData = commit.block_id;
 
     let CVData: CanonicalVoteData = CanonicalVoteData(
-        TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType=1,
+        TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType=2,
         height=height,
         round=round,
         block_id=block_id,
@@ -142,7 +142,6 @@ func get_tallied_voting_power{
     assert voteSB_array[2] = high_res;
     assert voteSB_array[3] = low_res;
 
-    
     let message1: felt = hash_int128_array(voteSB_array, 4);
 
     local commit_sig_signature: SignatureData = signature.signature;
@@ -454,13 +453,13 @@ func initBlockData{
         total_voting_power=validator_set_args.total_voting_power,
     );
 
-    // get the markle root of the header 
+    // get the markle root of the header
 
     let (header_hash:felt) = hashHeader(trusted_signed_header);
 
     save_block.write(header_hash);
     return(1,);
-} 
+}
 
 
 
@@ -498,9 +497,8 @@ func savedVerifyAdjacent{
     );
       // load the previously saved and hence trusted signed header
     let (local trusted_signed_header_saved_hash: felt) = save_block.read();
-    
     // verify that the current passed header hashes to the saved value
-    let (trusted_signed_header_hash:felt) = hashHeader(trusted_signed_header); 
+    let (trusted_signed_header_hash:felt) = hashHeader(trusted_signed_header);
 
     // assert these two hashes match, this makes sure the new block is
     // the same as the previous block
@@ -531,11 +529,10 @@ func savedVerifyAdjacent{
         maxClockDrift=verification_args.max_clock_drift,
     );
 
-    // check if the above code ran by checking if res_verify =1 
+    // check if the above code ran by checking if res_verify =1
     // if it runs, save the new header info
 
     assert res_verify = 1;
-    
     let (untrusted_signed_header_hash :felt) = hashHeader(untrusted_signed_header);
 
     save_block.write(untrusted_signed_header_hash);
