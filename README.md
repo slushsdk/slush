@@ -19,12 +19,12 @@ Send transactions to tendermint with the [ABCI-CLI](https://docs.tendermint.com/
 
 ## Requirements
 
-| Requirements                                                                                |     |
-| ------------------------------------------------------------------------------------------- | --- |
-| Go tested with 1.19                                                                         |
-| [Starknet Devnet](https://shard-labs.github.io/starknet-devnet/docs/intro#install)   v0.3.5 |
-| [Protostar](https://github.com/software-mansion/protostar)      v.0.6                       |
-| Python 3.9.14 (use [pyenv](https://github.com/pyenv/pyenv))                                 |
+| Tool                                                                                 |  version                                                                       |
+| -------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [Go](https://go.dev/doc/install)                                                     |  [1.17](https://go.dev/doc/go1.17)                                             |
+| [Cairo](https://www.cairo-lang.org/docs/quickstart.html)                             |  [0.10.3](https://github.com/starkware-libs/cairo-lang/releases/tag/v0.10.3)   |
+| [Starknet Devnet](https://shard-labs.github.io/starknet-devnet/docs/intro#install)   |  [0.4.2](https://github.com/Shard-Labs/starknet-devnet/releases/tag/v0.4.2)    |
+| Python (with [pyenv](https://github.com/pyenv/pyenv))                                |  [3.9](https://www.python.org/downloads/release/python-390/)                   |
 
 Before installing Starknet Devnet on M1 check [this thread](https://github.com/OpenZeppelin/nile/issues/22).
 
@@ -43,6 +43,8 @@ Before installing Starknet Devnet on M1 check [this thread](https://github.com/O
 
 
 ## Local testnet with multiple nodes
+
+The local testnet spins up the nodes in docker containers. Please make sure that docker desktop is installed and running ([docker desktop installation](https://www.docker.com/products/docker-desktop)).
 
 Start Starknet devnet either locally on your machine or in docker:
 >locally:
