@@ -10,7 +10,6 @@ from starkware.cairo.common.uint256 import (
     uint256_unsigned_div_rem,
     uint256_lt,
 )
-from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.bitwise import bitwise_and
 from starkware.cairo.common.alloc import alloc
