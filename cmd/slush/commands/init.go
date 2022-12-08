@@ -94,13 +94,13 @@ func initVerifierAddress(conf *cfg.Config, logger log.Logger) (err error) {
 	if err != nil {
 		return
 	}
-	logger.Info(fmt.Sprintf("Successfully declared with classHash=%s and transactionHash=%s", classHashHex, transactionHashHex))
+	logger.Info(fmt.Sprintf("Successfully sent declare tx with classHash: %s and transactionHash: %s", classHashHex, transactionHashHex))
 
 	contractAddressHex, transactionHex, err := starknet.Deploy(conf, classHashHex)
 	if err != nil {
 		return
 	}
-	logger.Info(fmt.Sprintf("Successfully deployed with contractAddress=%s and transactionHash=%s", contractAddressHex, transactionHex))
+	logger.Info(fmt.Sprintf("Successfully sent deploy tx with contractAddress: %s and transactionHash: %s", contractAddressHex, transactionHex))
 
 	if err != nil {
 		return
