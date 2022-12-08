@@ -73,8 +73,6 @@ make clean && rm -rf ./valdata/config/ ./valdata/data/
 
 The local testnet spins up the nodes in docker containers. Please make sure that docker desktop is installed and running ([docker desktop installation](https://www.docker.com/products/docker-desktop)).
 
-The local testnet spins up the nodes in docker containers. Please make sure that docker desktop is installed and running ([docker desktop installation](https://www.docker.com/products/docker-desktop)).
-
 Start Starknet devnet either locally on your machine or in docker:
 >locally:
 >```sh
