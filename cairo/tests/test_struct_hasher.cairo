@@ -48,6 +48,7 @@ from src.struct_hasher import (
     hashBlockID,
     hashCanonicalVoteNoTime,
     merkleRootHashVals,
+    hashTime,
     )
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
@@ -77,65 +78,108 @@ func test_hashCanonicalVoteNoTime{pedersen_ptr: HashBuiltin*, range_check_ptr}()
     let Tendermint_BlockIDFLag_Absent = TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSBlockIDFlag(
         BlockIDFlag=1
     );
-    let time0 = TimestampData(nanos=0);
 
-    // create the comit content
-    let signature_data: SignatureData = SignatureData(signature_r=0, signature_s=1);
+    // load input from json file
+    local PSHTotal;
+    local PSHHash;
+    local CanonicalBlockIDHash;
+    local Time;
+    local MSGType;
 
-    local commitsig_Absent: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Absent, validator_address=1,
-        timestamp=time0, signature=signature_data);
+    local Height;
+    local Round;
+    local ChainIDloaded;
+    local ChainIDFelt;
+    local Expected;
+    %{
+    import json
+    with open('../test_inputs/hash_test_can_vote.json') as f:
+        loaded = json.load(f)
 
-    local commitsig_Commit: CommitSigData = CommitSigData(
-        block_id_flag=Tendermint_BlockIDFLag_Commit, validator_address=1,
-        timestamp=time0, signature=signature_data);
-
-    let (local commitsig1_pointer: CommitSigData*) = alloc();
-    let (_, ap_commitsig) = get_fp_and_pc();
-    let commitsig_fp = cast(ap_commitsig, CommitSigData*);
-    assert commitsig1_pointer[0] = commitsig_Absent;
-    let (fp_commitsig1) = get_ap();
-    assert commitsig1_pointer[1] = commitsig_Commit;
-    let (fp_commitsig2) = get_ap();
-    assert commitsig1_pointer[2] = commitsig_Commit;
-    assert commitsig1_pointer[3] = commitsig_Commit;
-
-    let commitsig1_array = CommitSigDataArray(array=commitsig1_pointer, len=4);
+    ids.PSHTotal = loaded['PSHTotal']
+    ids.PSHHash = loaded['PSHHash']
+    ids.CanonicalBlockIDHash = loaded['CanonicalBlockIDHash']
+    ids.Time = loaded['Time']
+    ids.MSGType = loaded['Type']
+    ids.Height = loaded['Height']
+    ids.Round = loaded['Round']
+    ids.ChainIDFelt = loaded['ChainIDFelt']
+    
+    %}
 
     // comit content created
+    let time0 = TimestampData(nanos=Time);
 
-    let part_set_header1 = PartSetHeaderData(total=1, hash=2);
+    let part_set_header1 = PartSetHeaderData(total = PSHTotal, hash=PSHHash);
 
-    let blockid1 = BlockIDData(hash=1, part_set_header=part_set_header1);
+    let blockid1 = BlockIDData(hash=CanonicalBlockIDHash, part_set_header=part_set_header1);
 
     let (local chain_id_ptr: felt*) = alloc();
 
-    assert chain_id_ptr[0] = 1;
+    assert chain_id_ptr[0] = ChainIDFelt;
 
-    assert chain_id_ptr[1] = 2;
-
-    let chain_id1 = ChainID(chain_id_array=chain_id_ptr, len=2);
-    // let comit1 = CommitData(height = 11100111, round = 1, block_id = blockid1,
-    //     signatures = commitsig1_array)
+    let chain_id1 = ChainID(chain_id_array=chain_id_ptr, len=1);
     let CVData = CanonicalVoteData(
-        TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType=1,
-        height=11100111,
-        round=1,
+        TENDERMINTLIGHT_PROTO_GLOBAL_ENUMSSignedMsgType=MSGType,
+        height=Height,
+        round=Round,
         block_id=blockid1,
         timestamp=time0,
         chain_id=chain_id1,
     );
-    let (res_hashCVNT) = hashCanonicalVoteNoTime(CVData=CVData);
+    %{print('blockid')%}
+    // tempvar time0nanos = CVData.height;
+    // %{print(ids.time0nanos)%}
+    let (res_hash) = hashCanonicalVoteNoTime(CVData=CVData);
 
-    %{ print(ids.res_hashCVNT) %}
-    return (res_hashCVNT,);
+    // save the result to json file
+
+    %{
+new_json = loaded
+
+new_json['Expected'] = str(ids.res_hash)
+
+
+with open('../test_inputs/hash_test_can_vote.json', 'w', encoding='utf-8') as f:
+    json.dump(new_json, f, ensure_ascii=False, indent = 4)
+    %}
+
+    %{ print('ids.res_hash') %}
+    %{ print(ids.res_hash) %}
+    return (res_hash,);
 }
 
 @external
 func test_psh_hasher{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: felt) {
-    let part_set_header1 = PartSetHeaderData(total=1, hash=2);
+    alloc_locals;
+
+    local Total;
+    local Hash;
+
+    %{
+    import json
+    with open('../test_inputs/hash_test_cpsh.json') as f:
+        loaded = json.load(f)
+
+    ids.Total = loaded['Total']
+    ids.Hash = loaded['Hash']
+    %}
+
+    // create CPSH and hash it
+    let part_set_header1 = PartSetHeaderData(total=Total, hash=Hash);
     let (res_psh) = canonicalPartSetHeaderHasher(part_set_header1);
 
+
+    %{
+new_json = loaded
+new_json['Expected'] = str(ids.res_psh)
+
+with open('../test_inputs/hash_test_cpsh.json', 'w', encoding='utf-8') as f:
+    json.dump(new_json, f, ensure_ascii=False, indent = 4)
+    %}
+
+
+    %{ print("ids.res_psh") %}
     %{ print(ids.res_psh) %}
     return (res_psh,);
 }
@@ -143,7 +187,6 @@ func test_psh_hasher{pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (res: fel
 
 @external
 func test_merkleRootHashVals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*,}(
-    arguments
 ) {
     alloc_locals;
     // create validator array
@@ -167,7 +210,37 @@ func test_merkleRootHashVals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
     );
 
     let (res:felt) = merkleRootHashVals(validator_array0, 0, 1);
-    %{print("ids.res")%}
-    %{print(ids.res)%}
+    // %{print("ids.res")%}
+    // %{print(ids.res)%}
     return();
+}
+
+
+@external
+func test_timehash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*,}(
+) {
+    alloc_locals;
+    local Time;
+
+    %{
+    import json
+    with open('../test_inputs/hash_test_time.json') as f:
+        loaded = json.load(f)
+     
+    ids.Time = loaded['Time']
+    
+    %}
+
+    let time0 = TimestampData(nanos=Time);
+    let (res:felt) = hashTime(time0);
+
+    %{
+    new_json = loaded
+    new_json['Expected'] = str(ids.res)
+    with open('../test_inputs/hash_test_time.json', 'w', encoding='utf-8') as f:
+        json.dump(new_json, f, ensure_ascii=False, indent = 4)
+    %}
+
+    return();
+
 }

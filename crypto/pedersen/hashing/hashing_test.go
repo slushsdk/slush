@@ -1,146 +1,141 @@
 package hashing
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"github.com/tendermint/tendermint/crypto/pedersen/felt"
+	"github.com/tendermint/tendermint/crypto/utils"
 )
 
 // the expected values are generated in cairo, see cairo/test/test_hashing.cairo
-func TestHash2(t *testing.T) {
-	type HashFeltTestCase struct {
-		name     string
-		num1     int64
-		num2     int64
-		expected string
-	}
-	testCases := []HashFeltTestCase{
+func TestCairoHash2(t *testing.T) {
+
+	// filename := "/Users/ago/projects/tendermint-stark/hash_test.json"
+	filename := "../../../test_inputs/hash_test_array.json"
+
+	data_out := utils.ImportJsonArray(filename)
+
+	fmt.Printf("loaded json %s", data_out[0].Name)
+	testCases := []utils.HashFeltTestCaseArray{
 		0: {
-			name:     "",
-			num1:     0,
-			num2:     0,
-			expected: "2089986280348253421170679821480865132823066470938446095505822317253594081284",
+			Name:     data_out[0].Name,
+			Array:    data_out[0].Array,
+			Expected: data_out[0].Expected,
 		},
 		1: {
-			name:     "",
-			num1:     314,
-			num2:     159,
-			expected: "307958720726328212653290369969069617958360335228383070119367204176047090109",
+			Name:     data_out[1].Name,
+			Array:    data_out[1].Array,
+			Expected: data_out[1].Expected,
 		},
 		2: {
-			name:     "",
-			num1:     987,
-			num2:     654,
-			expected: "2540319589456132300330493969278789717701149600812547910972637842370581449267",
+			Name:     data_out[2].Name,
+			Array:    data_out[2].Array,
+			Expected: data_out[2].Expected,
 		},
 		3: {
-			name:     "",
-			num1:     123456789,
-			num2:     987654321,
-			expected: "3215027698461462532678621940423130825850775937567625383549699954271974824556",
+			Name:     data_out[3].Name,
+			Array:    data_out[3].Array,
+			Expected: data_out[3].Expected,
 		},
 	}
 
 	for i, tc := range testCases {
-		felt1 := felt.New().SetBigInt(big.NewInt(tc.num1))
-		felt2 := felt.New().SetBigInt(big.NewInt(tc.num2))
+		felt1 := felt.New().SetBigInt(big.NewInt(tc.Array[0]))
+		felt2 := felt.New().SetBigInt(big.NewInt(tc.Array[1]))
 		result := hash2(felt1, felt2)
-		require.Equal(t, tc.expected, result.String(), "TestCAse%d %s failed: hashes don't match: %s != %s", i, tc.name, tc.expected, result.String())
+		require.Equal(t, tc.Expected, result.String(), "TestCAse%d %s failed: hashes don't match: %s != %s", i, tc.Name, tc.Expected, result.String())
 	}
 }
-func TestHashFelt(t *testing.T) {
-	type HashFeltTestCase struct {
-		name     string
-		num      int64
-		expected string
-	}
-	testCases := []HashFeltTestCase{
+
+func TestCairoHashFelt(t *testing.T) {
+
+	filename := "../../../test_inputs/hash_test_array.json"
+
+	data_out := utils.ImportJsonArray(filename)
+	testCases := []utils.HashFeltTestCaseArray{
 		0: {
-			name:     "hash of zero should return the same as Hash2(0,0)",
-			num:      0,
-			expected: "2089986280348253421170679821480865132823066470938446095505822317253594081284",
+			Name:     data_out[4].Name,
+			Array:    data_out[4].Array,
+			Expected: data_out[4].Expected,
 		},
 	}
 
 	for i, tc := range testCases {
-		felt1 := felt.New().SetBigInt(big.NewInt(tc.num))
+		felt1 := felt.New().SetBigInt(big.NewInt(tc.Array[0]))
 		result := hashFelt(felt1)
-		require.Equal(t, tc.expected, result.String(), "TestCase%d %s failed: hashes don't match: %s != %s", i, tc.name, tc.expected, result.String())
+		require.Equal(t, tc.Expected, result.String(), "TestCase%d %s failed: hashes don't match: %s != %s", i, tc.Name, tc.Expected, result.String())
 	}
 }
 
-func TestHashFeltArray(t *testing.T) {
-	type HashFeltArrayTestCase struct {
-		name     string
-		numArray []int64
-		expected string
-	}
-	testCases := []HashFeltArrayTestCase{
+func TestCairoHashFeltArray(t *testing.T) {
+
+	filename := "../../../test_inputs/hash_test_array.json"
+
+	data_out := utils.ImportJsonArray(filename)
+	testCases := []utils.HashFeltTestCaseArray{
 		0: {
-			name:     "2 length array",
-			numArray: []int64{104, 105},
-			expected: "949196962641716154526889172894504096264434458913100418940040777598300992821",
+			Name:     data_out[5].Name,
+			Array:    data_out[5].Array,
+			Expected: data_out[5].Expected,
 		},
 		1: {
-			name:     "3 length array",
-			numArray: []int64{44, 44, 44},
-			expected: "18592255723457080959397934855987158832065438127005310151431763553740281190",
+			Name:     data_out[6].Name,
+			Array:    data_out[6].Array,
+			Expected: data_out[6].Expected,
 		},
 		2: {
-			name:     "10 length array",
-			numArray: []int64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-			expected: "554483969726199178082320267441426426111856244452951742913956080159496019129",
+			Name:     data_out[7].Name,
+			Array:    data_out[7].Array,
+			Expected: data_out[7].Expected,
 		},
 	}
 
 	for i, tc := range testCases {
-		feltArray := make([]*felt.Felt, len(tc.numArray))
-		for i := 0; i < len(tc.numArray); i++ {
-			feltArray[i] = felt.New().SetBigInt(big.NewInt(tc.numArray[i]))
+		feltArray := make([]*felt.Felt, len(tc.Array))
+		for i := 0; i < len(tc.Array); i++ {
+			feltArray[i] = felt.New().SetBigInt(big.NewInt(tc.Array[i]))
 		}
 		result := hashFeltArray(feltArray...)
-		require.Equal(t, tc.expected, result.String(), "TestCase%d %s failed: hashes don't match: %s != %s", i, tc.name, tc.expected, result.String())
+		require.Equal(t, tc.Expected, result.String(), "TestCase%d %s failed: hashes don't match: %s != %s", i, tc.Name, tc.Expected, result.String())
 	}
 }
 
-func TestHash(t *testing.T) {
-	type HashTestCase struct {
-		name     string
-		numArray []int64
-		expected string
-	}
-	testCases := []HashTestCase{
+func TestCairoHash(t *testing.T) {
+	filename := "../../../test_inputs/hash_test_array.json"
+
+	data_out := utils.ImportJsonArray(filename)
+	testCases := []utils.HashFeltTestCaseArray{
 		0: {
-			name:     "empty result should return the same hash as HashFelt(0)",
-			numArray: []int64{},
-			expected: "2089986280348253421170679821480865132823066470938446095505822317253594081284",
+			Name:     data_out[8].Name,
+			Array:    data_out[8].Array,
+			Expected: data_out[8].Expected,
 		},
 		1: {
-			name:     "one length array should return the same hash as HashFelt",
-			numArray: []int64{104},
-			expected: "2147898189547448657228585229497353426722228748437533751634413599188914117252",
+			Name:     data_out[9].Name,
+			Array:    data_out[9].Array,
+			Expected: data_out[9].Expected,
 		},
 		2: {
-			name:     "longer array should return the same hash as HashFeltArray",
-			numArray: []int64{104, 105},
-			expected: "949196962641716154526889172894504096264434458913100418940040777598300992821",
+			Name:     data_out[10].Name,
+			Array:    data_out[10].Array,
+			Expected: data_out[10].Expected,
 		},
 		3: {
-			name:     "longer array should return the same hash as HashFeltArray",
-			numArray: []int64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-			expected: "554483969726199178082320267441426426111856244452951742913956080159496019129",
+			Name:     data_out[11].Name,
+			Array:    data_out[11].Array,
+			Expected: data_out[11].Expected,
 		},
 	}
 
 	for i, tc := range testCases {
-		feltArray := make([]*felt.Felt, len(tc.numArray))
-		for i := 0; i < len(tc.numArray); i++ {
-			feltArray[i] = felt.New().SetBigInt(big.NewInt(tc.numArray[i]))
+		feltArray := make([]*felt.Felt, len(tc.Array))
+		for i := 0; i < len(tc.Array); i++ {
+			feltArray[i] = felt.New().SetBigInt(big.NewInt(tc.Array[i]))
 		}
 		result := Hash(feltArray...)
-		require.Equal(t, tc.expected, result.String(), "TestCase%d %s failed: hashes don't match: %s != %s", i, tc.name, tc.expected, result.String())
+		require.Equal(t, tc.Expected, result.String(), "TestCase%d %s failed: hashes don't match: %s != %s", i, tc.Name, tc.Expected, result.String())
 	}
 }
