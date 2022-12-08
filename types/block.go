@@ -468,20 +468,20 @@ func (h *Header) Hash() tmbytes.HexBytes {
 	heightB_hash := crypto.Checksum128(heightB_int64)
 
 	return merkle.HashFromByteSlicesFelt([][]byte{
-		utils.ByteRounder(16)(hbz),
-		utils.ByteRounder(16)(crypto.Checksum128(chainIDB)),
-		utils.ByteRounder(16)(heightB_hash[:]),
-		utils.ByteRounder(16)(pbt),
-		utils.ByteRounder(16)(bzbi),
-		utils.ByteRounder(16)([]byte(h.LastCommitHash)),
-		utils.ByteRounder(16)(h.DataHash),
-		utils.ByteRounder(16)([]byte(h.ValidatorsHash)),
-		utils.ByteRounder(16)([]byte(h.NextValidatorsHash)),
-		utils.ByteRounder(16)([]byte(h.ConsensusHash)),
-		utils.ByteRounder(16)([]byte(h.AppHash)),
-		utils.ByteRounder(16)([]byte(h.LastResultsHash)),
-		utils.ByteRounder(16)([]byte(h.EvidenceHash)),
-		utils.ByteRounder(16)([]byte(h.ProposerAddress)),
+		utils.ByteRounder(32)(hbz),
+		utils.ByteRounder(32)(crypto.Checksum128(chainIDB)),
+		utils.ByteRounder(32)(heightB_hash[:]),
+		utils.ByteRounder(32)(pbt),
+		utils.ByteRounder(32)(bzbi),
+		utils.ByteRounder(32)([]byte(h.LastCommitHash)),
+		utils.ByteRounder(32)(h.DataHash),
+		utils.ByteRounder(32)([]byte(h.ValidatorsHash)),
+		utils.ByteRounder(32)([]byte(h.NextValidatorsHash)),
+		utils.ByteRounder(32)([]byte(h.ConsensusHash)),
+		utils.ByteRounder(32)([]byte(h.AppHash)),
+		utils.ByteRounder(32)([]byte(h.LastResultsHash)),
+		utils.ByteRounder(32)([]byte(h.EvidenceHash)),
+		utils.ByteRounder(32)([]byte(h.ProposerAddress)),
 	})
 }
 
