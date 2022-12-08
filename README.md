@@ -104,7 +104,7 @@ make localnet-start
 
 Cleanup:
 ```sh
-make clean
+make localnet-stop && make clean
 ```
 
 ---
