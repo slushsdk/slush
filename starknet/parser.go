@@ -9,6 +9,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/tendermint/tendermint/crypto/utils"
+	"github.com/tendermint/tendermint/crypto/weierstrass"
 	"github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
 )
@@ -312,6 +313,14 @@ func ParseInput(trustedLB types.LightBlock, untrustedLB types.LightBlock, vc Ver
 	}
 	inputs = make([]string, len(bigInts))
 	for i, bigInt := range bigInts {
+		if big.NewInt(0).Abs(bigInt).Cmp(weierstrass.Stark().Params().P) == 1 {
+			err = fmt.Errorf("bigInt is out of range")
+			return
+		}
+
+		if bigInt.Sign() == -1 {
+			bigInt.Add(weierstrass.Stark().Params().P, bigInt)
+		}
 		inputs[i] = bigInt.String()
 	}
 	return
