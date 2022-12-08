@@ -3,6 +3,8 @@ package felt
 import (
 	"fmt"
 	"math/big"
+
+	"github.com/tendermint/tendermint/crypto/weierstrass"
 )
 
 const size = 32
@@ -14,7 +16,7 @@ type Felt big.Int
 // top = 3618502788666131213697322783095070105623107215331596699973092056135872020480
 var (
 	bottomLimit = big.NewInt(0)
-	topLimit, _ = new(big.Int).SetString("800000000000011000000000000000000000000000000000000000000000000", 16)
+	topLimit    = big.NewInt(0).Sub(weierstrass.Stark().Params().P, big.NewInt(1))
 )
 
 // New returns a new Felt

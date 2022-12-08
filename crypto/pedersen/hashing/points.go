@@ -1,6 +1,10 @@
 package hashing
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/tendermint/tendermint/crypto/weierstrass"
+)
 
 // point represents the affine coordinates of an elliptic curve point.
 type point struct{ x, y *big.Int }
@@ -2045,8 +2049,8 @@ func init() {
 		y, _ := new(big.Int).SetString(p[1], 16)
 		points[i] = point{x, y}
 	}
-	prime, _ = new(big.Int).SetString("800000000000011000000000000000000000000000000000000000000000001", 16)
-	primeMinusOne, _ = new(big.Int).SetString("800000000000011000000000000000000000000000000000000000000000000", 16)
+	prime = weierstrass.Stark().Params().P
+	primeMinusOne = big.NewInt(0).Sub(prime, big.NewInt(1))
 
 }
 
