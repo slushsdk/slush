@@ -57,12 +57,10 @@ func initStarknetConfig(conf *config.Config, network string) (err error) {
 	switch network {
 	case "testnet":
 		conf.Starknet = &config.StarknetConfig{
-			Account:          "testnet",
-			AccountDir:       ".starknet_accounts",
-			FeederGatewayURL: "http://127.0.0.1:5050/",
-			GatewayURL:       "http://127.0.0.1:5050/",
-			Network:          "alpha-goerli",
-			Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
+			Account:    "testnet",
+			AccountDir: ".starknet_accounts",
+			Network:    "alpha-goerli",
+			Wallet:     "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
 		}
 	case "testnet2":
 		conf.Starknet = &config.StarknetConfig{
