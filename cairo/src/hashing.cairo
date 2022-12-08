@@ -56,7 +56,7 @@ func hash_int128{range_check_ptr, pedersen_ptr: HashBuiltin*}(input: felt) -> (r
     return (res_hash,);
 }
 
-func hash_int128_array{range_check_ptr, pedersen_ptr: HashBuiltin*}(
+func hash_int128_array_inner{range_check_ptr, pedersen_ptr: HashBuiltin*}(
     array_pointer: felt*, array_pointer_len: felt
 ) -> (res_hash: felt) {
     alloc_locals;
@@ -65,6 +65,25 @@ func hash_int128_array{range_check_ptr, pedersen_ptr: HashBuiltin*}(
     let (last_hash: felt) = hash2{hash_ptr=pedersen_ptr}(current_hash, array_pointer_len);
 
     return (last_hash,);
+}
+
+func hash_int128_array{range_check_ptr, pedersen_ptr: HashBuiltin*}(
+    array_pointer: felt*, array_pointer_len: felt
+) -> (res_hash: felt) {
+    alloc_locals;
+
+    if (array_pointer_len == 0) {
+        let (res_hash) = hash_int128(0);
+        return (res_hash,);
+    }
+    if (array_pointer_len == 1) {
+        let (res_hash) = hash_int128([array_pointer]);
+        return (res_hash,);
+    }
+
+    let res_hash: felt = hash_int128_array_inner(array_pointer, array_pointer_len);
+
+    return (res_hash,);
 }
 
 func hash_int128_array_with_prefix{range_check_ptr, pedersen_ptr: HashBuiltin*}(
@@ -185,21 +204,3 @@ func hash{range_check_ptr, pedersen_ptr: HashBuiltin*}(
     return (res_hash,);
 }
 
-func hash_i128{range_check_ptr, pedersen_ptr: HashBuiltin*}(
-    array_pointer: felt*, array_pointer_len: felt
-) -> (res_hash: felt) {
-    alloc_locals;
-
-    if (array_pointer_len == 0) {
-        let (res_hash) = hash_int128(0);
-        return (res_hash,);
-    }
-    if (array_pointer_len == 1) {
-        let (res_hash) = hash_int128([array_pointer]);
-        return (res_hash,);
-    }
-
-    let res_hash: felt = hash_int128_array(array_pointer, array_pointer_len);
-
-    return (res_hash,);
-}
