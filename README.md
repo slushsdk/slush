@@ -2,20 +2,13 @@
 
 [![license](https://img.shields.io/github/license/tendermint/tendermint.svg)](https://github.com/slushsdk/slush/blob/master/LICENSE)
 
-
-
 The Slush SDK allows you to spin up L3s on Starknet.
 
 For now this entails running Tendermint nodes and linking them to light clients on Starknet. This repo contains the modified Tendermint files as well as the Cairo contracts (modelled on [Tendermint-Sol](https://github.com/ChorusOne/tendermint-sol)).
 
-This first release focuses on communication between a single Tendermint node and the Starknet light client contract, meaning we have the following implemented:
-- [x] Deploy Cairo light client contract to devnet, where Tendermint light headers can be verified
-- [x] Run KV Store app on Tendermint as a demo
-
-In the next release we will have the [multi node](https://docs.tendermint.com/v0.34/networks/docker-compose.html) support of Tendermint running.
-
 Send transactions to tendermint with the [ABCI-CLI](https://docs.tendermint.com/v0.34/app-dev/abci-cli.html).
 
+---
 
 ## Requirements
 
@@ -28,21 +21,57 @@ Send transactions to tendermint with the [ABCI-CLI](https://docs.tendermint.com/
 
 Before installing Starknet Devnet on M1 check [this thread](https://github.com/OpenZeppelin/nile/issues/22).
 
-## Quick Start
+---
 
+## Starting a single local node
 
-1. Clone this repo
-2. Start the Starknet devnet. This will take up the view of Terminal
-   - `starknet-devnet --seed=42`
-3. Open a new terminal. Run the following at the root of this repo
-   - `make build`
-   - `./build/slush init validator --home ./valdata`
-   - `./build/slush start --proxy-app=kvstore --home ./valdata`
-4. If restarting this multiple times you might need to remove the validator data before `make build`:
-   - `rm -r ./valdata/config/ ./valdata/data/`
+Clone this repo
+```sh
+git clone https://github.com/slushsdk/slush.git && cd slush
+```
+Start Starknet devnet either locally on your machine or in docker:
+>locally:
+>```sh
+>starknet-devnet
+>```
+>docker (linux/amd64):
+>```sh
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet
+>```
+>docker (linux/arm64/v8):
+>```sh
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm
+>```
+Create an account on devnet:
+```sh
+./create_devnet_account.sh
+```
 
+Build the binary:
+```sh
+make build
+```
 
-## Local testnet with multiple nodes
+Init:
+```sh
+./build/slush init validator --home ./valdata
+```
+
+Start the local node:
+```sh
+./build/slush start --proxy-app=kvstore --home ./valdata
+```
+
+Cleanup:
+```sh
+make clean && rm -rf ./valdata/config/ ./valdata/data/
+```
+
+---
+
+## Starting a local testnet with multiple nodes
+
+The local testnet spins up the nodes in docker containers. Please make sure that docker desktop is installed and running ([docker desktop installation](https://www.docker.com/products/docker-desktop)).
 
 The local testnet spins up the nodes in docker containers. Please make sure that docker desktop is installed and running ([docker desktop installation](https://www.docker.com/products/docker-desktop)).
 
@@ -77,8 +106,10 @@ make localnet-start
 
 Cleanup:
 ```sh
-make clean && docker stop devnet
+make clean
 ```
+
+---
 
 ## Roadmap
 
