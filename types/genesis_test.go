@@ -67,7 +67,7 @@ func TestGenesisGood(t *testing.T) {
 	var pbb, _ = json.Marshal(pb)
 	var pbJSON = string(pbb)
 
-	var pbname = "\"" + pb.Type() + "\""
+	var pbname = "\"" + stark.PubKeyName + "\""
 
 	// var name = "\"" + pb.Type() + "\""
 

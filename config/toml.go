@@ -10,7 +10,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tendermint/tendermint/crypto"
 	stark "github.com/tendermint/tendermint/crypto/stark"
 	tmos "github.com/tendermint/tendermint/libs/os"
 )
@@ -667,14 +666,14 @@ func writeFile(filePath string, contents []byte, mode os.FileMode) error {
 	return nil
 }
 
-func getKeys() (stark.PrivKey, crypto.PubKey) {
+func getKeys() (stark.PrivKey, stark.PubKey) {
 	privKey := stark.GenPrivKey()
-	pubKey := privKey.PubKey()
+	pubKey := stark.PubKeyFromPrivate(&privKey)
 	return privKey, pubKey
 }
 
 type key interface {
-	Type() string
+	TypeTag() string
 }
 
 type keyDetails struct {
@@ -688,7 +687,7 @@ func withQuotationMarks(s string) string {
 
 func getKeyTypeAndValue(key key) keyDetails {
 	var keyJSONBytes, _ = json.Marshal(key)
-	var typeTag = withQuotationMarks(key.Type())
+	var typeTag = withQuotationMarks(key.TypeTag())
 	var value = string(keyJSONBytes)
 
 	return keyDetails{typeTag, value}

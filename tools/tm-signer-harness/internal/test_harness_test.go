@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,21 +13,55 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/types"
 )
 
-const (
+func getKeys() (stark.PrivKey, stark.PubKey) {
+	privKey := stark.GenPrivKey()
+	pubKey := stark.PubKeyFromPrivate(&privKey)
+	return privKey, pubKey
+}
+
+type key interface {
+	TypeTag() string
+}
+
+type keyDetails struct {
+	typeTag string
+	value   string
+}
+
+func withQuotationMarks(str string) string {
+	return "\"" + str + "\""
+}
+
+func getKeyTypeAndValue(key key) keyDetails {
+	var keyJSONBytes, _ = json.Marshal(key)
+	var typeTag = withQuotationMarks(key.TypeTag())
+	var value = string(keyJSONBytes)
+
+	return keyDetails{typeTag, value}
+}
+
+var pv, pb = getKeys()
+var privValidatorPrivateKeyDetails = getKeyTypeAndValue(pv)
+var privValidatorPublicKeyDetails = getKeyTypeAndValue(pb)
+var privValidatorAddress = withQuotationMarks(pb.Address().String())
+var privValidatorPublicKeyType = withQuotationMarks(pb.Type())
+
+var (
 	keyFileContents = `{
-	"address": "D08FCA3BA74CF17CBFC15E64F9505302BB0E2748",
+	"address": ` + privValidatorAddress + `,
 	"pub_key": {
-		"type": "tendermint/PubKeyEd25519",
-		"value": "ZCsuTjaczEyon70nmKxwvwu+jqrbq5OH3yQjcK0SFxc="
+		"type": ` + privValidatorPublicKeyDetails.typeTag + `,
+		"value": ` + privValidatorPublicKeyDetails.value + `
 		},
 	"priv_key": {
-		"type": "tendermint/PrivKeyEd25519",
-		"value": "8O39AkQsoe1sBQwud/Kdul8lg8K9SFsql9aZvwXQSt1kKy5ONpzMTKifvSeYrHC/C76Oqturk4ffJCNwrRIXFw=="
+		"type": ` + privValidatorPrivateKeyDetails.typeTag + `,
+		"value": ` + privValidatorPrivateKeyDetails.value + `
 	}
 }`
 
@@ -52,16 +87,16 @@ const (
 		},
 		"validator": {
 			"pub_key_types": [
-				"ed25519"
+				` + privValidatorPublicKeyType + `
 			]
 		}
 	},
 	"validators": [
 		{
-		"address": "D08FCA3BA74CF17CBFC15E64F9505302BB0E2748",
+		"address": ` + privValidatorAddress + `,
 		"pub_key": {
-			"type": "tendermint/PubKeyEd25519",
-			"value": "ZCsuTjaczEyon70nmKxwvwu+jqrbq5OH3yQjcK0SFxc="
+			"type": ` + privValidatorPublicKeyDetails.typeTag + `, 
+			"value": ` + privValidatorPublicKeyDetails.value + `
 		},
 		"power": "10",
 		"name": ""
@@ -70,7 +105,7 @@ const (
 	"app_hash": ""
 }`
 
-	defaultConnDeadline = 100
+	defaultConnDeadline = 1000
 )
 
 func TestRemoteSignerTestHarnessMaxAcceptRetriesReached(t *testing.T) {

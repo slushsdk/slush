@@ -51,7 +51,7 @@ func (pv PrivKey) Bytes() []byte {
 }
 
 func (pv PrivKey) PubKey() crypto.PubKey {
-	return pubKeyFromPrivate(&pv)
+	return PubKeyFromPrivate(&pv)
 
 }
 
@@ -126,7 +126,7 @@ func (p PubKey) Type() string {
 
 type Address = bytes.HexBytes
 
-func pubKeyFromPrivate(pv *PrivKey) PubKey {
+func PubKeyFromPrivate(pv *PrivKey) PubKey {
 	pvFull := pv.MakeFull()
 	pb := (&(pvFull)).Public()
 	return pb.MarshalCompressedStark()
@@ -140,10 +140,7 @@ func (p PubKey) Address() Address {
 }
 
 func (p PubKey) IsNil() bool {
-	if p == nil {
-		return true
-	}
-	return false
+	return p == nil
 }
 
 func (p PubKey) Bytes() []byte {
@@ -192,7 +189,7 @@ func serializeSig(r *big.Int, s *big.Int) []byte {
 
 func deserializeSig(sig []byte) (r *big.Int, s *big.Int, err error) {
 	if len(sig) != 64 {
-		return nil, nil, errors.New("Invalid signature length")
+		return nil, nil, errors.New("invalid signature length")
 	}
 
 	chunked := utils.Split(sig, 32)
