@@ -38,7 +38,7 @@ var ResetStateCmd = &cobra.Command{
 
 func init() {
 	ResetAllCmd.Flags().BoolVar(&keepAddrBook, "keep-addr-book", false, "keep the address book intact")
-	ResetPrivValidatorCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeEd25519,
+	ResetPrivValidatorCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
 		"Key type to generate privval file with. Options: ed25519, secp256k1")
 }
 

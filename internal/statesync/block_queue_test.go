@@ -22,7 +22,7 @@ var (
 )
 
 func TestBlockQueueBasic(t *testing.T) {
-	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999")
 	require.NoError(t, err)
 
 	queue := newBlockQueue(startHeight, stopHeight, 1, stopTime, 1)
@@ -69,7 +69,7 @@ loop:
 
 // Test with spurious failures and retries
 func TestBlockQueueWithFailures(t *testing.T) {
-	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999")
 	require.NoError(t, err)
 
 	queue := newBlockQueue(startHeight, stopHeight, 1, stopTime, 200)
@@ -119,7 +119,7 @@ func TestBlockQueueWithFailures(t *testing.T) {
 // Test that when all the blocks are retrieved that the queue still holds on to
 // it's workers and in the event of failure can still fetch the failed block
 func TestBlockQueueBlocks(t *testing.T) {
-	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999")
 	require.NoError(t, err)
 	queue := newBlockQueue(startHeight, stopHeight, 1, stopTime, 2)
 	expectedHeight := startHeight
@@ -166,7 +166,7 @@ loop:
 }
 
 func TestBlockQueueAcceptsNoMoreBlocks(t *testing.T) {
-	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999")
 	require.NoError(t, err)
 	queue := newBlockQueue(startHeight, stopHeight, 1, stopTime, 1)
 	defer queue.close()
@@ -191,7 +191,7 @@ loop:
 // Test a scenario where more blocks are needed then just the stopheight because
 // we haven't found a block with a small enough time.
 func TestBlockQueueStopTime(t *testing.T) {
-	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999")
 	require.NoError(t, err)
 
 	queue := newBlockQueue(startHeight, stopHeight, 1, stopTime, 1)
@@ -234,7 +234,7 @@ func TestBlockQueueStopTime(t *testing.T) {
 }
 
 func TestBlockQueueInitialHeight(t *testing.T) {
-	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999000011112222333344445555")
+	peerID, err := types.NewNodeID("0000111122223333444455556666777788889999")
 	require.NoError(t, err)
 	const initialHeight int64 = 120
 

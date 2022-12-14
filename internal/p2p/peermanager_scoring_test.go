@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/stark"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/tendermint/types"
@@ -15,7 +14,7 @@ import (
 
 func TestPeerScoring(t *testing.T) {
 	// coppied from p2p_test shared variables
-	selfKey := stark.GenPrivKeyFromSecret([]byte{0xf9, 0x1b, 0x08, 0xaa, 0x38, 0xee, 0x34, 0xdd})
+	selfKey := ed25519.GenPrivKeyFromSecret([]byte{0xf9, 0x1b, 0x08, 0xaa, 0x38, 0xee, 0x34, 0xdd})
 	selfID := types.NodeIDFromPubKey(selfKey.PubKey())
 
 	// create a mock peer manager
@@ -25,7 +24,7 @@ func TestPeerScoring(t *testing.T) {
 	defer peerManager.Close()
 
 	// create a fake node
-	id := types.NodeID(strings.Repeat("a1", crypto.AddressSize))
+	id := types.NodeID(strings.Repeat("a1", ed25519.AddressSize))
 	added, err := peerManager.Add(NodeAddress{NodeID: id, Protocol: "memory"})
 	require.NoError(t, err)
 	require.True(t, added)

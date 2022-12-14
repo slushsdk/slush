@@ -7,8 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/stark"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmnet "github.com/tendermint/tendermint/libs/net"
 	"github.com/tendermint/tendermint/version"
 )
@@ -96,7 +95,7 @@ func TestNodeInfoValidate(t *testing.T) {
 }
 
 func testNodeID() NodeID {
-	return NodeIDFromPubKey(stark.GenPrivKey().PubKey())
+	return NodeIDFromPubKey(ed25519.GenPrivKey().PubKey())
 }
 
 func testNodeInfo(id NodeID, name string) NodeInfo {
@@ -177,8 +176,8 @@ func TestNodeInfoAddChannel(t *testing.T) {
 }
 
 func TestParseAddressString(t *testing.T) {
-	address1 := make([]byte, 2*crypto.AddressSize)
-	address2 := []byte("deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")
+	address1 := make([]byte, 2*ed25519.AddressSize)
+	address2 := []byte("deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef")
 	copy(address1, address2)
 	address := string(address1)
 
