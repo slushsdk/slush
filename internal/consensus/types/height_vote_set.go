@@ -98,6 +98,12 @@ func (hvs *HeightVoteSet) SetRound(round int32) {
 	hvs.round = round
 }
 
+func (hvs *HeightVoteSet) GetValSet() *types.ValidatorSet {
+	hvs.mtx.Lock()
+	defer hvs.mtx.Unlock()
+	return hvs.valSet
+}
+
 func (hvs *HeightVoteSet) addRound(round int32) {
 	if _, ok := hvs.roundVoteSets[round]; ok {
 		panic("addRound() for an existing round")

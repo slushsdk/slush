@@ -104,7 +104,7 @@ func newDefaultNode(cfg *config.Config, logger log.Logger) (service.Service, err
 
 	verifierDetails, err := cfg.LoadVerifierDetails()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load or gen verifier details %s: %w", cfg.NodeKeyFile(), err)
+		return nil, fmt.Errorf("failed to load or gen verifier details: %w", err)
 	}
 
 	var pval *privval.FilePV
@@ -321,6 +321,11 @@ func makeNode(cfg *config.Config,
 
 	settlementCh := CreateSettlementChan()
 	settlementReactor, err := CreateSettlementReactor(logger, verifierDetails, settlementCh)
+	if err != nil {
+		return nil, combineCloseError(err, makeCloser(closers))
+
+	}
+	settlementReactor.OnStart()
 
 	csReactorShim, csReactor, csState := createConsensusReactor(
 		cfg, state, blockExec, blockStore, mp, evPool,
