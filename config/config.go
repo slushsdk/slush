@@ -1188,7 +1188,7 @@ type ConsensusConfig struct {
 func DefaultConsensusConfig() *ConsensusConfig {
 	return &ConsensusConfig{
 		WalPath:                     filepath.Join(defaultDataDir, "cs.wal", "wal"),
-		TimeoutPropose:              3000 * time.Millisecond,
+		TimeoutPropose:              1 * 3000 * time.Millisecond,
 		TimeoutProposeDelta:         500 * time.Millisecond,
 		TimeoutPrevote:              1000 * time.Millisecond,
 		TimeoutPrevoteDelta:         500 * time.Millisecond,
@@ -1207,13 +1207,13 @@ func DefaultConsensusConfig() *ConsensusConfig {
 // TestConsensusConfig returns a configuration for testing the consensus service
 func TestConsensusConfig() *ConsensusConfig {
 	cfg := DefaultConsensusConfig()
-	cfg.TimeoutPropose = 40 * time.Millisecond //Maybe add a 10* from here to ...
-	cfg.TimeoutProposeDelta = 1 * time.Millisecond
-	cfg.TimeoutPrevote = 10 * time.Millisecond
-	cfg.TimeoutPrevoteDelta = 1 * time.Millisecond
-	cfg.TimeoutPrecommit = 10 * time.Millisecond
-	cfg.TimeoutPrecommitDelta = 1 * time.Millisecond
-	cfg.TimeoutCommit = 10 * time.Millisecond /// .. to here? Todo: Slush
+	cfg.TimeoutPropose = 1 * 40 * time.Millisecond //Maybe add a 10* from here to ...
+	cfg.TimeoutProposeDelta = 1 * 1 * time.Millisecond
+	cfg.TimeoutPrevote = 1 * 10 * time.Millisecond
+	cfg.TimeoutPrevoteDelta = 1 * 1 * time.Millisecond
+	cfg.TimeoutPrecommit = 1 * 10 * time.Millisecond
+	cfg.TimeoutPrecommitDelta = 1 * 1 * time.Millisecond
+	cfg.TimeoutCommit = 1 * 10 * time.Millisecond /// .. to here? Todo: Slush
 	cfg.SkipTimeoutCommit = true
 	cfg.PeerGossipSleepDuration = 10 * 5 * time.Millisecond
 	cfg.PeerQueryMaj23SleepDuration = 10 * 250 * time.Millisecond

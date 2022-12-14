@@ -53,7 +53,7 @@ func NewSignerListenerEndpoint(
 	}
 
 	sl.BaseService = *service.NewBaseService(logger, "SignerListenerEndpoint", sl)
-	sl.signerEndpoint.timeoutReadWrite = defaultTimeoutReadWriteSeconds * time.Second
+	sl.signerEndpoint.timeoutReadWrite = 4 * 1 * defaultTimeoutReadWriteSeconds * time.Second
 
 	for _, optionFunc := range options {
 		optionFunc(sl)
@@ -153,9 +153,11 @@ func (sl *SignerListenerEndpoint) acceptNewConnection() (net.Conn, error) {
 	// wait for a new conn
 	sl.Logger.Info("SignerListener: Listening for new connection")
 	conn, err := sl.listener.Accept()
+	fmt.Println("line 156", err)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("line 160")
 
 	return conn, nil
 }
