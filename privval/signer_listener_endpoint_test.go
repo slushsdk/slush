@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/stark"
 	"github.com/tendermint/tendermint/libs/log"
 	tmnet "github.com/tendermint/tendermint/libs/net"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -20,7 +19,7 @@ var (
 	testTimeoutAccept = defaultTimeoutAcceptSeconds * time.Second
 
 	testTimeoutReadWrite    = 10 * 100 * time.Millisecond
-	testTimeoutReadWrite2o3 = 60 * time.Millisecond // 2/3 of the other one
+	testTimeoutReadWrite2o3 = 10 * 60 * time.Millisecond // 2/3 of the other one
 )
 
 type dialerTestCase struct {
@@ -63,9 +62,9 @@ func TestSignerRemoteRetryTCPOnly(t *testing.T) {
 
 	dialerEndpoint := NewSignerDialerEndpoint(
 		log.TestingLogger(),
-		DialTCPFn(ln.Addr().String(), testTimeoutReadWrite, stark.GenPrivKey()),
+		DialTCPFn(ln.Addr().String(), testTimeoutReadWrite, ed25519.GenPrivKey()),
 	)
-	SignerDialerEndpointTimeoutReadWrite(time.Millisecond)(dialerEndpoint)
+	SignerDialerEndpointTimeoutReadWrite(10 * time.Millisecond)(dialerEndpoint)
 	SignerDialerEndpointConnRetries(retries)(dialerEndpoint)
 
 	chainID := tmrand.Str(12)

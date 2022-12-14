@@ -30,7 +30,7 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType           = types.DefaultValidatorParams().PubKeyTypes[0]
+	keyType           = "stark"
 	network           string
 	accountPrivateKey string
 	accountAddress    string
@@ -52,7 +52,7 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return errors.New("must specify a node type: tendermint init [validator|full|seed]")
 	}
-	config.Mode = keyType
+	config.Mode = args[0]
 
 	err := initVerifierDetails(config, logger)(accountPrivateKey, accountAddress, network)
 	if err != nil {

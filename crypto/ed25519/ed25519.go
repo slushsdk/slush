@@ -53,6 +53,8 @@ const (
 	// tuned to `> validatorSize + maxTxnsPerBlock` to avoid cache
 	// thrashing.
 	cacheSize = 4096
+
+	AddressSize = 20
 )
 
 func init() {

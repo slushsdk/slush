@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/stark"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmos "github.com/tendermint/tendermint/libs/os"
 )
@@ -58,7 +58,7 @@ func LoadOrGenNodeKey(filePath string) (NodeKey, error) {
 
 // GenNodeKey generates a new node key.
 func GenNodeKey() NodeKey {
-	privKey := stark.GenPrivKey()
+	privKey := ed25519.GenPrivKey()
 	return NodeKey{
 		ID:      NodeIDFromPubKey(privKey.PubKey()),
 		PrivKey: privKey,

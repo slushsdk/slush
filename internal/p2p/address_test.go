@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/stark"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/types"
 )
 
 func TestNewNodeID(t *testing.T) {
 	// Most tests are in TestNodeID_Validate, this just checks that it's validated.
-	pb := stark.GenPrivKey().PubKey()
+	pb := ed25519.GenPrivKey().PubKey()
 
 	testcases := []struct {
 		input  string
@@ -43,9 +43,9 @@ func TestNewNodeID(t *testing.T) {
 }
 
 func TestNewNodeIDFromPubKey(t *testing.T) {
-	privKey := stark.GenPrivKeyFromSecret([]byte("foo"))
+	privKey := ed25519.GenPrivKeyFromSecret([]byte("foo"))
 	nodeID := types.NodeIDFromPubKey(privKey.PubKey())
-	require.Equal(t, types.NodeID("02e4fbd3d5d6188996709afd10927faacb303f6d743cbb5a6a39633faf64842e"), nodeID)
+	require.Equal(t, types.NodeID("045f5600654182cfeaccfe6cb19f0642e8a59898"), nodeID)
 	require.NoError(t, nodeID.Validate())
 }
 
@@ -76,7 +76,7 @@ func TestNodeID_Bytes(t *testing.T) {
 }
 
 func TestNodeID_Validate(t *testing.T) {
-	pb := stark.GenPrivKey().PubKey()
+	pb := ed25519.GenPrivKey().PubKey()
 	testcases := []struct {
 		nodeID types.NodeID
 		ok     bool
@@ -102,7 +102,7 @@ func TestNodeID_Validate(t *testing.T) {
 }
 
 func TestParseNodeAddress(t *testing.T) {
-	pb := stark.GenPrivKey().PubKey()
+	pb := ed25519.GenPrivKey().PubKey()
 	user := strings.ToLower(fmt.Sprint(pb.Address()))
 	id := types.NodeID(user)
 
@@ -206,7 +206,7 @@ func TestParseNodeAddress(t *testing.T) {
 }
 
 func TestNodeAddress_Resolve(t *testing.T) {
-	pb := stark.GenPrivKey().PubKey()
+	pb := ed25519.GenPrivKey().PubKey()
 	id := types.NodeID(strings.ToLower(fmt.Sprint(pb.Address())))
 
 	testcases := []struct {
@@ -291,7 +291,7 @@ func TestNodeAddress_Resolve(t *testing.T) {
 }
 
 func TestNodeAddress_String(t *testing.T) {
-	pb := stark.GenPrivKey().PubKey()
+	pb := ed25519.GenPrivKey().PubKey()
 	id := (types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))))
 	user := string(id)
 	testcases := []struct {
@@ -355,7 +355,7 @@ func TestNodeAddress_String(t *testing.T) {
 }
 
 func TestNodeAddress_Validate(t *testing.T) {
-	pb := stark.GenPrivKey().PubKey()
+	pb := ed25519.GenPrivKey().PubKey()
 	id := (types.NodeID(strings.ToLower(fmt.Sprint(pb.Address()))))
 	testcases := []struct {
 		address p2p.NodeAddress
