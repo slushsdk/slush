@@ -150,7 +150,7 @@ func (th *TestHarness) Run() {
 	for acceptRetries := th.acceptRetries; acceptRetries > 0; acceptRetries-- {
 		th.logger.Info("Attempting to accept incoming connection", "acceptRetries", acceptRetries)
 
-		if err := th.signerClient.WaitForConnection(10 * time.Millisecond); err != nil {
+		if err := th.signerClient.WaitForConnection(100 * time.Millisecond); err != nil {
 			// if it wasn't a timeout error
 			if _, ok := err.(timeoutError); !ok {
 				th.logger.Error("Failed to start listener", "err", err)
