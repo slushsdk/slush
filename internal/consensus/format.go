@@ -313,7 +313,7 @@ func (cs *State) getLightBlock(height int64) (types.LightBlock, error) {
 		return types.LightBlock{}, err
 	}
 
-	validators := cs.Votes.Precommits(cs.CommitRound).GetValSet() // .LoadValidators(height)
+	validators := cs.Votes.GetValSet() // .LoadValidators(height)
 	if err != nil {
 		return types.LightBlock{}, err
 	}
