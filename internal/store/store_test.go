@@ -32,7 +32,7 @@ type cleanupFunc func()
 func makeTestCommit(height int64, timestamp time.Time) *types.Commit {
 	commitSigs := []types.CommitSig{{
 		BlockIDFlag:      types.BlockIDFlagCommit,
-		ValidatorAddress: stark.GenPrivKey().PubKey().Bytes(),
+		ValidatorAddress: stark.GenPrivKey().PubKey().Address(),
 		Timestamp:        timestamp,
 		Signature:        []byte("Signature"),
 	}}
@@ -156,7 +156,7 @@ func TestBlockStoreSaveLoadBlock(t *testing.T) {
 					Height:          5,
 					ChainID:         "block_test",
 					Time:            tmtime.Now(),
-					ProposerAddress: stark.GenPrivKey().PubKey().Bytes()},
+					ProposerAddress: stark.GenPrivKey().PubKey().Address()},
 				makeTestCommit(5, tmtime.Now()),
 			),
 			parts:      validPartSet,
