@@ -27,8 +27,8 @@ type Executable interface {
 // PrepareBaseCmd is meant for tendermint and other servers
 func PrepareBaseCmd(cmd *cobra.Command, envPrefix, defaultHome string) Executor {
 	cobra.OnInitialize(func() { initEnv(envPrefix) })
-	cmd.PersistentFlags().StringP(HomeFlag, "", defaultHome, "directory for config and data")
-	cmd.PersistentFlags().Bool(TraceFlag, false, "print out full stack trace on errors")
+	//cmd.PersistentFlags().StringP(HomeFlag, "", defaultHome, "directory for config and data")
+	// cmd.PersistentFlags().Bool(TraceFlag, false, "print out full stack trace on errors")
 	cmd.PersistentPreRunE = concatCobraCmdFuncs(bindFlagsLoadViper, cmd.PersistentPreRunE)
 	return Executor{cmd, os.Exit}
 }

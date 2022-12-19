@@ -153,11 +153,9 @@ func (sl *SignerListenerEndpoint) acceptNewConnection() (net.Conn, error) {
 	// wait for a new conn
 	sl.Logger.Info("SignerListener: Listening for new connection")
 	conn, err := sl.listener.Accept()
-	fmt.Println("line 156", err)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("line 160")
 
 	return conn, nil
 }
