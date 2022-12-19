@@ -113,6 +113,7 @@ func Invoke(conf *config.Config, inputs []string) (transactionHashHex string, er
 	commandArgs = append(commandArgs, inputs...)
 
 	stdout, err := executeCommand(conf)(commandArgs)
+	fmt.Println(string(stdout))
 	if err != nil {
 		err = fmt.Errorf("starknet invoke command responded with an error: %w", err)
 		return
