@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -205,6 +204,26 @@ network = "{{ .Starknet.Network }}"
 
 #
 wallet = "{{ .Starknet.Wallet }}"
+
+#######################################################
+###             Protostar Configuration              ###
+#######################################################
+[protostar]
+
+#
+account-address = "{{ .Protostar.AccountAddress }}"
+
+#
+chain-id = "{{ .Protostar.ChainId }}"
+
+#
+gateway-url = "{{ .Protostar.GatewayUrl }}"
+
+#
+network = "{{ .Protostar.Network }}"
+
+#
+PrivateKeyPath = "{{ .Protostar.PrivateKeyPath }}"
 
 
 #######################################################################
@@ -646,7 +665,7 @@ func ResetTestRoot(testName string) (*Config, error) {
 
 func ResetTestRootWithChainID(testName string, chainID string) (*Config, error) {
 	// create a unique, concurrency-safe test directory under os.TempDir()
-	rootDir, err := ioutil.TempDir("", fmt.Sprintf("%s-%s_", chainID, testName))
+	rootDir, err := os.MkdirTemp("", fmt.Sprintf("%s-%s_", chainID, testName))
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +708,7 @@ func ResetTestRootWithChainID(testName string, chainID string) (*Config, error) 
 }
 
 func writeFile(filePath string, contents []byte, mode os.FileMode) error {
-	if err := ioutil.WriteFile(filePath, contents, mode); err != nil {
+	if err := os.WriteFile(filePath, contents, mode); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
 	return nil
