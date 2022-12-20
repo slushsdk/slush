@@ -90,13 +90,13 @@ func initStarknetConfig(conf *cfg.Config, network string) error {
 }
 
 func initVerifierAddress(conf *cfg.Config, logger log.Logger) (err error) {
-	classHashHex, transactionHashHex, err := starknet.Declare(conf, filepath.Join(conf.CairoDir, "build/main.json"))
+	classHashHex, transactionHashHex, err := starknet.Declare(conf.Starknet, filepath.Join(conf.CairoDir, "build/main.json"))
 	if err != nil {
 		return
 	}
 	logger.Info(fmt.Sprintf("Successfully sent declare tx with classHash: %s and transactionHash: %s", classHashHex, transactionHashHex))
 
-	contractAddressHex, transactionHex, err := starknet.Deploy(conf, classHashHex)
+	contractAddressHex, transactionHex, err := starknet.Deploy(conf.Starknet, classHashHex)
 	if err != nil {
 		return
 	}
