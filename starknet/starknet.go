@@ -113,13 +113,13 @@ func Invoke(conf *config.Config, inputs []string) (transactionHashHex string, er
 	commandArgs = append(commandArgs, inputs...)
 
 	stdout, err := executeCommand(conf)(commandArgs)
-	fmt.Println(string(stdout))
+	// fmt.Println(string(stdout))
 	if err != nil {
 		err = fmt.Errorf("starknet invoke command responded with an error: %w", err)
 		return
 	}
 
-	transactionHashRegex := regexp.MustCompile(`(?m)^Contract address: (0x[A-Fa-f0-9]*$)`)
+	transactionHashRegex := regexp.MustCompile(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`)
 	if !transactionHashRegex.Match(stdout) {
 		err = fmt.Errorf("could not find transaction hash in stdout: %s", stdout)
 		return
