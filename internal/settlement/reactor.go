@@ -76,6 +76,6 @@ func (r *Reactor) SendCommit(inputs []string) (err error) {
 		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
 		return
 	}
-	logger.Info("invoked with transaction hash", "hash", transactionHashHex)
+	logger.Info("invoked with transaction", "hash", " "+transactionHashHex)
 	return
 }
