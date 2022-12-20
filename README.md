@@ -97,7 +97,7 @@ Build the linux binary:
 make build-linux
 ```
 
-Start the local testnet:
+Start the local testnet (if on linux, make sure to have docker desktop running):
 ```sh
 make localnet-start
 ```
