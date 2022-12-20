@@ -87,7 +87,8 @@ type Config struct {
 	Instrumentation *InstrumentationConfig `mapstructure:"instrumentation"`
 	PrivValidator   *PrivValidatorConfig   `mapstructure:"priv-validator"`
 
-	Starknet *StarknetConfig `mapstructure:"starknet"`
+	Starknet  *StarknetConfig  `mapstructure:"starknet"`
+	Protostar *ProtostarConfig `mapstructure:"protostar"`
 }
 
 // DefaultConfig returns a default configuration for a Tendermint node
@@ -104,6 +105,7 @@ func DefaultConfig() *Config {
 		Instrumentation: DefaultInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
 		Starknet:        DefaultStarknetConfig(),
+		Protostar:       DefaultProtostarConfig(),
 	}
 }
 
@@ -128,6 +130,7 @@ func TestConfig() *Config {
 		Instrumentation: TestInstrumentationConfig(),
 		PrivValidator:   DefaultPrivValidatorConfig(),
 		Starknet:        DefaultStarknetConfig(),
+		Protostar:       DefaultProtostarConfig(),
 	}
 }
 
@@ -171,6 +174,9 @@ func (cfg *Config) ValidateBasic() error {
 	}
 	if err := cfg.Starknet.ValidateBasic(); err != nil {
 		return fmt.Errorf("error in [starknet] section: %w", err)
+	}
+	if err := cfg.Protostar.ValidateBasic(); err != nil {
+		return fmt.Errorf("error in [protostar] section: %w", err)
 	}
 	return nil
 }
@@ -1450,6 +1456,43 @@ func (cfg *StarknetConfig) ValidateBasic() error {
 	}
 	if cfg.Wallet == "" {
 		return errors.New("wallet cannot be empty")
+	}
+
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+// ProtostarConfig for network details
+type ProtostarConfig struct {
+	AccountAddress string `mapstructure:"account-address"`
+	ChainId        string `mapstructure:"chain-id"`
+	GatewayUrl     string `mapstructure:"gateway-url"`
+	Network        string `mapstructure:"network"`
+	PrivateKeyPath string `mapstructure:"private-key-path"`
+}
+
+// DefaultProtostarConfig returns a default configuration for protostar
+func DefaultProtostarConfig() *ProtostarConfig {
+	return &ProtostarConfig{
+		AccountAddress: "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a",
+		ChainId:        "1536727068981429685321",
+		GatewayUrl:     "http://127.0.0.1:5050/",
+		PrivateKeyPath: "pkey",
+	}
+}
+
+// TestProtostarConfig returns a default configuration for protostar
+func TestProtostarConfig() *ProtostarConfig {
+	return DefaultProtostarConfig()
+}
+
+// ValidateBasic performs basic validation.
+func (cfg *ProtostarConfig) ValidateBasic() error {
+	if cfg.AccountAddress == "" {
+		return errors.New("account address cannot be empty")
+	}
+	if cfg.PrivateKeyPath == "" {
+		return errors.New("private key path cannot be empty")
 	}
 
 	return nil
