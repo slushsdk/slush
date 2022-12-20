@@ -18,48 +18,37 @@ func appendKeyWithValueIfNotEmpty(args []string, arg, value string) []string {
 }
 
 // networkArgs returns the network args for the starknet cli
-func networkArgs(conf *config.Config) (networkArgs []string) {
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--account", conf.Starknet.Account)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--account_dir", conf.GetAccountDir())
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--feeder_gateway_url", conf.Starknet.FeederGatewayURL)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--gateway_url", conf.Starknet.GatewayURL)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--network", conf.Starknet.Network)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--wallet", conf.Starknet.Wallet)
+func networkArgs(sConf *config.StarknetConfig) (networkArgs []string) {
+	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--account", sConf.Account)
+	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--account_dir", sConf.AccountDir)
+	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--feeder_gateway_url", sConf.FeederGatewayURL)
+	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--gateway_url", sConf.GatewayURL)
+	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--network", sConf.Network)
+	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--wallet", sConf.Wallet)
 	return
 }
 
-// executeWithPath executes a command with the given args and path
-// and returns the raw stdout and error
-func executeWithPath(conf *config.Config) func(executePath string, args []string) (cmdOutput []byte, err error) {
-	return func(executePath string, args []string) (cmdOutput []byte, err error) {
-		if len(args) < 1 {
-			err = fmt.Errorf("executeWithPath: args must be non-empty")
-			return
-		}
-		args = append(args, networkArgs(conf)...)
-
-		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Dir = executePath
-
-		cmdOutput, err = cmd.CombinedOutput()
-		if err != nil {
-			err = fmt.Errorf("response error: %w\nexecutionPath: %s\nargs: %s\nstdout: %s", err, executePath, args, cmdOutput)
-		}
+// execute executes a command with the given args and returns the raw stdout and error
+func executeCommand(sConf *config.StarknetConfig, args []string) (cmdOutput []byte, err error) {
+	if len(args) < 1 {
+		err = fmt.Errorf("executeCommand: args must be non-empty")
 		return
 	}
-}
+	args = append(args, networkArgs(sConf)...)
 
-// execute executes a command with the given args and returns the raw stdout and error
-func executeCommand(conf *config.Config) func(args []string) (cmdOutput []byte, err error) {
-	return func(args []string) (cmdOutput []byte, err error) {
-		return executeWithPath(conf)(".", args)
+	cmd := exec.Command(args[0], args[1:]...)
+
+	cmdOutput, err = cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("response error: %w\nargs: %s\nstdout: %s", err, args, cmdOutput)
 	}
+	return
 }
 
-func Declare(conf *config.Config, contractPath string) (classHashHex, transactionHashHex string, err error) {
+func Declare(sConf *config.StarknetConfig, contractPath string) (classHashHex, transactionHashHex string, err error) {
 	commandArgs := []string{"starknet", "declare", "--contract", contractPath}
 
-	stdout, err := executeCommand(conf)(commandArgs)
+	stdout, err := executeCommand(sConf, commandArgs)
 	if err != nil {
 		err = fmt.Errorf("starknet declare command responded with an error:\n%s", err)
 		return
@@ -82,10 +71,10 @@ func Declare(conf *config.Config, contractPath string) (classHashHex, transactio
 	return
 }
 
-func Deploy(conf *config.Config, classHashHex string) (contractAddressHex, transactionHashHex string, err error) {
+func Deploy(sConf *config.StarknetConfig, classHashHex string) (contractAddressHex, transactionHashHex string, err error) {
 	commandArgs := []string{"starknet", "deploy", "--class_hash", classHashHex}
 
-	stdout, err := executeCommand(conf)(commandArgs)
+	stdout, err := executeCommand(sConf, commandArgs)
 	if err != nil {
 		err = fmt.Errorf("starknet deploy command responded with an error: %w", err)
 		return
@@ -112,7 +101,7 @@ func Invoke(conf *config.Config, inputs []string) (transactionHashHex string, er
 	commandArgs := []string{"starknet", "invoke", "--address", conf.VerifierAddress, "--abi", filepath.Join(conf.CairoDir, "build/main_abi.json"), "--function", "externalVerifyAdjacent", "--inputs"}
 	commandArgs = append(commandArgs, inputs...)
 
-	stdout, err := executeCommand(conf)(commandArgs)
+	stdout, err := executeCommand(conf.Starknet, commandArgs)
 	// fmt.Println(string(stdout))
 	if err != nil {
 		err = fmt.Errorf("starknet invoke command responded with an error: %w", err)
