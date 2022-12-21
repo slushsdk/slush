@@ -3,6 +3,7 @@ package protostar
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 
 	"github.com/tendermint/tendermint/config"
 )
@@ -39,6 +40,46 @@ func executeCommand(pConf *config.ProtostarConfig, args []string) (cmdOutput []b
 	cmdOutput, err = cmd.CombinedOutput()
 	if err != nil {
 		err = fmt.Errorf("response error: %w\nargs: %s\nstdout: %s", err, args, cmdOutput)
+	}
+	return
+}
+
+func regexFunctionFactory(regexString, objectName string) func(rawStdout []byte) (string, error) {
+	return func(rawStdout []byte) (string, error) {
+		regex := regexp.MustCompile(regexString)
+		if !regex.Match(rawStdout) {
+			return "", fmt.Errorf("could not find %s in stdout: %s", objectName, rawStdout)
+		}
+		return string(regex.FindSubmatch(rawStdout)[1]), nil
+	}
+}
+
+func getClassHashHex(rawStdout []byte) (string, error) {
+	return regexFunctionFactory(`(?m)^Class hash: (0x[A-Fa-f0-9]*$)`, "class hash hex")(rawStdout)
+}
+
+func getTransactionHashHex(rawStdout []byte) (string, error) {
+	return regexFunctionFactory(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`, "transaction hash hex")(rawStdout)
+}
+
+func getContractAddressHex(rawStdout []byte) (string, error) {
+	return regexFunctionFactory(`(?m)^Contract address: (0x[A-Fa-f0-9]*$)`, "contract address hex")(rawStdout)
+}
+
+func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, transactionHashHex string, err error) {
+	commandArgs := []string{"protostar", "declare", contractPath, "--max-fee", "auto"}
+
+	stdout, err := executeCommand(pConf, commandArgs)
+	if err != nil {
+		err = fmt.Errorf("protostar declare command responded with an error:\n%s", err)
+		return
+	}
+
+	if classHashHex, err = getClassHashHex(stdout); err != nil {
+		return
+	}
+	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
+		return
 	}
 	return
 }
