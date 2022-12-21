@@ -418,15 +418,22 @@ func shareAuthSignature(sc io.ReadWriter, pubKey crypto.PubKey, signature []byte
 		},
 		func(_ int) (val interface{}, abort bool, err error) {
 			var pba tmp2p.AuthSigMessage
+			// fmt.Println("line 420, ", pba.PubKey.TypeTag())
+			// fmt.Println("line 421, ", pba.GetSig())
+
 			_, err = protoio.NewDelimitedReader(sc, 1024*1024).ReadMsg(&pba)
 			if err != nil {
+				// fmt.Println("line 424, aborted, err, ", err)
+
 				return nil, true, err // abort
 			}
+			// fmt.Println("line 425, ", pba.PubKey.String())
 
 			pk, err := encoding.PubKeyFromProto(pba.PubKey)
 			if err != nil {
 				return nil, true, err // abort
 			}
+			// fmt.Println("line 430, ", pk.Type())
 
 			_recvMsg := authSigMessage{
 				Key: pk,
@@ -443,6 +450,7 @@ func shareAuthSignature(sc io.ReadWriter, pubKey crypto.PubKey, signature []byte
 	}
 
 	var _recvMsg = trs.FirstValue().(authSigMessage)
+	fmt.Println("line 446, ", _recvMsg.Key.Type())
 	return _recvMsg, nil
 }
 
