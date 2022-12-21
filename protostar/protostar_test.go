@@ -492,3 +492,59 @@ func TestDeploy(t *testing.T) {
 	require.NotEmpty(t, contractAddressHex)
 	require.NotEmpty(t, transactionHashHex)
 }
+
+// ################################ Skipped ################################
+// There is a bug in Protostar's Invoke command, it is not working properly
+// until it is fixed, we will skip this test.
+// see https://github.com/software-mansion/protostar/issues/1220
+// #########################################################################
+//
+// // Before running protostar tests make sure that
+// // * protostar is installed
+// // * starknet-devnet is running  on http://127.0.0.1:5050 with seed 42
+// func TestInvoke(t *testing.T) {
+// 	// Checking whether protostar is installed
+// 	cmd := exec.Command("command", "-v", "protostar")
+// 	if err := cmd.Run(); err != nil {
+// 		t.Skip("protostar is not installed")
+// 	}
+
+// 	// Checking whether starknet-devnet is running on port 5050
+// 	_, err := http.Get("http://127.0.0.1:5050/is_alive")
+// 	if err != nil {
+// 		t.Skip("starknet-devnet is not running")
+// 	}
+
+// 	// Creating temporary file with private key
+// 	tmpFile, err := os.CreateTemp(".", "seed_42_private_key")
+// 	if err != nil {
+// 		t.Fatal(fmt.Errorf("could not create temporary file for private key: %w", err))
+// 	}
+// 	tmpFile.Write([]byte("0xbdd640fb06671ad11c80317fa3b1799d"))
+// 	tmpFile.Close()
+// 	defer os.Remove(tmpFile.Name())
+
+// 	// Setting up the protostar config
+// 	conf := config.DefaultProtostarConfig()
+// 	conf.PrivateKeyPath = tmpFile.Name()
+// 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
+
+// 	// Calling the Declare function
+// 	chh, thh, err := Declare(conf, "../cairo/build/main.json")
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, chh)
+// 	require.NotEmpty(t, thh)
+
+// 	// Calling the Deploy function
+// 	contractAddressHex, thf, err := Deploy(conf, chh)
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, contractAddressHex)
+// 	require.NotEmpty(t, thf)
+
+// 	invokeInputs := []string{}
+
+// 	// Testing the Invoke function
+// 	transactionHashHex, err := Invoke(conf, contractAddressHex, invokeInputs)
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, transactionHashHex)
+// }

@@ -105,3 +105,24 @@ func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddress
 	}
 	return
 }
+
+func Invoke(pConf *config.ProtostarConfig, contractAddress string, inputs []string) (transactionHashHex string, err error) {
+	commandArgs := []string{
+		"protostar", "invoke",
+		"--contract-address", contractAddress,
+		"--function", "externalVerifyAdjacent",
+		"--max-fee", "auto",
+		"--inputs"}
+	commandArgs = append(commandArgs, inputs...)
+
+	stdout, err := executeCommand(pConf, commandArgs)
+	if err != nil {
+		err = fmt.Errorf("protostar invoke command responded with an error: %w", err)
+		return
+	}
+
+	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
+		return
+	}
+	return
+}
