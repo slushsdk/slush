@@ -62,6 +62,10 @@ func getTransactionHashHex(rawStdout []byte) (string, error) {
 	return regexFunctionFactory(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`, "transaction hash hex")(rawStdout)
 }
 
+func getTransactionHashFelt(rawStdout []byte) (string, error) {
+	return regexFunctionFactory(`(?m)^Transaction hash: ([0-9]*$)`, "transaction hash felt")(rawStdout)
+}
+
 func getContractAddressHex(rawStdout []byte) (string, error) {
 	return regexFunctionFactory(`(?m)^Contract address: (0x[A-Fa-f0-9]*$)`, "contract address hex")(rawStdout)
 }
@@ -79,6 +83,24 @@ func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, 
 		return
 	}
 	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
+		return
+	}
+	return
+}
+
+func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddressHex, transactionHashFelt string, err error) {
+	commandArgs := []string{"protostar", "deploy", classHashHex, "--max-fee", "auto"}
+
+	stdout, err := executeCommand(pConf, commandArgs)
+	if err != nil {
+		err = fmt.Errorf("protostar deploy command responded with an error: %w", err)
+		return
+	}
+
+	if contractAddressHex, err = getContractAddressHex(stdout); err != nil {
+		return
+	}
+	if transactionHashFelt, err = getTransactionHashFelt(stdout); err != nil {
 		return
 	}
 	return
