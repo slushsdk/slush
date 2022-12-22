@@ -14,7 +14,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/starknet"
+	"github.com/tendermint/tendermint/protostar"
 	"github.com/tendermint/tendermint/types"
 )
 
@@ -90,13 +90,13 @@ func initStarknetConfig(conf *cfg.Config, network string) error {
 }
 
 func initVerifierAddress(conf *cfg.Config, logger log.Logger) (err error) {
-	classHashHex, transactionHashHex, err := starknet.Declare(conf.Starknet, filepath.Join(conf.CairoDir, "build/main.json"))
+	classHashHex, transactionHashHex, err := protostar.Declare(conf.Protostar, filepath.Join(conf.CairoDir, "build/main.json"))
 	if err != nil {
 		return
 	}
 	logger.Info(fmt.Sprintf("Successfully sent declare tx with classHash: %s and transactionHash: %s", classHashHex, transactionHashHex))
 
-	contractAddressHex, transactionHex, err := starknet.Deploy(conf.Starknet, classHashHex)
+	contractAddressHex, transactionHex, err := protostar.Deploy(conf.Protostar, classHashHex)
 	if err != nil {
 		return
 	}
