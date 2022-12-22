@@ -1,4 +1,4 @@
-package starknet
+package parser
 
 import (
 	"encoding/json"

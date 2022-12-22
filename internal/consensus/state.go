@@ -20,7 +20,7 @@ import (
 	"github.com/tendermint/tendermint/internal/libs/fail"
 	tmstrings "github.com/tendermint/tendermint/internal/libs/strings"
 	tmsync "github.com/tendermint/tendermint/internal/libs/sync"
-	"github.com/tendermint/tendermint/internal/settlement/starknet"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	sm "github.com/tendermint/tendermint/internal/state"
 	tmevents "github.com/tendermint/tendermint/libs/events"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -1824,13 +1824,13 @@ func (cs *State) PushCommitToSettlement() (err error) {
 		return
 	}
 
-	vc := starknet.VerificationConfig{
+	vc := parser.VerificationConfig{
 		CurrentTime:    big.NewInt((time.Now().UnixNano())),
 		MaxClockDrift:  big.NewInt(10),
 		TrustingPeriod: big.NewInt(999999999999999999),
 	}
 
-	inputs, err := starknet.ParseInput(trustedLightBlock, untrustedLightBlock, vc)
+	inputs, err := parser.ParseInput(trustedLightBlock, untrustedLightBlock, vc)
 	if err != nil {
 		err = fmt.Errorf("failed to format for settlement: %w", err)
 		return
