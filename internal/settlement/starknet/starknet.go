@@ -2,118 +2,87 @@ package starknet
 
 import (
 	"fmt"
-	"os/exec"
 	"path/filepath"
-	"regexp"
 
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/utils"
 )
 
-// appendKeyWithValueIfNotEmpty appends the given key and value to the args if the value is not empty
-func appendKeyWithValueIfNotEmpty(args []string, arg, value string) []string {
-	if value != "" {
-		return append(args, arg, value)
-	}
-	return args
-}
-
-// networkArgs returns the network args for the starknet cli
-func networkArgs(sConf *config.StarknetConfig) (networkArgs []string) {
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--account", sConf.Account)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--account_dir", sConf.AccountDir)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--feeder_gateway_url", sConf.FeederGatewayURL)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--gateway_url", sConf.GatewayURL)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--network", sConf.Network)
-	networkArgs = appendKeyWithValueIfNotEmpty(networkArgs, "--wallet", sConf.Wallet)
+func networkArgs(conf *config.Config) (networkArgs []string) {
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--account", conf.Starknet.Account)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--account_dir", conf.Starknet.AccountDir)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--feeder_gateway_url", conf.Starknet.FeederGatewayURL)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--gateway_url", conf.Starknet.GatewayURL)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--network", conf.Starknet.Network)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--wallet", conf.Starknet.Wallet)
 	return
 }
 
-// execute executes a command with the given args and returns the raw stdout and error
-func executeCommand(sConf *config.StarknetConfig, args []string) (cmdOutput []byte, err error) {
-	if len(args) < 1 {
-		err = fmt.Errorf("executeCommand: args must be non-empty")
-		return
-	}
-	args = append(args, networkArgs(sConf)...)
-
-	cmd := exec.Command(args[0], args[1:]...)
-
-	cmdOutput, err = cmd.CombinedOutput()
-	if err != nil {
-		err = fmt.Errorf("response error: %w\nargs: %s\nstdout: %s", err, args, cmdOutput)
-	}
-	return
+func getContractClassHashHex(rawStdout []byte) (string, error) {
+	return utils.RegexFunctionFactory(`(?m)^Contract class hash: (0x[A-Fa-f0-9]*$)`, "class hash hex")(rawStdout)
 }
 
-func Declare(sConf *config.StarknetConfig, contractPath string) (classHashHex, transactionHashHex string, err error) {
+func getTransactionHashHex(rawStdout []byte) (string, error) {
+	return utils.RegexFunctionFactory(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`, "transaction hash hex")(rawStdout)
+}
+
+func getContractAddressHex(rawStdout []byte) (string, error) {
+	return utils.RegexFunctionFactory(`(?m)^Contract address: (0x[A-Fa-f0-9]*$)`, "contract address hex")(rawStdout)
+}
+
+func Declare(conf *config.Config, contractPath string) (classHashHex, transactionHashHex string, err error) {
 	commandArgs := []string{"starknet", "declare", "--contract", contractPath}
 
-	stdout, err := executeCommand(sConf, commandArgs)
+	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(conf))
 	if err != nil {
 		err = fmt.Errorf("starknet declare command responded with an error:\n%s", err)
 		return
 	}
 
-	contractClassHashRegex := regexp.MustCompile(`(?m)^Contract class hash: (0x[A-Fa-f0-9]*$)`)
-	if !contractClassHashRegex.Match(stdout) {
-		err = fmt.Errorf("could not find contract class hash in stdout: %s", stdout)
+	if classHashHex, err = getContractClassHashHex(stdout); err != nil {
 		return
 	}
-
-	transactionHashRegex := regexp.MustCompile(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`)
-	if !transactionHashRegex.Match(stdout) {
-		err = fmt.Errorf("could not find transaction hash in stdout: %s", stdout)
+	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
 		return
 	}
-
-	classHashHex = string(contractClassHashRegex.FindSubmatch(stdout)[1])
-	transactionHashHex = string(transactionHashRegex.FindSubmatch(stdout)[1])
 	return
 }
 
-func Deploy(sConf *config.StarknetConfig, classHashHex string) (contractAddressHex, transactionHashHex string, err error) {
+func Deploy(conf *config.Config, classHashHex string) (contractAddressHex, transactionHashHex string, err error) {
 	commandArgs := []string{"starknet", "deploy", "--class_hash", classHashHex}
 
-	stdout, err := executeCommand(sConf, commandArgs)
+	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(conf))
 	if err != nil {
 		err = fmt.Errorf("starknet deploy command responded with an error: %w", err)
 		return
 	}
 
-	contractAddressRegex := regexp.MustCompile(`(?m)^Contract address: (0x[A-Fa-f0-9]*$)`)
-	if !contractAddressRegex.Match(stdout) {
-		err = fmt.Errorf("could not find contract address in stdout: %s", stdout)
+	if contractAddressHex, err = getContractAddressHex(stdout); err != nil {
 		return
 	}
-
-	transactionHashRegex := regexp.MustCompile(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`)
-	if !transactionHashRegex.Match(stdout) {
-		err = fmt.Errorf("could not find transaction hash in stdout: %s", stdout)
+	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
 		return
 	}
-
-	contractAddressHex = string(contractAddressRegex.FindSubmatch(stdout)[1])
-	transactionHashHex = string(transactionHashRegex.FindSubmatch(stdout)[1])
 	return
 }
 
 func Invoke(conf *config.Config, inputs []string) (transactionHashHex string, err error) {
-	commandArgs := []string{"starknet", "invoke", "--address", conf.VerifierAddress, "--abi", filepath.Join(conf.CairoDir, "build/main_abi.json"), "--function", "externalVerifyAdjacent", "--inputs"}
+	commandArgs := []string{
+		"starknet", "invoke",
+		"--address", conf.VerifierAddress,
+		"--abi", filepath.Join(conf.CairoDir, "build/main_abi.json"),
+		"--function", "externalVerifyAdjacent",
+		"--inputs"}
 	commandArgs = append(commandArgs, inputs...)
 
-	stdout, err := executeCommand(conf.Starknet, commandArgs)
-	// fmt.Println(string(stdout))
+	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(conf))
 	if err != nil {
 		err = fmt.Errorf("starknet invoke command responded with an error: %w", err)
 		return
 	}
 
-	transactionHashRegex := regexp.MustCompile(`(?m)^Transaction hash: (0x[A-Fa-f0-9]*$)`)
-	if !transactionHashRegex.Match(stdout) {
-		err = fmt.Errorf("could not find transaction hash in stdout: %s", stdout)
+	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
 		return
 	}
-
-	transactionHashHex = string(transactionHashRegex.FindSubmatch(stdout)[1])
 	return
 }
