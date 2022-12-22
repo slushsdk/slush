@@ -6,7 +6,7 @@ import (
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/starknet"
+	"github.com/tendermint/tendermint/protostar"
 )
 
 // Reactor handles light blocks sent for settlement. Slush addition, modelled of evidence reactor.
@@ -71,7 +71,7 @@ func (r *Reactor) SendCommit(inputs []string) (err error) {
 	logger := r.logger
 	logger.Info("settling commit")
 
-	transactionHashHex, err := starknet.Invoke(r.cfg, inputs)
+	transactionHashHex, err := protostar.Invoke(r.cfg.Protostar, r.cfg.VerifierAddress, inputs)
 	if err != nil {
 		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
 		return
