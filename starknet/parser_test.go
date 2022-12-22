@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/types"
+
+	tmjson "github.com/tendermint/tendermint/libs/json"
 )
 
 func TestFormatSignedHeader(t *testing.T) {
@@ -16,7 +18,7 @@ func TestFormatSignedHeader(t *testing.T) {
 	expected := `{"header":{"consensus_data":{"block":11,"app":1},"height":2,"time":{"nanos":1665745595413940948},"last_block_id":{"hash":884425833596017687902070213747808739115022713891866619587347960517452692782,"part_set_header":{"total":1,"hash":3280603427672755996697561151661387289552035726080851369010608355561641782281}},"last_commit_hash":1300719250649302888673721710201729934164570534884866772308748105278349984205,"data_hash":2089986280348253421170679821480865132823066470938446095505822317253594081284,"validators_hash":2340377040213079208513181851626792215421593955873165280879009333623007386339,"next_validators_hash":2340377040213079208513181851626792215421593955873165280879009333623007386339,"consensus_hash":2132461975834504200398180281070409533541683498016798668455504133351250391630,"app_hash":0,"last_results_hash":2089986280348253421170679821480865132823066470938446095505822317253594081284,"evidence_hash":2089986280348253421170679821480865132823066470938446095505822317253594081284,"proposer_address":3308174817124847388915938526006361282230966751698668845121616562821790302837},"commit":{"height":2,"round":0,"block_id":{"hash":892805091259252719451078399408285323788861340980283502742818584651789944955,"part_set_header":{"total":1,"hash":1678530202937530276285116262009511904790607301550138088769956212479453857950}}}}`
 
 	var lightBlock types.LightBlock
-	json.Unmarshal([]byte(lightBlockString), &lightBlock)
+	tmjson.Unmarshal([]byte(lightBlockString), &lightBlock)
 
 	// test
 	res := formatSignedHeader(*lightBlock.SignedHeader)
@@ -33,7 +35,7 @@ func TestFormatValidatorSet(t *testing.T) {
 	expected := `{"proposer":{"Address":3308174817124847388915938526006361282230966751698668845121616562821790302837,"pub_key":{"ecdsa":1874089173934400596279690104790724610118670100261327038271526874663074053041},"voting_power":10,"proposer_priority":0},"total_voting_power":10}`
 
 	var validators types.ValidatorSet
-	json.Unmarshal([]byte(validatorsString), &validators)
+	tmjson.Unmarshal([]byte(validatorsString), &validators)
 
 	validators.Proposer = validators.Validators[0]
 
@@ -47,14 +49,14 @@ func TestFormatValidatorSet(t *testing.T) {
 }
 
 func loadFromStings(trustedLightBlockString, untrustedLightBlockString, validatorSetString string) (trustedLightBlock, untrustedLightBlock types.LightBlock) {
-	if err := json.Unmarshal([]byte(trustedLightBlockString), &trustedLightBlock); err != nil {
+	if err := tmjson.Unmarshal([]byte(trustedLightBlockString), &trustedLightBlock); err != nil {
 		panic(err)
 	}
-	if err := json.Unmarshal([]byte(validatorSetString), &trustedLightBlock.ValidatorSet); err != nil {
+	if err := tmjson.Unmarshal([]byte(validatorSetString), &trustedLightBlock.ValidatorSet); err != nil {
 		panic(err)
 	}
 	trustedLightBlock.ValidatorSet.Proposer = trustedLightBlock.ValidatorSet.Validators[0]
-	if err := json.Unmarshal([]byte(untrustedLightBlockString), &untrustedLightBlock); err != nil {
+	if err := tmjson.Unmarshal([]byte(untrustedLightBlockString), &untrustedLightBlock); err != nil {
 		panic(err)
 	}
 	return
