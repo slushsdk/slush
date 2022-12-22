@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/protostar"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/protostar"
 )
 
 // Reactor handles light blocks sent for settlement. Slush addition, modelled of evidence reactor.

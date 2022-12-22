@@ -450,7 +450,7 @@ func TestDeclare(t *testing.T) {
 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 
 	// Testing the Declare function
-	classHashHex, transactionHashHex, err := Declare(conf, "../cairo/build/main.json")
+	classHashHex, transactionHashHex, err := Declare(conf, "../../../cairo/build/main.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, classHashHex)
 	require.NotEmpty(t, transactionHashHex)
@@ -487,7 +487,7 @@ func TestDeploy(t *testing.T) {
 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 
 	// Calling the Declare to get the class hash for the Deploy function
-	ch, th, err := Declare(conf, "../cairo/build/main.json")
+	ch, th, err := Declare(conf, "../../../cairo/build/main.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, ch)
 	require.NotEmpty(t, th)
@@ -530,7 +530,7 @@ func TestInvoke(t *testing.T) {
 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 
 	// Calling the Declare function
-	chh, thh, err := Declare(conf, "../cairo/build/main.json")
+	chh, thh, err := Declare(conf, "../../../cairo/build/main.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, chh)
 	require.NotEmpty(t, thh)
