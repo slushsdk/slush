@@ -58,7 +58,11 @@ func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan []string) {
 	for {
 		select {
 		case newBlock := <-SettlementCh:
-			r.SendCommit(newBlock)
+			err := r.SendCommit(newBlock)
+			if err != nil {
+				r.logger.Error("failed to send commit", "err", err)
+			}
+			r.logger.Info("sent commit")
 		case <-r.stopChan:
 			r.logger.Info("Stopping settlement reactor via stopChan")
 
