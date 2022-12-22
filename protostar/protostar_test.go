@@ -12,8 +12,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/starknet"
 	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/starknet"
+
 	"github.com/tendermint/tendermint/types"
 )
 
