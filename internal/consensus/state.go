@@ -13,15 +13,14 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
-
 	"github.com/tendermint/tendermint/internal/evidence"
 	"github.com/tendermint/tendermint/internal/libs/fail"
 	tmstrings "github.com/tendermint/tendermint/internal/libs/strings"
 	tmsync "github.com/tendermint/tendermint/internal/libs/sync"
+	"github.com/tendermint/tendermint/internal/settlement/starknet"
 	sm "github.com/tendermint/tendermint/internal/state"
 	tmevents "github.com/tendermint/tendermint/libs/events"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -33,7 +32,6 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	tmgrpc "github.com/tendermint/tendermint/privval/grpc"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/starknet"
 	"github.com/tendermint/tendermint/types"
 )
 
