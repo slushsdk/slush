@@ -7,14 +7,13 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-
 	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/protostar"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmtime "github.com/tendermint/tendermint/libs/time"
 	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/protostar"
 	"github.com/tendermint/tendermint/types"
 )
 
