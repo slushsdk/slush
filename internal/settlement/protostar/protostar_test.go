@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/internal/settlement/starknet"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 
 	"github.com/tendermint/tendermint/types"
@@ -557,7 +557,7 @@ func TestInvoke(t *testing.T) {
 	if err := tmjson.Unmarshal([]byte(untrustedLightBlockString), &untrustedLightBlock); err != nil {
 		panic(err)
 	}
-	invokeInputs, err := starknet.ParseInput(trustedLightBlock, untrustedLightBlock, starknet.VerificationConfig{
+	invokeInputs, err := parser.ParseInput(trustedLightBlock, untrustedLightBlock, parser.VerificationConfig{
 		CurrentTime:    big.NewInt(time.Now().UnixNano()),
 		MaxClockDrift:  big.NewInt(10),
 		TrustingPeriod: big.NewInt(999999999999999999),
