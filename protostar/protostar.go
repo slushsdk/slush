@@ -71,7 +71,7 @@ func getContractAddressHex(rawStdout []byte) (string, error) {
 }
 
 func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, transactionHashHex string, err error) {
-	commandArgs := []string{"protostar", "declare", contractPath, "--max-fee", "auto"}
+	commandArgs := []string{"protostar", "--no-color", "declare", contractPath, "--max-fee", "auto"}
 
 	stdout, err := executeCommand(pConf, commandArgs)
 	if err != nil {
@@ -89,7 +89,7 @@ func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, 
 }
 
 func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddressHex, transactionHashFelt string, err error) {
-	commandArgs := []string{"protostar", "deploy", classHashHex, "--max-fee", "auto"}
+	commandArgs := []string{"protostar", "--no-color", "deploy", classHashHex, "--max-fee", "auto"}
 
 	stdout, err := executeCommand(pConf, commandArgs)
 	if err != nil {
@@ -108,7 +108,7 @@ func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddress
 
 func Invoke(pConf *config.ProtostarConfig, contractAddress string, inputs []string) (transactionHashHex string, err error) {
 	commandArgs := []string{
-		"protostar", "invoke",
+		"protostar", "--no-color", "invoke",
 		"--contract-address", contractAddress,
 		"--function", "externalVerifyAdjacent",
 		"--max-fee", "auto",
