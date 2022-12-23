@@ -28,60 +28,52 @@ var InitFilesCmd = &cobra.Command{
 }
 
 var (
-	keyType = "stark"
-	network string
+	keyType        = "stark"
+	network        string
+	accountAddress string
 )
 
 func init() {
-
-	InitFilesCmd.Flags().StringVar(&network, "network", "devnet", "Network to deploy on: alpha-mainnet, alpha-goerli, or devnet (assumed at http://127.0.0.1:5050).")
-
+	InitFilesCmd.Flags().StringVar(&network, "network", "devnet", "Network to deploy on: testnet or devnet.")
+	InitFilesCmd.Flags().StringVar(&accountAddress, "account-address", "", "Account address to use for the node.")
 }
 
 func initFiles(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
-		return errors.New("must specify a node type: tendermint init [validator|full|seed]")
+		return errors.New("must specify a node type: slush init [validator|full|seed]")
 	}
 	config.Mode = args[0]
 
-	err := initStarknetConfig(config, network)
-	if err != nil {
+	if network != "devnet" && accountAddress == "" {
+		return errors.New("must specify an account address: slush init --account-address <address>")
+	}
+
+	if err := initProtostarConfig(config, accountAddress, network); err != nil {
 		return err
 	}
 
-	err = initVerifierAddress(config, logger)
-	if err != nil {
+	if err := initVerifierAddress(config, logger); err != nil {
 		return err
 	}
 
 	return initFilesWithConfig(config)
 }
 
-func initStarknetConfig(conf *cfg.Config, network string) error {
-	// MakeInitFilesCommand returns the command to initialize a fresh Tendermint Core instance.
+func initProtostarConfig(conf *cfg.Config, accountAddress, network string) error {
 	switch network {
 	case "testnet":
-		conf.Starknet = &cfg.StarknetConfig{
-			Account:    "testnet",
-			AccountDir: ".starknet_accounts",
-			Network:    "alpha-goerli",
-			Wallet:     "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
-		}
-	case "testnet2":
-		conf.Starknet = &cfg.StarknetConfig{
-			Account:          "testnet2",
-			AccountDir:       ".starknet_accounts",
-			GatewayURL:       "https://alpha4-2.starknet.io",
-			FeederGatewayURL: "https://alpha4-2.starknet.io",
-			Network:          "alpha-goerli",
-			Wallet:           "starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount",
+		conf.Protostar = &cfg.ProtostarConfig{
+			AccountAddress: accountAddress,
+			ChainId:        "1536727068981429685321",
+			Network:        "testnet",
+			PrivateKeyPath: "pkey",
 		}
 	case "devnet":
 		fallthrough
 	default:
-		conf.Starknet = cfg.DefaultStarknetConfig()
+		conf.Protostar = cfg.DefaultProtostarConfig()
 	}
-	err := conf.Starknet.ValidateBasic()
+	err := conf.Protostar.ValidateBasic()
 	if err != nil {
 		return err
 	}
