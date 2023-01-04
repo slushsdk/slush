@@ -1,11 +1,14 @@
-FROM alpine:3.14
+FROM --platform=linux/amd64 ubuntu:22.04
 
-RUN apk update && \
-    apk upgrade && \
-    apk --no-cache add curl jq file python3-dev py3-pip g++ gmp-dev
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y curl file && \
+    rm -rf /var/lib/apt/lists/*
 
-# installing cairo-lang
-RUN pip3 install --no-cache-dir wheel ecdsa fastecdsa sympy cairo-lang
+# installing protostar
+RUN curl -L https://raw.githubusercontent.com/software-mansion/protostar/master/install.sh | bash
+ENV PATH="/root/.protostar/dist/protostar:${PATH}"
 
 VOLUME [ /slush ]
 WORKDIR /slush
