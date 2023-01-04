@@ -256,7 +256,6 @@ func makeNode(cfg *config.Config,
 	blockSync := !onlyValidatorIsUs(state, pubKey)
 
 	logNodeStartupInfo(state, pubKey, logger, consensusLogger, cfg.Mode)
-	logger.Info("line 259")
 	// TODO: Fetch and provide real options and do proper p2p bootstrapping.
 	// TODO: Use a persistent peer database.
 	nodeInfo, err := makeNodeInfo(cfg, nodeKey, eventSinks, genDoc, state)
@@ -264,7 +263,6 @@ func makeNode(cfg *config.Config,
 		return nil, combineCloseError(err, makeCloser(closers))
 
 	}
-	logger.Info("line 267")
 
 	p2pLogger := logger.With("module", "p2p")
 	transport := createTransport(p2pLogger, cfg)
