@@ -452,7 +452,7 @@ func TestInvoke(t *testing.T) {
 	require.NoError(t, err)
 
 	// Testing the Invoke function
-	transactionHashHex, err := Invoke(conf, contractAddressHex, invokeInputs)
+	transactionHashHex, err := Invoke(conf, contractAddressHex, "externalVerifyAdjacent", invokeInputs)
 	require.NoError(t, err)
 	require.NotEmpty(t, transactionHashHex)
 }

@@ -75,7 +75,7 @@ func (r *Reactor) SendCommit(inputs []string) (err error) {
 	logger := r.logger
 	logger.Info("settling commit")
 
-	transactionHashHex, err := protostar.Invoke(r.cfg.Protostar, r.cfg.VerifierAddress, inputs)
+	transactionHashHex, err := protostar.Invoke(r.cfg.Protostar, r.cfg.VerifierAddress, "externalVerifyAdjacent", inputs)
 	if err != nil {
 		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
 		return
