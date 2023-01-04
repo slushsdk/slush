@@ -2,6 +2,8 @@ package protostar
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/internal/settlement/utils"
@@ -69,23 +71,72 @@ func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddress
 	return
 }
 
-func Invoke(pConf *config.ProtostarConfig, contractAddress string, inputs []string) (transactionHashHex string, err error) {
-	commandArgs := []string{
-		"protostar", "--no-color", "invoke",
-		"--contract-address", contractAddress,
-		"--function", "externalVerifyAdjacent",
-		"--max-fee", "auto",
-		"--inputs"}
-	commandArgs = append(commandArgs, inputs...)
+func Invoke(pConf *config.ProtostarConfig, contractAddress string, invokedFunction string, inputs []string) (transactionHashHex string, err error) {
+	callArgs := "[[call]]" + "\n" +
+		"type = \"invoke\" " + "\n" +
+		"contract-address = " + contractAddress + "\n" +
+		"function = \"" + invokedFunction + "\"" + "\n" + "inputs = "
 
-	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
+	inputArrayString := "[ " + strings.Join(inputs, ",") + "]" + "\n" + "\n"
+
+	callArgs = callArgs + inputArrayString
+
+	err = Multicall(pConf, callArgs)
+	return "", err
+}
+
+var currentCallNumber = 0
+
+const callNumber = 3
+
+func Multicall(pConf *config.ProtostarConfig, newInvoke string) (err error) {
+	callsTomlPath := "./cairo/calls.toml"
+
+	if currentCallNumber == 0 {
+		if err := os.Remove(callsTomlPath); err != nil {
+			return fmt.Errorf("failed to remove file: %w", err)
+		}
+	}
+
+	currentCallNumber += 1
+
+	f, err := os.OpenFile(callsTomlPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		err = fmt.Errorf("protostar invoke command responded with an error: %w", err)
-		return
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	if _, err := f.Write([]byte(newInvoke)); err != nil {
+		f.Close() // ignore error; Write error takes precedence
+		return fmt.Errorf("failed to write file: %w", err)
+
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("failed to close file: %w", err)
+
 	}
 
-	if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
-		return
+	var transactionHashHex string
+	fmt.Println("current call number: ", currentCallNumber)
+	if currentCallNumber == callNumber {
+
+		commandArgs := []string{
+			"protostar", "--no-color", "multicall", callsTomlPath,
+			"--max-fee", "auto"}
+
+		stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
+		if err != nil {
+			err = fmt.Errorf("protostar invoke command responded with an error: %w", err)
+			return err
+		}
+		// if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
+		// 	return err
+		// }
+		fmt.Println(transactionHashHex)
+		fmt.Println(string(stdout))
+
+		currentCallNumber = 0
+		return nil
+	} else {
+		return nil
 	}
-	return
+
 }
