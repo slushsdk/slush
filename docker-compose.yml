@@ -2,6 +2,7 @@ version: '3'
 
 services:
   node0:
+    platform: "linux/amd64"
     container_name: node0
     image: "slush/localnode"
     ports:
@@ -18,6 +19,7 @@ services:
         ipv4_address: 192.167.10.2
 
   node1:
+    platform: "linux/amd64"
     container_name: node1
     image: "slush/localnode"
     ports:
@@ -32,6 +34,7 @@ services:
         ipv4_address: 192.167.10.3
 
   node2:
+    platform: "linux/amd64"
     container_name: node2
     image: "slush/localnode"
     environment:
@@ -46,6 +49,7 @@ services:
         ipv4_address: 192.167.10.4
 
   node3:
+    platform: "linux/amd64"
     container_name: node3
     image: "slush/localnode"
     environment:
@@ -65,5 +69,4 @@ networks:
     ipam:
       driver: default
       config:
-        -
-          subnet: 192.167.10.0/16
+        - subnet: 192.167.10.0/16
