@@ -450,7 +450,6 @@ func shareAuthSignature(sc io.ReadWriter, pubKey crypto.PubKey, signature []byte
 	}
 
 	var _recvMsg = trs.FirstValue().(authSigMessage)
-	fmt.Println("line 446, ", _recvMsg.Key.Type())
 	return _recvMsg, nil
 }
 
