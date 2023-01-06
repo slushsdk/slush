@@ -57,8 +57,6 @@ var (
 	defaultNodeKeyName  = "node_key.json"
 	defaultAddrBookName = "addrbook.json"
 
-	defaultAccountPrivateKeyFileName = "pkey"
-
 	defaultConfigFilePath   = filepath.Join(defaultConfigDir, defaultConfigFileName)
 	defaultGenesisJSONPath  = filepath.Join(defaultConfigDir, defaultGenesisJSONName)
 	defaultPrivValKeyPath   = filepath.Join(defaultConfigDir, defaultPrivValKeyName)
@@ -254,9 +252,6 @@ type BaseConfig struct { //nolint: maligned
 	// A JSON file containing the private key to use for p2p authenticated encryption
 	NodeKey string `mapstructure:"node-key-file"`
 
-	// A text file containing the private key in hex format without 0x prefix
-	AccountPrivateKeyFileName string `mapstructure:"account-priv-key-file"`
-
 	// Mechanism to connect to the ABCI application: socket | grpc
 	ABCI string `mapstructure:"abci"`
 
@@ -270,19 +265,18 @@ type BaseConfig struct { //nolint: maligned
 // DefaultBaseConfig returns a default base configuration for a Tendermint node
 func DefaultBaseConfig() BaseConfig {
 	return BaseConfig{
-		CairoDir:                  defaultCairoDir,
-		Genesis:                   defaultGenesisJSONPath,
-		NodeKey:                   defaultNodeKeyPath,
-		AccountPrivateKeyFileName: defaultAccountPrivateKeyFileName,
-		Mode:                      defaultMode,
-		Moniker:                   defaultMoniker,
-		ProxyApp:                  "tcp://127.0.0.1:26658",
-		ABCI:                      "socket",
-		LogLevel:                  DefaultLogLevel,
-		LogFormat:                 log.LogFormatPlain,
-		FilterPeers:               false,
-		DBBackend:                 "goleveldb",
-		DBPath:                    "data",
+		CairoDir:    defaultCairoDir,
+		Genesis:     defaultGenesisJSONPath,
+		NodeKey:     defaultNodeKeyPath,
+		Mode:        defaultMode,
+		Moniker:     defaultMoniker,
+		ProxyApp:    "tcp://127.0.0.1:26658",
+		ABCI:        "socket",
+		LogLevel:    DefaultLogLevel,
+		LogFormat:   log.LogFormatPlain,
+		FilterPeers: false,
+		DBBackend:   "goleveldb",
+		DBPath:      "data",
 	}
 }
 
