@@ -29,22 +29,23 @@ Clone this repo
 ```sh
 git clone https://github.com/slushsdk/slush.git && cd slush
 ```
-Start Starknet devnet either locally on your machine or in docker:
+Start Starknet devnet with `--seed 42` either locally on your machine or in docker:
 >locally:
 >```sh
->starknet-devnet
+>starknet-devnet --seed 42
 >```
 >docker (linux/amd64):
 >```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet --seed 42
 >```
->docker (linux/arm64/v8):
+>docker (linux/arm64):
 >```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm --seed 42
 >```
-Create an account on devnet:
+
+Write the first pre-deployed account's private key into a file called `seed42pkey`:
 ```sh
-./create_devnet_account.sh
+echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
 ```
 
 Build the binary:
@@ -64,7 +65,7 @@ Start the local node:
 
 Cleanup:
 ```sh
-make clean && rm -rf ./valdata/config/ ./valdata/data/
+make clean && rm -rf ./valdata
 ```
 
 ---
@@ -73,23 +74,23 @@ make clean && rm -rf ./valdata/config/ ./valdata/data/
 
 The local testnet spins up the nodes in docker containers. Please make sure that docker desktop is installed and running ([docker desktop installation](https://www.docker.com/products/docker-desktop)).
 
-Start Starknet devnet either locally on your machine or in docker:
+Start Starknet devnet with `--seed 42` either locally on your machine or in docker:
 >locally:
 >```sh
->starknet-devnet
+>starknet-devnet --seed 42
 >```
 >docker (linux/amd64):
 >```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet --seed 42
 >```
->docker (linux/arm64/v8):
+>docker (linux/arm64):
 >```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm
+>docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm --seed 42
 >```
 
-Create an account on devnet:
+Write the first pre-deployed account's private key into a file called `seed42pkey`:
 ```sh
-./create_devnet_account.sh
+echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
 ```
 
 Build the linux binary:
