@@ -1471,6 +1471,7 @@ func DefaultProtostarConfig() *ProtostarConfig {
 		AccountAddress: "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a",
 		ChainId:        "1536727068981429685321",
 		GatewayUrl:     "http://127.0.0.1:5050/",
+		Network:        "devnet",
 		PrivateKeyPath: "seed42pkey",
 	}
 }
