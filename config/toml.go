@@ -223,7 +223,7 @@ gateway-url = "{{ .Protostar.GatewayUrl }}"
 network = "{{ .Protostar.Network }}"
 
 #
-PrivateKeyPath = "{{ .Protostar.PrivateKeyPath }}"
+private-key-path = "{{ .Protostar.PrivateKeyPath }}"
 
 
 #######################################################################

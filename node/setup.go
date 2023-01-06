@@ -482,9 +482,9 @@ func CreateSettlementReactor(
 
 	logger = logger.With("module", "settlement")
 
-	evidenceReactor := settlement.NewReactor(logger, cfg, SettlementCh)
+	settlementReactor := settlement.NewReactor(logger, cfg, SettlementCh)
 
-	return evidenceReactor, nil
+	return settlementReactor, nil
 }
 
 func createPeerManager(
