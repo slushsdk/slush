@@ -210,6 +210,12 @@ func formatVerificationArgs(vc VerificationConfig) verificationArgs {
 }
 
 func formatSignatureData(signature []byte) signatureData {
+	if len(signature) != 64 {
+		return signatureData{
+			SignatureR: big.NewInt(0),
+			SignatureS: big.NewInt(0),
+		}
+	}
 	return signatureData{
 		SignatureR: big.NewInt(0).SetBytes(signature[:32]),
 		SignatureS: big.NewInt(0).SetBytes(signature[32:]),
