@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/starknet"
 	"github.com/tendermint/tendermint/internal/settlement/utils"
 )
 
@@ -17,6 +19,16 @@ func networkArgs(pConf *config.ProtostarConfig) (networkArgs []string) {
 	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--network", pConf.Network)
 	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--private-key-path", pConf.PrivateKeyPath)
 	return
+}
+
+func starknetConfigFromProtostarForGetTransaction(pConf *config.ProtostarConfig) (sConfig *config.StarknetConfig) {
+	sConf := config.DefaultStarknetConfig()
+
+	sConf.FeederGatewayURL = pConf.GatewayUrl
+	sConf.GatewayURL = pConf.GatewayUrl
+	sConf.Network = pConf.Network
+
+	return sConf
 }
 
 func getClassHashHex(rawStdout []byte) (string, error) {
@@ -35,8 +47,12 @@ func getContractAddressHex(rawStdout []byte) (string, error) {
 	return utils.RegexFunctionFactory(`(?m)^Contract address: (0x[A-Fa-f0-9]*$)`, "contract address hex")(rawStdout)
 }
 
+func getMulticallTxHashFelt(rawStdout []byte) (string, error) {
+	return utils.RegexFunctionFactory(`(?m)^transaction hash: (0x[A-Fa-f0-9]*$)`, "multicall transaction hash")(rawStdout)
+}
+
 func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, transactionHashHex string, err error) {
-	commandArgs := []string{"protostar", "--no-color", "declare", contractPath, "--max-fee", "auto"}
+	commandArgs := []string{"protostar", "--no-color", "declare", contractPath, "--max-fee", "auto", "--wait-for-acceptance"}
 
 	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
 	if err != nil {
@@ -54,7 +70,7 @@ func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, 
 }
 
 func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddressHex, transactionHashFelt string, err error) {
-	commandArgs := []string{"protostar", "--no-color", "deploy", classHashHex, "--max-fee", "auto"}
+	commandArgs := []string{"protostar", "--no-color", "deploy", classHashHex, "--max-fee", "auto", "--wait-for-acceptance"}
 
 	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
 	if err != nil {
@@ -81,25 +97,30 @@ func Invoke(pConf *config.ProtostarConfig, contractAddress string, invokedFuncti
 
 	callArgs = callArgs + inputArrayString
 
-	err = Multicall(pConf, callArgs)
+	AddInvokeToFile(callArgs)
+	Multicall(pConf)
 	return "", err
 }
 
 var currentCallNumber = 0
 
-const callNumber = 3
+const maxCallNumber = 50
 
-func Multicall(pConf *config.ProtostarConfig, newInvoke string) (err error) {
-	callsTomlPath := "./cairo/calls.toml"
+// this file is created and used here, so there is no need to store location in config, I think?
+const callsTomlPath = "./cairo/calls.toml"
 
+func AddInvokeToFile(newInvoke string) (err error) {
+
+	// if we have no calls, we can remove the file. This also clears it if not empty, e.g. on startup.
 	if currentCallNumber == 0 {
-		if err := os.Remove(callsTomlPath); err != nil {
-			return fmt.Errorf("failed to remove file: %w", err)
+		if err := os.WriteFile(callsTomlPath, []byte{}, 0644); err != nil {
+			return fmt.Errorf("failed to clear file: %w", err)
 		}
 	}
 
 	currentCallNumber += 1
 
+	// opening and writing to file
 	f, err := os.OpenFile(callsTomlPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
@@ -113,30 +134,82 @@ func Multicall(pConf *config.ProtostarConfig, newInvoke string) (err error) {
 		return fmt.Errorf("failed to close file: %w", err)
 
 	}
+	return nil
+}
 
-	var transactionHashHex string
-	fmt.Println("current call number: ", currentCallNumber)
-	if currentCallNumber == callNumber {
+func Multicall(pConf *config.ProtostarConfig) (err error) {
+	// if we need to send the transaction, we should send it.
+	if currentCallNumber == maxCallNumber {
 
 		commandArgs := []string{
 			"protostar", "--no-color", "multicall", callsTomlPath,
 			"--max-fee", "auto"}
 
-		stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
+		fmt.Println("sending multicall")
+
+		transactionHash, err := SendMulticall(commandArgs, pConf)
+
 		if err != nil {
-			err = fmt.Errorf("protostar invoke command responded with an error: %w", err)
-			return err
+			fmt.Println("sending multicall failed!")
 		}
-		// if transactionHashHex, err = getTransactionHashHex(stdout); err != nil {
-		// 	return err
-		// }
-		fmt.Println(transactionHashHex)
-		fmt.Println(string(stdout))
+		QueryTxUntilAccepted(transactionHash, commandArgs, pConf)
 
 		currentCallNumber = 0
 		return nil
-	} else {
-		return nil
 	}
 
+	return nil
+}
+
+func SendMulticall(commandArgs []string, pConf *config.ProtostarConfig) (txhash string, err error) {
+	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
+	if err != nil {
+		fmt.Println("error sending multicall: ", err)
+		err = fmt.Errorf("protostar multicall command responded with an error: %w", err)
+		return "", err
+	}
+	fmt.Println("multicall sent")
+
+	transactionHash, err := getMulticallTxHashFelt(stdout)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println(string(stdout))
+	fmt.Println(transactionHash)
+	return transactionHash, nil
+}
+
+func QueryTxUntilAccepted(txHash string, multicallCommandArgs []string, pConf *config.ProtostarConfig) (err error) {
+	txAcceptedOrRejected := false
+	fmt.Println("starting to query transactions")
+	for !txAcceptedOrRejected {
+		time.Sleep(5 * time.Second)
+		// query the transaction
+		commandArgs := []string{"starknet", "get_transaction", "--hash", txHash}
+
+		stdout, err := utils.ExecuteCommand(commandArgs, starknet.NetworkArgsForGetTransaction(starknetConfigFromProtostarForGetTransaction(pConf)))
+		if err != nil {
+			err = fmt.Errorf("get transaction command responded with an error: %w", err)
+			return err
+		}
+
+		if strings.Contains(string(stdout), "\"status\": \"ACCEPTED_ON_L2\"") {
+			txAcceptedOrRejected = true
+			fmt.Println("Transaction is accepted")
+		} else if strings.Contains(string(stdout), "\"status\": \"REJECTED\"") {
+			// failure happens normally because of gas fees. We should retry.
+
+			txAcceptedOrRejected = true
+			fmt.Println("Transaction is rejected retrying:")
+			txHash, err = SendMulticall(multicallCommandArgs, pConf)
+			if err != nil {
+				break
+			}
+		} else {
+			fmt.Println("Transaction is still pending")
+		}
+		fmt.Println(string(stdout))
+	}
+	return err
 }
