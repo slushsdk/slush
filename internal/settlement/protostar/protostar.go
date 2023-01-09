@@ -54,7 +54,7 @@ func getMulticallTxHashFelt(rawStdout []byte) (string, error) {
 func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, transactionHashHex string, err error) {
 	commandArgs := []string{"protostar", "--no-color", "declare", contractPath, "--max-fee", "auto", "--wait-for-acceptance"}
 
-	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
+	stdout, err := ExecuteCommandUntilNoGasFeeError(commandArgs, networkArgs(pConf), "declare")
 	if err != nil {
 		err = fmt.Errorf("protostar declare command responded with an error:\n%s", err)
 		return
@@ -72,9 +72,9 @@ func Declare(pConf *config.ProtostarConfig, contractPath string) (classHashHex, 
 func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddressHex, transactionHashFelt string, err error) {
 	commandArgs := []string{"protostar", "--no-color", "deploy", classHashHex, "--max-fee", "auto", "--wait-for-acceptance"}
 
-	stdout, err := utils.ExecuteCommand(commandArgs, networkArgs(pConf))
+	stdout, err := ExecuteCommandUntilNoGasFeeError(commandArgs, networkArgs(pConf), "deploy")
 	if err != nil {
-		err = fmt.Errorf("protostar deploy command responded with an error: %w", err)
+		err = fmt.Errorf("protostar deploy command responded with an error:\n%s", err)
 		return
 	}
 
@@ -85,6 +85,24 @@ func Deploy(pConf *config.ProtostarConfig, classHashHex string) (contractAddress
 		return
 	}
 	return
+}
+
+// we cant use this for multicall, as that does not have a wait-for-acceptance flag. Check if it has been added, if so use it.
+func ExecuteCommandUntilNoGasFeeError(commandArgs, networkArgs []string, commandNameForPrinting string) ([]byte, error) {
+	commandExecutedOrNotGasError := false
+	var stdout []byte
+	var err error
+	for !commandExecutedOrNotGasError {
+		stdout, err = utils.ExecuteCommand(commandArgs, networkArgs)
+
+		if (err != nil) && (strings.Contains(err.Error(), "Actual fee exceeded max fee")) {
+			fmt.Println("protostar", commandNameForPrinting, " command responded a max fee error, trying again %w", err)
+
+		} else {
+			commandExecutedOrNotGasError = true
+		}
+	}
+	return stdout, err
 }
 
 func Invoke(pConf *config.ProtostarConfig, contractAddress string, invokedFunction string, inputs []string) (transactionHashHex string, err error) {
@@ -102,27 +120,35 @@ func Invoke(pConf *config.ProtostarConfig, contractAddress string, invokedFuncti
 	return "", err
 }
 
-var currentCallNumber = 0
+const maxCallNumber = 5
 
-const maxCallNumber = 50
+var currentMulticallNumber = 0
+var numberOfCalls = []uint32{0}
+
+// var acceptedMulticalls = []bool{false}
 
 // this file is created and used here, so there is no need to store location in config, I think?
-const callsTomlPath = "./cairo/calls.toml"
+const callsTomlPath = "./valdata/data/multicalls"
 
 func AddInvokeToFile(newInvoke string) (err error) {
-
-	// if we have no calls, we can remove the file. This also clears it if not empty, e.g. on startup.
-	if currentCallNumber == 0 {
-		if err := os.WriteFile(callsTomlPath, []byte{}, 0644); err != nil {
+	fmt.Println("cuurent multicall number: ", currentMulticallNumber)
+	if currentMulticallNumber == 0 && numberOfCalls[currentMulticallNumber] == 0 {
+		os.Mkdir(callsTomlPath, 0777)
+	}
+	// if we have no calls, we can remove the file. This also clears it if not empty
+	if numberOfCalls[currentMulticallNumber] == 0 {
+		if err := os.WriteFile(callsTomlPath+"/call"+fmt.Sprint(currentMulticallNumber)+".toml", []byte{}, 0777); err != nil {
+			fmt.Println(err)
 			return fmt.Errorf("failed to clear file: %w", err)
 		}
 	}
 
-	currentCallNumber += 1
+	numberOfCalls[currentMulticallNumber] += 1
 
 	// opening and writing to file
-	f, err := os.OpenFile(callsTomlPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(callsTomlPath+"/call"+fmt.Sprint(currentMulticallNumber)+".toml", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
+		fmt.Println(err)
 		return fmt.Errorf("failed to open file: %w", err)
 	}
 	if _, err := f.Write([]byte(newInvoke)); err != nil {
@@ -139,10 +165,13 @@ func AddInvokeToFile(newInvoke string) (err error) {
 
 func Multicall(pConf *config.ProtostarConfig) (err error) {
 	// if we need to send the transaction, we should send it.
-	if currentCallNumber == maxCallNumber {
+	if numberOfCalls[currentMulticallNumber] == maxCallNumber {
+		thisMulticallNumber := currentMulticallNumber
+		currentMulticallNumber += 1
+		numberOfCalls = append(numberOfCalls, 0)
 
 		commandArgs := []string{
-			"protostar", "--no-color", "multicall", callsTomlPath,
+			"protostar", "--no-color", "multicall", callsTomlPath + "call" + fmt.Sprint(thisMulticallNumber) + ".toml",
 			"--max-fee", "auto"}
 
 		fmt.Println("sending multicall")
@@ -154,7 +183,6 @@ func Multicall(pConf *config.ProtostarConfig) (err error) {
 		}
 		QueryTxUntilAccepted(transactionHash, commandArgs, pConf)
 
-		currentCallNumber = 0
 		return nil
 	}
 
@@ -183,7 +211,10 @@ func SendMulticall(commandArgs []string, pConf *config.ProtostarConfig) (txhash 
 func QueryTxUntilAccepted(txHash string, multicallCommandArgs []string, pConf *config.ProtostarConfig) (err error) {
 	txAcceptedOrRejected := false
 	fmt.Println("starting to query transactions")
+	i := 0
 	for !txAcceptedOrRejected {
+		i++
+		fmt.Println("quering transactions", i)
 		time.Sleep(5 * time.Second)
 		// query the transaction
 		commandArgs := []string{"starknet", "get_transaction", "--hash", txHash}
@@ -202,6 +233,7 @@ func QueryTxUntilAccepted(txHash string, multicallCommandArgs []string, pConf *c
 
 			txAcceptedOrRejected = true
 			fmt.Println("Transaction is rejected retrying:")
+			fmt.Println(string(stdout))
 			txHash, err = SendMulticall(multicallCommandArgs, pConf)
 			if err != nil {
 				break
