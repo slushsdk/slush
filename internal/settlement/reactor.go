@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	"github.com/tendermint/tendermint/internal/settlement/protostar"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/service"
@@ -14,7 +15,7 @@ type Reactor struct {
 	service.BaseService
 	logger       log.Logger
 	cfg          *config.Config
-	SettlementCh <-chan []string
+	SettlementCh <-chan parser.SettlementData
 	stopChan     chan bool
 }
 
@@ -24,7 +25,7 @@ type Reactor struct {
 func NewReactor(
 	logger log.Logger,
 	cfg *config.Config,
-	SettlementCh <-chan []string,
+	SettlementCh <-chan parser.SettlementData,
 ) *Reactor {
 	r := &Reactor{
 		logger:       logger,
@@ -53,7 +54,7 @@ func (r *Reactor) OnStop() {
 	r.stopChan <- true
 }
 
-func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan []string) {
+func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan parser.SettlementData) {
 	r.logger.Info("started settlement reactor")
 	for {
 		select {
@@ -71,7 +72,7 @@ func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan []string) {
 	}
 }
 
-func (r *Reactor) SendCommit(inputs []string) (err error) {
+func (r *Reactor) SendCommit(inputs parser.SettlementData) (err error) {
 	logger := r.logger
 	logger.Info("settling commit")
 
