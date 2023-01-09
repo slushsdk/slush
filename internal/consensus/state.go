@@ -103,7 +103,7 @@ type State struct {
 
 	// send lightblocks to settlement
 	// when block is finalised
-	SettlementCh chan<- []string
+	SettlementCh chan<- parser.SettlementData
 
 	// internal state
 	mtx tmsync.RWMutex
@@ -166,7 +166,7 @@ func NewState(
 	blockStore sm.BlockStore,
 	txNotifier txNotifier,
 	evpool evidencePool,
-	settlementCh chan []string,
+	settlementCh chan parser.SettlementData,
 	options ...StateOption,
 ) *State {
 	cs := &State{
@@ -1830,13 +1830,14 @@ func (cs *State) PushCommitToSettlement() (err error) {
 		TrustingPeriod: big.NewInt(999999999999999999),
 	}
 
+	proposer := untrustedLightBlock.ProposerAddress
 	inputs, err := parser.ParseInput(trustedLightBlock, untrustedLightBlock, vc)
 	if err != nil {
 		err = fmt.Errorf("failed to format for settlement: %w", err)
 		return
 	}
-
-	cs.SettlementCh <- inputs
+	toSend := parser.SettlementData{CommitmentProposer: proposer.String(), ValidatorAddress: string(cs.privValidatorPubKey.Address()), Data: inputs}
+	cs.SettlementCh <- toSend
 	return
 }
 

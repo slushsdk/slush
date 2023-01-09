@@ -14,6 +14,12 @@ import (
 	"github.com/tendermint/tendermint/version"
 )
 
+type SettlementData struct {
+	CommitmentProposer string
+	ValidatorAddress   string
+	Data               []string
+}
+
 type blockIdFlagData struct {
 	BlockIdFlag *big.Int `json:"BlockIDFlag"`
 }

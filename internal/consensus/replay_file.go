@@ -14,6 +14,7 @@ import (
 
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/internal/proxy"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/store"
 	"github.com/tendermint/tendermint/libs/log"
@@ -132,7 +133,7 @@ func (pb *playback) replayReset(count int, newStepSub types.Subscription) error 
 	}
 	pb.cs.Wait()
 
-	settlementChan := make(chan []string, 100)
+	settlementChan := make(chan parser.SettlementData, 100)
 	logger, _ := log.NewDefaultLogger("plain", "info", false)
 	settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
@@ -339,7 +340,7 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 	mempool, evpool := emptyMempool{}, sm.EmptyEvidencePool{}
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool, blockStore)
 
-	settlementChan := make(chan []string, 100)
+	settlementChan := make(chan parser.SettlementData, 100)
 
 	consensusState := NewState(csConfig, state.Copy(), blockExec,
 		blockStore, mempool, evpool, settlementChan)
@@ -353,7 +354,7 @@ func newConsensusStateForReplay(cfg config.BaseConfig, csConfig *config.Consensu
 
 type DummySettlementReactor struct {
 	logger       log.Logger
-	SettlementCh <-chan []string
+	SettlementCh <-chan parser.SettlementData
 	stopChan     chan bool
 }
 
