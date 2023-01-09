@@ -26,6 +26,7 @@ import (
 	"github.com/tendermint/tendermint/internal/p2p/pex"
 	"github.com/tendermint/tendermint/internal/proxy"
 	"github.com/tendermint/tendermint/internal/settlement"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/state/indexer"
 	"github.com/tendermint/tendermint/internal/state/indexer/sink"
@@ -394,7 +395,7 @@ func createConsensusReactor(
 	csMetrics *consensus.Metrics,
 	waitSync bool,
 	eventBus *types.EventBus,
-	settlementChan chan []string,
+	settlementChan chan parser.SettlementData,
 	peerManager *p2p.PeerManager,
 	router *p2p.Router,
 	logger log.Logger,
@@ -469,15 +470,15 @@ func createTransport(logger log.Logger, cfg *config.Config) *p2p.MConnTransport 
 	)
 }
 
-func CreateSettlementChan() chan []string {
-	ch := make(chan []string, 100)
+func CreateSettlementChan() chan parser.SettlementData {
+	ch := make(chan parser.SettlementData, 100)
 	return ch
 }
 
 func CreateSettlementReactor(
 	logger log.Logger,
 	cfg *config.Config,
-	SettlementCh <-chan []string,
+	SettlementCh <-chan parser.SettlementData,
 ) (*settlement.Reactor, error) {
 
 	logger = logger.With("module", "settlement")

@@ -24,6 +24,7 @@ import (
 	mempoolv0 "github.com/tendermint/tendermint/internal/mempool/v0"
 	"github.com/tendermint/tendermint/internal/p2p"
 	"github.com/tendermint/tendermint/internal/p2p/p2ptest"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	sm "github.com/tendermint/tendermint/internal/state"
 	statemocks "github.com/tendermint/tendermint/internal/state/mocks"
 	"github.com/tendermint/tendermint/internal/store"
@@ -374,7 +375,7 @@ func TestReactorWithEvidence(t *testing.T) {
 
 		blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
 
-		settlementChan := make(chan []string, 100)
+		settlementChan := make(chan parser.SettlementData, 100)
 		settlementReactor := DummySettlementReactor{logger: logger, SettlementCh: settlementChan, stopChan: make(chan bool)}
 		settlementReactor.OnStart()
 
