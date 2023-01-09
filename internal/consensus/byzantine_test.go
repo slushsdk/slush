@@ -18,6 +18,7 @@ import (
 	tmsync "github.com/tendermint/tendermint/internal/libs/sync"
 	mempoolv0 "github.com/tendermint/tendermint/internal/mempool/v0"
 	"github.com/tendermint/tendermint/internal/p2p"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	sm "github.com/tendermint/tendermint/internal/state"
 	"github.com/tendermint/tendermint/internal/store"
 	"github.com/tendermint/tendermint/internal/test/factory"
@@ -85,7 +86,7 @@ func TestByzantinePrevoteEquivocation(t *testing.T) {
 			// Make State
 			blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyAppConnCon, mempool, evpool, blockStore)
 
-			settlementChan := make(chan []string, 100)
+			settlementChan := make(chan parser.SettlementData, 100)
 			settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), SettlementCh: settlementChan, stopChan: make(chan bool)}
 			settlementReactor.OnStart()
 

@@ -21,6 +21,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/config"
 	cstypes "github.com/tendermint/tendermint/internal/consensus/types"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 
 	tmsync "github.com/tendermint/tendermint/internal/libs/sync"
 	mempoolv0 "github.com/tendermint/tendermint/internal/mempool/v0"
@@ -445,7 +446,7 @@ func newStateWithConfigAndBlockStore(
 		panic(err)
 	}
 
-	settlementChan := make(chan []string, 100)
+	settlementChan := make(chan parser.SettlementData, 100)
 	settlementReactor := DummySettlementReactor{logger: log.TestingLogger(), SettlementCh: settlementChan, stopChan: make(chan bool)}
 	settlementReactor.OnStart()
 

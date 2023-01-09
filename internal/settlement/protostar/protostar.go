@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/internal/settlement/parser"
 	"github.com/tendermint/tendermint/internal/settlement/starknet"
 	"github.com/tendermint/tendermint/internal/settlement/utils"
 )
@@ -105,18 +106,18 @@ func ExecuteCommandUntilNoGasFeeError(commandArgs, networkArgs []string, command
 	return stdout, err
 }
 
-func Invoke(pConf *config.ProtostarConfig, contractAddress string, invokedFunction string, inputs []string) (transactionHashHex string, err error) {
+func Invoke(pConf *config.ProtostarConfig, contractAddress string, invokedFunction string, inputs parser.SettlementData) (transactionHashHex string, err error) {
 	callArgs := "[[call]]" + "\n" +
 		"type = \"invoke\" " + "\n" +
 		"contract-address = " + contractAddress + "\n" +
 		"function = \"" + invokedFunction + "\"" + "\n" + "inputs = "
 
-	inputArrayString := "[ " + strings.Join(inputs, ",") + "]" + "\n" + "\n"
+	inputArrayString := "[ " + strings.Join(inputs.Data, ",") + "]" + "\n" + "\n"
 
 	callArgs = callArgs + inputArrayString
 
 	AddInvokeToFile(callArgs)
-	Multicall(pConf)
+	Multicall(pConf, inputs)
 	return "", err
 }
 
@@ -163,25 +164,27 @@ func AddInvokeToFile(newInvoke string) (err error) {
 	return nil
 }
 
-func Multicall(pConf *config.ProtostarConfig) (err error) {
+func Multicall(pConf *config.ProtostarConfig, sData parser.SettlementData) (err error) {
 	// if we need to send the transaction, we should send it.
 	if numberOfCalls[currentMulticallNumber] == maxCallNumber {
 		thisMulticallNumber := currentMulticallNumber
 		currentMulticallNumber += 1
 		numberOfCalls = append(numberOfCalls, 0)
 
-		commandArgs := []string{
-			"protostar", "--no-color", "multicall", callsTomlPath + "call" + fmt.Sprint(thisMulticallNumber) + ".toml",
-			"--max-fee", "auto"}
+		if sData.ValidatorAddress == sData.CommitmentProposer {
+			commandArgs := []string{
+				"protostar", "--no-color", "multicall", callsTomlPath + "call" + fmt.Sprint(thisMulticallNumber) + ".toml",
+				"--max-fee", "auto"}
 
-		fmt.Println("sending multicall")
+			fmt.Println("sending multicall")
 
-		transactionHash, err := SendMulticall(commandArgs, pConf)
+			transactionHash, err := SendMulticall(commandArgs, pConf)
 
-		if err != nil {
-			fmt.Println("sending multicall failed!")
+			if err != nil {
+				fmt.Println("sending multicall failed!")
+			}
+			QueryTxUntilAccepted(transactionHash, commandArgs, pConf)
 		}
-		QueryTxUntilAccepted(transactionHash, commandArgs, pConf)
 
 		return nil
 	}
