@@ -1,15 +1,10 @@
-["protostar.config"]
-protostar_version = "0.6.0"
+[project]
+protostar-version = "0.9.1"
+lib-path = "."
 
-["protostar.project"]
-libs_path = "./"
+[contracts]
+main = ["src/main.cairo"]
 
-["protostar.contracts"]
-main = [
-    "src/main.cairo",
-]
-
-[profile.devnet.protostar.deploy]
-gateway_url="http://127.0.0.1:5050/"
-chain_id=1536727068981429685321
-
+[profile.devnet.deploy]
+gateway_url = "http://127.0.0.1:5050/"
+chain_id = 1536727068981429685321
