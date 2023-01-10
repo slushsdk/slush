@@ -14,6 +14,7 @@ import (
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/internal/settlement/parser"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/tendermint/tendermint/types"
 )
@@ -337,7 +338,7 @@ func TestDeclare(t *testing.T) {
 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 
 	// Testing the Declare function
-	classHashHex, transactionHashHex, err := Declare(conf, "../../../cairo/build/main.json")
+	classHashHex, transactionHashHex, err := Declare(log.NewNopLogger(), conf, "../../../cairo/build/main.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, classHashHex)
 	require.NotEmpty(t, transactionHashHex)
@@ -374,13 +375,13 @@ func TestDeploy(t *testing.T) {
 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 
 	// Calling the Declare to get the class hash for the Deploy function
-	ch, th, err := Declare(conf, "../../../cairo/build/main.json")
+	ch, th, err := Declare(log.NewNopLogger(), conf, "../../../cairo/build/main.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, ch)
 	require.NotEmpty(t, th)
 
 	// Testing the Deploy function
-	contractAddressHex, transactionHashHex, err := Deploy(conf, ch)
+	contractAddressHex, transactionHashHex, err := Deploy(log.NewNopLogger(), conf, ch)
 	require.NoError(t, err)
 	require.NotEmpty(t, contractAddressHex)
 	require.NotEmpty(t, transactionHashHex)
@@ -417,13 +418,13 @@ func TestInvoke(t *testing.T) {
 	conf.AccountAddress = "0x347be35996a21f6bf0623e75dbce52baba918ad5ae8d83b6f416045ab22961a"
 
 	// Calling the Declare function
-	chh, thh, err := Declare(conf, "../../../cairo/build/main.json")
+	chh, thh, err := Declare(log.NewNopLogger(), conf, "../../../cairo/build/main.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, chh)
 	require.NotEmpty(t, thh)
 
 	// Calling the Deploy function
-	contractAddressHex, thf, err := Deploy(conf, chh)
+	contractAddressHex, thf, err := Deploy(log.NewNopLogger(), conf, chh)
 	require.NoError(t, err)
 	require.NotEmpty(t, contractAddressHex)
 	require.NotEmpty(t, thf)
@@ -452,7 +453,7 @@ func TestInvoke(t *testing.T) {
 	require.NoError(t, err)
 
 	// Testing the Invoke function
-	transactionHashHex, err := Invoke(conf, contractAddressHex, "externalVerifyAdjacent", invokeInputs)
+	err = Invoke(log.NewNopLogger(), conf, contractAddressHex, "externalVerifyAdjacent", parser.SettlementData{Data: invokeInputs, CommitmentProposer: "0", ValidatorAddress: "0"})
 	require.NoError(t, err)
-	require.NotEmpty(t, transactionHashHex)
+	// require.NotEmpty(t, transactionHashHex)
 }

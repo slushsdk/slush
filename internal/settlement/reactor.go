@@ -63,7 +63,6 @@ func (r *Reactor) ListenInvokeBlocks(SettlementCh <-chan parser.SettlementData) 
 			if err != nil {
 				r.logger.Error("failed to send commit", "err", err)
 			}
-			r.logger.Info("sent commit")
 		case <-r.stopChan:
 			r.logger.Info("Stopping settlement reactor via stopChan")
 
@@ -76,11 +75,11 @@ func (r *Reactor) SendCommit(inputs parser.SettlementData) (err error) {
 	logger := r.logger
 	logger.Info("settling commit")
 
-	transactionHashHex, err := protostar.Invoke(r.cfg.Protostar, r.cfg.VerifierAddress, "externalVerifyAdjacent", inputs)
+	err = protostar.Invoke(logger, r.cfg.Protostar, r.cfg.VerifierAddress, "externalVerifyAdjacent", inputs)
 	if err != nil {
 		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
 		return
 	}
-	logger.Info("invoked with transaction", "hash", " "+transactionHashHex)
+	logger.Info("block recorded for settlement")
 	return
 }
