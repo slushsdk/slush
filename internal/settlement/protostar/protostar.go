@@ -117,10 +117,15 @@ func Invoke(logger log.Logger, pConf *config.ProtostarConfig, contractAddress st
 	inputArrayString := "[ " + strings.Join(inputs.Data, ",") + "]" + "\n" + "\n"
 
 	callArgs = callArgs + inputArrayString
-
-	AddInvokeToFile(logger, callArgs)
-	Multicall(logger, pConf, inputs)
-	return err
+	err = AddInvokeToFile(logger, callArgs)
+	if err != nil {
+		return err
+	}
+	err = Multicall(logger, pConf, inputs)
+	if err != nil {
+		return
+	}
+	return nil
 }
 
 const maxCallNumber = 5
@@ -129,13 +134,20 @@ var currentMulticallNumber = 0
 var numberOfCalls = []uint32{0}
 
 // var acceptedMulticalls = []bool{false}
-
-// this file is created and used here, so there is no need to store location in config, I think?
-const callsTomlPath = "./valdata/data/multicalls"
+var callsTomlPath string
 
 func AddInvokeToFile(logger log.Logger, newInvoke string) (err error) {
 	if currentMulticallNumber == 0 && numberOfCalls[currentMulticallNumber] == 0 {
-		os.Mkdir(callsTomlPath, 0777)
+		if pwd, _ := os.Getwd(); pwd == "/slush" {
+			nodeNum := os.Getenv("ID")
+			callsTomlPath = "/slush/node" + nodeNum + "/data/multicalls"
+		} else {
+			callsTomlPath = "./valdata/data/multicalls"
+		}
+		if err := os.Mkdir(callsTomlPath, config.DefaultDirPerm); err != nil {
+			return fmt.Errorf("failed to make directory: %w", err)
+		}
+
 	}
 	// if we have no calls, we can remove the file. This also clears it if not empty
 	if numberOfCalls[currentMulticallNumber] == 0 {
@@ -165,6 +177,8 @@ func AddInvokeToFile(logger log.Logger, newInvoke string) (err error) {
 
 func Multicall(logger log.Logger, pConf *config.ProtostarConfig, sData parser.SettlementData) (err error) {
 	// if we need to send the transaction, we should send it.
+	logger.Info("Multicalling ")
+
 	if numberOfCalls[currentMulticallNumber] == maxCallNumber {
 		thisMulticallNumber := currentMulticallNumber
 		currentMulticallNumber += 1
