@@ -182,7 +182,7 @@ func logNodeStartupInfo(state sm.State, pubKey crypto.PubKey, logger, consensusL
 		addr := pubKey.Address()
 		// Log whether this node is a validator or an observer
 		if state.Validators.HasAddress(addr) {
-			consensusLogger.Info("This node is a validator", "addr", addr, "pubKey", pubKey.Bytes())
+			consensusLogger.Info("This node is a validator", "addr", addr, "pubKey", pubKey.Bytes(), " pubKey type", pubKey.Type())
 		} else {
 			consensusLogger.Info("This node is a validator (NOT in the active validator set)",
 				"addr", addr, "pubKey", pubKey.Bytes())

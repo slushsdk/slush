@@ -81,13 +81,13 @@ func initProtostarConfig(conf *cfg.Config, accountAddress, network string) error
 }
 
 func initVerifierAddress(conf *cfg.Config, logger log.Logger) (err error) {
-	classHashHex, transactionHashHex, err := protostar.Declare(conf.Protostar, filepath.Join(conf.CairoDir, "build/main.json"))
+	classHashHex, transactionHashHex, err := protostar.Declare(logger, conf.Protostar, filepath.Join(conf.CairoDir, "build/main.json"))
 	if err != nil {
 		return
 	}
 	logger.Info(fmt.Sprintf("Successfully sent declare tx with classHash: %s and transactionHash: %s", classHashHex, transactionHashHex))
 
-	contractAddressHex, transactionHex, err := protostar.Deploy(conf.Protostar, classHashHex)
+	contractAddressHex, transactionHex, err := protostar.Deploy(logger, conf.Protostar, classHashHex)
 	if err != nil {
 		return
 	}
