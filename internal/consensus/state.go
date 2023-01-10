@@ -1836,7 +1836,7 @@ func (cs *State) PushCommitToSettlement() (err error) {
 		err = fmt.Errorf("failed to format for settlement: %w", err)
 		return
 	}
-	toSend := parser.SettlementData{CommitmentProposer: proposer.String(), ValidatorAddress: string(cs.privValidatorPubKey.Address()), Data: inputs}
+	toSend := parser.SettlementData{CommitmentProposer: proposer.String(), ValidatorAddress: (cs.privValidatorPubKey.Address()).String(), Data: inputs}
 	cs.SettlementCh <- toSend
 	return
 }
