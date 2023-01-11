@@ -17,6 +17,7 @@ Send transactions to tendermint with the [ABCI-CLI](https://docs.tendermint.com/
 | [Go](https://go.dev/doc/install)                                                     |  [1.17](https://go.dev/doc/go1.17)                                             |
 | [Cairo](https://www.cairo-lang.org/docs/quickstart.html)                             |  [0.10.3](https://github.com/starkware-libs/cairo-lang/releases/tag/v0.10.3)   |
 | [Starknet Devnet](https://shard-labs.github.io/starknet-devnet/docs/intro#install)   |  [0.4.2](https://github.com/Shard-Labs/starknet-devnet/releases/tag/v0.4.2)    |
+| [Protostar](https://docs.swmansion.com/protostar/docs/tutorials/installation)        |  [0.9.1] (https://github.com/software-mansion/protostar/releases/tag/v0.9.1)   |
 | Python (with [pyenv](https://github.com/pyenv/pyenv))                                |  [3.9](https://www.python.org/downloads/release/python-390/)                   |
 
 Before installing Starknet Devnet on M1 check [this thread](https://github.com/OpenZeppelin/nile/issues/22).
