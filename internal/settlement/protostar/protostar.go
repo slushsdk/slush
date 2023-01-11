@@ -29,7 +29,9 @@ func starknetConfigFromProtostarForGetTransaction(pConf *config.ProtostarConfig)
 
 	sConf.FeederGatewayURL = pConf.GatewayUrl
 	sConf.GatewayURL = pConf.GatewayUrl
-	sConf.Network = pConf.Network
+	if pConf.Network == "testnet" {
+		sConf.Network = "alpha-goerli"
+	}
 
 	return sConf
 }
