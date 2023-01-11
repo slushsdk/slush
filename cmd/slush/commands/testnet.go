@@ -76,6 +76,8 @@ func init() {
 		"randomize the moniker for each generated node")
 	TestnetFilesCmd.Flags().StringVar(&keyType, "key", types.ABCIPubKeyTypeStark,
 		"Key type to generate privval file with. Options: ed25519, secp256k1")
+	TestnetFilesCmd.Flags().StringVar(&network, "network", "devnet", "Network to deploy on: testnet or devnet.")
+
 }
 
 // TestnetFilesCmd allows initialisation of files for a Tendermint testnet.
@@ -121,16 +123,17 @@ func testnetFiles(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// config.Protostar = cfg.DefaultProtostarConfig()
-	// config.Protostar.GatewayUrl = "http://host.docker.internal:5050/"
-	accountAddress = "0x0792D501F905D9f35067931950A0EabC6E540D25c50cA6A6A462Bd9166cfDF3d"
-	config.Protostar = &cfg.ProtostarConfig{
-		AccountAddress: accountAddress,
-		ChainId:        "1536727068981429685321",
-		Network:        "testnet",
-		PrivateKeyPath: "pkey",
+	if network == "devnet" {
+		config.Protostar.GatewayUrl = "http://host.docker.internal:5050/"
+		accountAddress = "0x0792D501F905D9f35067931950A0EabC6E540D25c50cA6A6A462Bd9166cfDF3d"
+	} else if network == "testnet" {
+		config.Protostar = &cfg.ProtostarConfig{
+			AccountAddress: accountAddress,
+			ChainId:        "1536727068981429685321",
+			Network:        "testnet",
+			PrivateKeyPath: "pkey",
+		}
 	}
-
 	if err := initVerifierAddress(config, logger); err != nil {
 		return err
 	}
