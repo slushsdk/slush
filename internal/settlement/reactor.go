@@ -80,6 +80,5 @@ func (r *Reactor) SendCommit(inputs parser.SettlementData) (err error) {
 		err = fmt.Errorf("failed to invoke starknet contract: %w", err)
 		return
 	}
-	logger.Info("block recorded for settlement")
 	return
 }
