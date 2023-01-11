@@ -44,16 +44,18 @@ func initFiles(cmd *cobra.Command, args []string) error {
 	}
 	config.Mode = args[0]
 
-	if network != "devnet" && accountAddress == "" {
-		return errors.New("must specify an account address: slush init --account-address <address>")
-	}
+	if config.Mode == cfg.ModeValidator {
+		if network != "devnet" && accountAddress == "" {
+			return errors.New("must specify an account address: slush init --account-address <address>")
+		}
 
-	if err := initProtostarConfig(config, accountAddress, network); err != nil {
-		return err
-	}
+		if err := initProtostarConfig(config, accountAddress, network); err != nil {
+			return err
+		}
 
-	if err := initVerifierAddress(config, logger); err != nil {
-		return err
+		if err := initVerifierAddress(config, logger); err != nil {
+			return err
+		}
 	}
 
 	return initFilesWithConfig(config)
