@@ -125,8 +125,6 @@ const maxCallNumber = 5
 var currentMulticallNumber = 0
 var numberOfCalls = []uint32{0}
 
-// var acceptedMulticalls = []bool{false}
-
 // this file is created and used here, so there is no need to store location in config, I think?
 const callsTomlPath = "./valdata/data/multicalls"
 
