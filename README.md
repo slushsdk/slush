@@ -30,34 +30,35 @@ Clone this repo
 ```sh
 git clone https://github.com/slushsdk/slush.git && cd slush
 ```
-Start Starknet devnet with `--seed 42` either locally on your machine or in docker:
->locally:
->```sh
->starknet-devnet --seed 42
->```
->docker (linux/amd64):
->```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet --seed 42
->```
->docker (linux/arm64):
->```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm --seed 42
->```
-
-Write the first pre-deployed account's private key into a file called `seed42pkey`:
-```sh
-echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
-```
 
 Build the binary:
 ```sh
 make build
 ```
 
-Init:
-```sh
-./build/slush init validator --home ./valdata
-```
+If using testnet:
+>Write your alpha-goerli starknet account's private key in hex format into a file called `pkey`:
+>```sh
+>echo "0x..." > pkey
+>```
+>Use the init command with  the `--network testnet` and `--account-address` flags:
+>```
+>./build/slush init validator --home ./valdata --network testnet --account-address 0x...
+>```
+
+If using devnet:
+>Start Starknet devnet with `--seed 42`:
+>```sh
+>starknet-devnet --seed 42
+>```
+>Write the first pre-deployed account's private key into a file called `seed42pkey`:
+>```sh
+>echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
+>```
+>Use the init command with:
+>```
+>./build/slush init validator --home ./valdata
+>```
 
 Start the local node:
 ```sh
@@ -79,14 +80,6 @@ Start Starknet devnet with `--seed 42` either locally on your machine or in dock
 >locally:
 >```sh
 >starknet-devnet --seed 42
->```
->docker (linux/amd64):
->```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet --seed 42
->```
->docker (linux/arm64):
->```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm --seed 42
 >```
 
 Write the first pre-deployed account's private key into a file called `seed42pkey`:
