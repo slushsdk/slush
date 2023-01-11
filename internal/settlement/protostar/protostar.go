@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/internal/settlement/starknet"
 	"github.com/tendermint/tendermint/internal/settlement/utils"
 )
 
@@ -21,14 +20,11 @@ func networkArgs(pConf *config.ProtostarConfig) (networkArgs []string) {
 	return
 }
 
-func starknetConfigFromProtostarForGetTransaction(pConf *config.ProtostarConfig) (sConfig *config.StarknetConfig) {
-	sConf := config.DefaultStarknetConfig()
-
-	sConf.FeederGatewayURL = pConf.GatewayUrl
-	sConf.GatewayURL = pConf.GatewayUrl
-	sConf.Network = pConf.Network
-
-	return sConf
+func starknetNetworkArgs(pConf *config.ProtostarConfig) (networkArgs []string) {
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--gateway_url", pConf.GatewayUrl)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--feeder_gateway_url", pConf.GatewayUrl)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--network", pConf.Network)
+	return
 }
 
 func getClassHashHex(rawStdout []byte) (string, error) {
@@ -217,7 +213,7 @@ func QueryTxUntilAccepted(txHash string, multicallCommandArgs []string, pConf *c
 		// query the transaction
 		commandArgs := []string{"starknet", "get_transaction", "--hash", txHash}
 
-		stdout, err := utils.ExecuteCommand(commandArgs, starknet.NetworkArgsForGetTransaction(starknetConfigFromProtostarForGetTransaction(pConf)))
+		stdout, err := utils.ExecuteCommand(commandArgs, starknetNetworkArgs(pConf))
 		if err != nil {
 			err = fmt.Errorf("get transaction command responded with an error: %w", err)
 			return err
@@ -228,7 +224,6 @@ func QueryTxUntilAccepted(txHash string, multicallCommandArgs []string, pConf *c
 			fmt.Println("Transaction is accepted")
 		} else if strings.Contains(string(stdout), "\"status\": \"REJECTED\"") {
 			// failure happens normally because of gas fees. We should retry.
-
 			txAcceptedOrRejected = true
 			fmt.Println("Transaction is rejected retrying:")
 			fmt.Println(string(stdout))
