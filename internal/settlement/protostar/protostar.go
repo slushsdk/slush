@@ -24,9 +24,13 @@ func networkArgs(pConf *config.ProtostarConfig) (networkArgs []string) {
 }
 
 func starknetNetworkArgs(pConf *config.ProtostarConfig) (networkArgs []string) {
+	network := pConf.Network
+	if pConf.Network == "testnet" {
+		network = "alpha-goerli"
+	}
 	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--gateway_url", pConf.GatewayUrl)
 	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--feeder_gateway_url", pConf.GatewayUrl)
-	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--network", pConf.Network)
+	networkArgs = utils.AppendKeyWithValueIfNotEmpty(networkArgs, "--network", network)
 	return
 }
 
