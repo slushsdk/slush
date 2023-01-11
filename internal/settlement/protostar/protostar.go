@@ -128,8 +128,6 @@ const maxCallNumber = 5
 
 var currentMulticallNumber = 0
 var numberOfCalls = []uint32{0}
-
-// var acceptedMulticalls = []bool{false}
 var callsTomlPath string
 
 func AddInvokeToFile(logger log.Logger, newInvoke string) (err error) {

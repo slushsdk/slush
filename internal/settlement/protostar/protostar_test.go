@@ -455,5 +455,4 @@ func TestInvoke(t *testing.T) {
 	// Testing the Invoke function
 	err = Invoke(log.NewNopLogger(), conf, contractAddressHex, "externalVerifyAdjacent", parser.SettlementData{Data: invokeInputs, CommitmentProposer: "0", ValidatorAddress: "0"})
 	require.NoError(t, err)
-	// require.NotEmpty(t, transactionHashHex)
 }
