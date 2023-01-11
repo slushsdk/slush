@@ -1831,12 +1831,20 @@ func (cs *State) PushCommitToSettlement() (err error) {
 	}
 
 	proposer := untrustedLightBlock.ProposerAddress
+	var validatorAddress string
+
+	if cs.privValidatorPubKey != nil {
+		validatorAddress = (cs.privValidatorPubKey.Address()).String()
+	} else {
+		validatorAddress = ""
+	}
+
 	inputs, err := parser.ParseInput(trustedLightBlock, untrustedLightBlock, vc)
 	if err != nil {
 		err = fmt.Errorf("failed to format for settlement: %w", err)
 		return
 	}
-	toSend := parser.SettlementData{CommitmentProposer: proposer.String(), ValidatorAddress: (cs.privValidatorPubKey.Address()).String(), Data: inputs}
+	toSend := parser.SettlementData{CommitmentProposer: proposer.String(), ValidatorAddress: validatorAddress, Data: inputs}
 	cs.SettlementCh <- toSend
 	return
 }
