@@ -99,7 +99,7 @@ func ExecuteCommandUntilNoGasFeeError(logger log.Logger, commandArgs, networkArg
 		stdout, err = utils.ExecuteCommand(commandArgs, networkArgs)
 
 		if (err != nil) && (strings.Contains(err.Error(), "Actual fee exceeded max fee")) {
-			logger.Info("protostar"+commandNameForPrinting+"command responded a max fee error, trying again %w", err)
+			logger.Info("protostar "+commandNameForPrinting+" command responded a max fee error, trying again %w", err)
 
 		} else {
 			commandExecutedOrNotGasError = true
@@ -117,6 +117,7 @@ func Invoke(logger log.Logger, pConf *config.ProtostarConfig, contractAddress st
 	inputArrayString := "[ " + strings.Join(inputs.Data, ",") + "]" + "\n" + "\n"
 
 	callArgs = callArgs + inputArrayString
+	logger.Info("block recorded for settlement")
 	err = AddInvokeToFile(logger, callArgs)
 	if err != nil {
 		return err
@@ -175,7 +176,6 @@ func AddInvokeToFile(logger log.Logger, newInvoke string) (err error) {
 
 func Multicall(logger log.Logger, pConf *config.ProtostarConfig, sData parser.SettlementData) (err error) {
 	// if we need to send the transaction, we should send it.
-	logger.Info("Multicalling ")
 
 	if numberOfCalls[currentMulticallNumber] == maxCallNumber {
 		thisMulticallNumber := currentMulticallNumber
@@ -186,7 +186,7 @@ func Multicall(logger log.Logger, pConf *config.ProtostarConfig, sData parser.Se
 				"protostar", "--no-color", "multicall", callsTomlPath + "/call" + fmt.Sprint(thisMulticallNumber) + ".toml",
 				"--max-fee", "auto"}
 
-			logger.Info("sending multicall")
+			logger.Info("Sending multicall to starknet")
 
 			err = ExecuteUntilNoGasErrorReplacement(logger, commandArgs, pConf)
 			if err != nil {
