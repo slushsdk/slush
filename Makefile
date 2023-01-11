@@ -71,7 +71,13 @@ ifeq (,$(shell which protostar))
 endif
 .PHONY: check-protostar-dep
 
-build: check-protostar-dep $(BUILDDIR)/
+check-starknet-dep:
+ifeq (,$(shell which starknet))
+	$(error "starknet is required. Change your python environment or install it")
+endif
+.PHONY: check-starknet-dep
+
+build: check-protostar-dep check-starknet-dep $(BUILDDIR)/
 	@cd cairo; mkdir -p build; protostar build
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_FLAGS) -tags '$(BUILD_TAGS)' -o $(BUILDDIR)/ ./cmd/slush/
 .PHONY: build
