@@ -129,7 +129,7 @@ func Invoke(logger log.Logger, pConf *config.ProtostarConfig, contractAddress st
 	return nil
 }
 
-const maxCallNumber = 5
+const maxCallNumber = 10
 
 var currentMulticallNumber = 0
 var numberOfCalls = []uint32{0}

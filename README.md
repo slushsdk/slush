@@ -48,7 +48,7 @@ Write the first pre-deployed account's private key into a file called `seed42pke
 ```sh
 echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
 ```
-Alternatively, if deploying on alpha-goerli testnet, write your Argent wallet private key into pkey file: 
+Alternatively, if deploying on alpha-goerli testnet, write your Argent/Braavos wallet private key into pkey file: 
 ```sh
 echo "0x..." > pkey
 ```
@@ -81,7 +81,7 @@ You can deploy alpha-goerli testnet.
 
 On your chosen validator node:
 
-> Write your Argent wallet private key into pkey file: 
+> Write your Argent/Braavos wallet private key into pkey file: 
 >```sh
 >echo "0x..." > pkey
 >```
