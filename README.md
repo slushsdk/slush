@@ -30,38 +30,35 @@ Clone this repo
 ```sh
 git clone https://github.com/slushsdk/slush.git && cd slush
 ```
-You can deploy on devnet or alpha-goerli testnet. If deploying on devnet start Starknet devnet with `--seed 42` either locally on your machine or in docker:
->locally:
->```sh
->starknet-devnet --seed 42
->```
->docker (linux/amd64):
->```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet --seed 42
->```
->docker (linux/arm64):
->```sh
->docker run --rm -p 5050:5050 -d --name devnet shardlabs/starknet-devnet:latest-arm --seed 42
->```
-
-Write the first pre-deployed account's private key into a file called `seed42pkey`:
-```sh
-echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
-```
-Alternatively, if deploying on alpha-goerli testnet, write your Argent/Braavos wallet private key into pkey file: 
-```sh
-echo "0x..." > pkey
-```
 
 Build the binary:
 ```sh
 make build
 ```
 
-Init (if deploying on alpha-goerli testnet add the "--network testnet" flag):
-```sh
-./build/slush init validator --home ./valdata
-```
+If using testnet ([alpha-goerli](https://docs.starknet.io/documentation/useful_info/#starknet_alpha_version_on_goerli_testnet_1)):
+>Write your Argent/Braavos wallet account's private key in hex format into a file called `pkey`:
+>```sh
+>echo "0x..." > pkey
+>```
+>Use the init command with  the `--network testnet` and `--account-address` flags:
+>```
+>./build/slush init validator --home ./valdata --network testnet --account-address 0x...
+>```
+
+If using local devnet ([starknet-devnet](https://shard-labs.github.io/starknet-devnet/docs/intro#install)):
+>Start Starknet devnet with `--seed 42`:
+>```sh
+>starknet-devnet --seed 42
+>```
+>Write the first pre-deployed account's private key into a file called `seed42pkey`:
+>```sh
+>echo "0xbdd640fb06671ad11c80317fa3b1799d" > seed42pkey
+>```
+>Use the init command with:
+>```
+>./build/slush init validator --home ./valdata
+>```
 
 Start the local node:
 ```sh
@@ -77,11 +74,11 @@ make clean && rm -rf ./valdata
 
 ## Starting a testnet with watcher nodes on a different machines
 
-You can deploy alpha-goerli testnet. 
+You can deploy on alpha-goerli testnet.
 
 On your chosen validator node:
 
-> Write your Argent/Braavos wallet private key into pkey file: 
+> Write your Argent/Braavos wallet private key into pkey file:
 >```sh
 >echo "0x..." > pkey
 >```
@@ -91,15 +88,15 @@ On your chosen validator node:
 >```
 >Init:
 >```sh
->./build/slush init validator --home ./valdata --network testnet
+>./build/slush init validator --home ./valdata --network testnet --account-address 0x...
 >```
 >Run the inputs for the non-validator nodes. Execute the output on the non-validator nodes:
->```sh 
+>```sh
 >python multiple-non-validator-node-steps.py
 >```
 >And you also need to start the validator node on the original machine, with:
 >```
->./build/slush start --home ./valdata --proxy-app=kvstore 
+>./build/slush start --home ./valdata --proxy-app=kvstore
 >```
 
 
@@ -109,15 +106,15 @@ Initialize a non-validator node with the outputs of the multiple-non-validator-n
 
 <br/>
 
-> Initialise the non-validator node. 
+> Initialize the non-validator node.
 >```
 > ./build/slush init full --home ./valdata
 >```
->Copy the content of the valdata/config/genesis.json file from the validator node to the valdata/config folder of the other non-validator computers. 
+>Copy the content of the valdata/config/genesis.json file from the validator node to the valdata/config folder of the other non-validator computers.
 >
 >Run the following command to start a non-validator node:
 >```
->./build/slush start --home ./valdata --proxy-app=kvstore --p2p.persistent-peers "SOME-LONG-ADDRESS@SOME-IP"
+>./build/slush start --home ./valdata --proxy-app=kvstore --p2p.persistent-peers "SOME-LONG-ADDRESS@SOME-IP:26656"
 >```
 
 Cleanup:
